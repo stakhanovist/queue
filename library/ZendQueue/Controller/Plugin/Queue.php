@@ -13,7 +13,7 @@ namespace ZendQueue\Controller\Plugin;
 use Zend\Mvc\Controller\Plugin\AbstractPlugin;
 use Zend\ServiceManager\ServiceLocatorAwareInterface;
 use Zend\ServiceManager\ServiceLocatorAwareTrait;
-use LeoBotMQ\Job\Worker\Message\Forward;
+use TBD\Job\Worker\Message\Forward;
 use ZendQueue\Parameter\SendParameters;
 use Zend\Http\Request;
 class Queue extends AbstractPlugin implements ServiceLocatorAwareInterface
@@ -60,6 +60,7 @@ class Queue extends AbstractPlugin implements ServiceLocatorAwareInterface
      */
     public function forward($name, array $params = null, SendParameters $sendParams = null)
     {
+        //FIXME: how to handle the external component depedency?
         $message = new Forward();
         $message->setContent($name);
         if($params !== null) {
