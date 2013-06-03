@@ -14,6 +14,9 @@ use ZendQueue\Exception;
 use ZendQueue\Message;
 use ZendQueue\Queue;
 use ZendQueue\Parameter\SendParameters;
+use ZendQueue\Adapter\Capabilities\DeleteMessageCapableInterface;
+use ZendQueue\Adapter\Capabilities\ListQueuesCapableInterface;
+use ZendQueue\Adapter\Capabilities\CountMessagesCapableInterface;
 
 /**
  * Class for using a standard PHP array as a queue
@@ -22,7 +25,7 @@ use ZendQueue\Parameter\SendParameters;
  * @package    Zend_Queue
  * @subpackage Adapter
  */
-class ArrayAdapter extends AbstractAdapter
+class ArrayAdapter extends AbstractAdapter implements DeleteMessageCapableInterface, ListQueuesCapableInterface, CountMessagesCapableInterface
 {
     /**
      * @var array
@@ -148,6 +151,8 @@ class ArrayAdapter extends AbstractAdapter
             throw new Exception\QueueNotFoundException('Queue does not exist:' . $queue->getName());
         }
 
+        $this->_cleanMessageInfo($queue, $message);
+        
         $msg = array(
             'created'  => time(),
             'class'    => get_class($queue),
@@ -162,6 +167,9 @@ class ArrayAdapter extends AbstractAdapter
             'queue' => $queue,
             'data'  => $data,
         );
+        
+        $this->_embedMessageInfo($queue, $message, $messageId, $params);
+        
         $classname = $queue->getMessageClass();
         return new $classname($options);
     }
@@ -241,33 +249,6 @@ class ArrayAdapter extends AbstractAdapter
         unset($queue[$messageId]);
         
         return true;
-    }
-
-    /********************************************************************
-     * Supporting functions
-     *********************************************************************/
-
-    /**
-     * Return a list of queue capabilities functions
-     *
-     * $array['function name'] = true or false
-     * true is supported, false is not supported.
-     *
-     * @param  string $name
-     * @return array
-     */
-    public function getCapabilities()
-    {
-        return array(
-            'create'        => true,
-            'delete'        => true,
-            'send'          => true,
-            'receive'       => true,
-            'deleteMessage' => true,
-            'getQueues'     => true,
-            'count'         => true,
-            'isExists'      => true,
-        );
     }
 
     /********************************************************************
