@@ -127,14 +127,6 @@ class ArrayAdapter extends AbstractAdapter implements DeleteMessageCapableInterf
     /********************************************************************
     * Messsage management functions
      *********************************************************************/
-
-    /**
-     * @return array
-     */
-    public function getAvailableSendParams()
-    {
-        return array();
-    }
     
     /**
      * Send a message to the queue
