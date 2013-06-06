@@ -110,7 +110,11 @@ class Queue implements Countable
         return $this->options;
     }
 
-
+    /**
+     * Get Queue name
+     * 
+     * @return string
+     */
     public function getName()
     {
         return $this->name;
