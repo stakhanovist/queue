@@ -112,7 +112,7 @@ class Queue implements Countable
 
     /**
      * Get Queue name
-     * 
+     *
      * @return string
      */
     public function getName()
@@ -191,7 +191,7 @@ class Queue implements Countable
         $adapter = $this->getAdapter();
 
         $deleted = false;
-        
+
         if($adapter->isExists($name)) {
             $deleted = $adapter->delete($name);
         }
@@ -199,7 +199,7 @@ class Queue implements Countable
         /**
          * @see Adapter\Null
          */
-        $this->setAdapter(new Adapter\Null($this->getOptions()->getAdapterOptions()));
+        $this->setAdapter('Null');
 
         return $deleted;
     }
