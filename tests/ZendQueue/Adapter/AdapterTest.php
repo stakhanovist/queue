@@ -17,6 +17,7 @@ use ZendQueue\Queue;
 use ZendQueue\Adapter\AdapterInterface;
 use ZendQueue\QueueOptions;
 use ZendQueue\Message\MessageIterator;
+use ZendQueue\Parameter\ReceiveParameters;
 
 /*
  * The adapter test class provides a universal test class for all of the
@@ -600,21 +601,6 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
         $queue->deleteQueue();
     }
 
-    public function testGetQueue()
-    {
-        $this->markTestSkipped('FIXME <Pruno>');
-        
-        if (!$queue = $this->createQueue(__FUNCTION__)) {
-            return;
-        }
-        $adapter = $queue->getAdapter();
-
-        $this->assertTrue($queue === $queue->getAdapter()->getQueue());
-
-        // delete the queue we created
-        $queue->deleteQueue();
-    }
-
     /*
      * Send about 10 messages, read 5 back, then read 5 back 1 at a time.
      * delete all messages and created queue
@@ -670,11 +656,6 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
         $extra_delay = 2; // how long we are willing to wait for the test to finish before failing
         // keep in mind that some queue services are on forigen machines and need network time.
 
-        if (false) { // easy comment/uncomment, set to true or false
-            $this->markTestSkipped('Visibility testing takes ' . $default_timeout+$extra_delay . ' seconds per adapter, if you wish to test this, uncomment the test case in ' . __FILE__ . ' line ' . __LINE__);
-            return;
-        }
-
         if (!$queue = $this->createQueue(__FUNCTION__)) {
             return;
         }
@@ -690,8 +671,10 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
         $body = 'hello world';
 
         $queue->send($body);
-        $messages = $queue->receive(1); // messages are deleted at the bottom.
-
+        $reciveParams = new ReceiveParameters();
+        $reciveParams->setTimeout($default_timeout);
+        $messages = $queue->receive(1, $reciveParams); // messages are deleted at the bottom.
+        
         if ($this->queueHasSupport($queue, 'count')) {
             $this->assertEquals(1, $queue->count());
         }
@@ -701,7 +684,7 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
 
         $this->assertTrue($messages instanceof MessageIterator);
 
-        $timeout = $start + $extra_delay;
+        $timeout = $start + $default_timeout +$extra_delay;
         $found = false;
         $check = microtime(true);
 
@@ -713,7 +696,7 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
                 if ($debug) echo "Checking - found ", count($search), " messages at : ", $check, "\n";
             }
             if ( count($search) > 0 ) {
-                if ($search->current()->body == $body) {
+                if ($search->current()->getContent() == $body) {
                     $found = true;
                     $end = microtime(true);
                 } else {
@@ -734,7 +717,7 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
         and so on, may take more than the timeout time.
         */
         if ($found) {
-            if (abs($end - $start) < $extra_delay) { // stupid Db Adapter responds in a fraction less than a second.
+            if (abs($end - $start - $default_timeout) < $extra_delay) { // stupid Db Adapter responds in a fraction less than a second.
                 $this->assertTrue(true, 'message was invisible for the required amount of time');
             } else {
                 if ($debug) echo 'Duration: ', $duration, "\n";
@@ -748,7 +731,7 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
         // now we delete the messages
         if ($this->adapterHasSupport($adapter, 'deleteMessage')) {
             foreach ( $messages as $msg ) {
-                $adapter->deleteMessage($msg);
+                $adapter->deleteMessage($queue, $msg);
             }
         }
 

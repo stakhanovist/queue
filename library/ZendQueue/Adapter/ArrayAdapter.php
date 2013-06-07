@@ -188,7 +188,7 @@ class ArrayAdapter extends AbstractAdapter implements DeleteMessageCapableInterf
         if ($maxMessages === null) {
             $maxMessages = 1;
         }
-
+        
         $data = array();
         if ($maxMessages > 0) {
             $start_time = microtime(true);
@@ -196,10 +196,10 @@ class ArrayAdapter extends AbstractAdapter implements DeleteMessageCapableInterf
             $count = 0;
             $temp = &$this->_data[$queue->getName()];
             foreach ($temp as $messageId => &$msg) {
-                if ($msg['handle'] === null) {
+                if ($msg['handle'] === null || ( $msg['timeout'] !== null && $msg['timeout'] < microtime(true))) {
                     
                     $msg['handle']  = md5(uniqid(rand(), true));
-                    $msg['timeout'] = microtime(true);
+                    $msg['timeout'] = $params ? microtime(true) + $params->getTimeout() : null;
                     $msg['metadata'][$queue->getOptions()->getMessageMetadatumKey()] = $this->_buildMessageInfo(
                 		$messageId,
                 		$queue
