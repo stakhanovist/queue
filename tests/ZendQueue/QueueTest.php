@@ -158,20 +158,24 @@ class QueueTest extends \PHPUnit_Framework_TestCase
         }
     }
 
-//     /**
-//      * ArrayAdapter can't await
-//      * @todo add EventManager case
-//      */
-//     public function testAwait()
-//     {
-//         if (!$this->queue->canAwait()) {
-//             $this->markTestSkipped('await() not supported');
-//         }
+    /**
+     * ArrayAdapter can't await
+     * @todo add EventManager case
+     */
+    public function testAwait()
+    {
+        if (!$this->queue->canAwait()) {
+            $this->markTestSkipped('await() not supported');
+        }
 
-//         $this->queue->await(null, function(){
-//         	$this->assertTrue(true);
-//         });
-//     }
+        //Ensure we have one message at least
+        $this->queue->send('test');
+
+        $this->queue->await(null, function(){
+        	$this->assertTrue(true);
+        	return false; //stop awaiting
+        });
+    }
 
     public function testGetQueues()
     {
