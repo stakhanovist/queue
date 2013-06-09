@@ -15,6 +15,13 @@ use ZendQueue\Message\Message;
 use ZendQueue\QueueOptions;
 use ZendQueue\Adapter\ArrayAdapter;
 
+/*
+ * The adapter test class provides a universal test class for all of the
+* abstract methods.
+*
+* All methods marked not supported are explictly checked for for throwing
+* an exception.
+*/
 /**
  * ZendQueue\Message is just a placeholder for Zend\Stdlib\Message
  * so we don't need ro repeat all tests.

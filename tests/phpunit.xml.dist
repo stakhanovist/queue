@@ -11,7 +11,7 @@
             <exclude>Bugs/ZF-7650Test.php</exclude>
 
 <!--            <exclude>Message/MessageTest.php</exclude>          -->
-            <exclude>Message/IteratorTest.php</exclude>
+<!--             <exclude>Message/MessageIteratorTest.php</exclude> -->
 
             <exclude>Stomp/ClientTest.php</exclude>
             <exclude>Stomp/ConnectionTest.php</exclude>
