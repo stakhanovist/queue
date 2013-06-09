@@ -147,9 +147,11 @@ class QueueTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue($messages instanceof MessageIterator);
 
         // ------------------------------------ deleteMessage()
-        foreach ($messages as $i => $message) {
-            $this->assertTrue($message instanceof Message);
-            $this->assertTrue($this->queue->deleteMessage($message));
+        if($this->queue->canDeleteMessage()) {
+            foreach ($messages as $i => $message) {
+                $this->assertTrue($message instanceof Message);
+                $this->assertTrue($this->queue->deleteMessage($message));
+            }
         }
     }
 
