@@ -325,7 +325,7 @@ class Db extends AbstractAdapter implements
 
         // start transaction handling
         try {
-            if ($maxMessages > 0 ) { // ZF-7666 LIMIT 0 clause not included.
+            if ($maxMessages > 0 ) {
                 $connection->beginTransaction();
 
                 $sql = new Sql($this->adapter);
@@ -358,6 +358,9 @@ class Db extends AbstractAdapter implements
                     $update->set(array('handle' => $message['handle'], 'timeout' => $microtime));
                     $stmt = $sql->prepareStatementForSqlObject($update);
                     $rst = $stmt->execute();
+
+                    // we check count to make sure no other thread has gotten
+                    // the rows after our select, but before our update.
                     if ($rst->count() > 0) {
                         $message['metadata'] = isset($message['metadata']) ? unserialize($message['metadata']) : array();
                         $message['metadata'][$queue->getOptions()->getMessageMetadatumKey()] = $this->_buildMessageInfo(
@@ -370,7 +373,6 @@ class Db extends AbstractAdapter implements
                             )
                         );
                         unset($message['id'], $message['timeout'], $message['schedule'], $message['interval']);
-
 
                         $msgs[] = $message;
                     }
