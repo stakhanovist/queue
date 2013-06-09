@@ -13,6 +13,7 @@ namespace ZendQueue\Message;
 use Countable;
 use Iterator;
 use ZendQueue\Queue;
+use Zend\Stdlib\Message;
 
 /**
  *
