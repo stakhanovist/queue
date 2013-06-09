@@ -135,6 +135,14 @@ class QueueTest extends \PHPUnit_Framework_TestCase
             $this->assertTrue(true);
         }
 
+        // parameter verification
+        try {
+            $this->queue->receive(0);
+            $this->fail('receive() $maxMessages must be a integer or null');
+        } catch (\Exception $e) {
+            $this->assertTrue(true);
+        }
+
         $messages = $this->queue->receive();
         $this->assertTrue($messages instanceof MessageIterator);
 
