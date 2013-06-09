@@ -141,17 +141,17 @@ class Queue implements Countable
             $options = $this->getOptions();
             $adapter = new $adapterName(array('options' => $options->getAdapterOptions(), 'driverOptions' => $options->getDriverOptions() ));
         }
-        
+
         if (($type = gettype($adapter)) != 'object') {
             throw new Exception\InvalidArgumentException('$adapter must be a string or an object implementing \ZendQueue\Adapter\AdapterInterface. '.$type.' given.');
         }
-        
+
         if (!$adapter instanceof AdapterInterface) {
             throw new Exception\InvalidArgumentException("Adapter class ".get_class($adapter)." does not implement \ZendQueue\Adapter\AdapterInterface");
         }
 
         $this->adapter = $adapter;
-        
+
         if (! ($this->adapter instanceof Null)) {
             $this->adapter->create($this->getName());
         }
@@ -213,25 +213,6 @@ class Queue implements Countable
         return $deleted;
     }
 
-    /**
-     * Delete a message from the queue
-     *
-     * Returns true if the message is deleted, false if the deletion is
-     * unsuccessful.
-     *
-     *
-     * @param  Message $message
-     * @return boolean
-     * @throws Exception\UnsupportedMethodCallException
-     */
-    public function deleteMessage(Message $message)
-    {
-        if (!$this->canDeleteMessage()) {
-            throw new Exception\UnsupportedMethodCallException(__FUNCTION__ . '() is not supported by ' . get_class($this->getAdapter()));
-        }
-
-        return $this->getAdapter()->deleteMessage($this, $message);
-    }
 
     /**
      * Send a message to the queue
@@ -297,21 +278,6 @@ class Queue implements Countable
     }
 
     /**
-     * Returns the approximate number of messages in the queue
-     *
-     * Returns null if the adapter doesn't support message count.
-     *
-     * @return integer|null
-     */
-    public function count()
-    {
-        if ($this->canCountMessages()) {
-            return $this->getAdapter()->countMessages($this);
-        }
-        return null;
-    }
-
-    /**
      * Return the first element in the queue
      *
      * @param  integer $maxMessages
@@ -359,7 +325,7 @@ class Queue implements Countable
             return $this->getAdapter()->await($this, $closure, $params);
         }
 
-        //emulate?
+        //can emulate await?
         if ($this->getOptions()->getEnableAwaitEmulation()) {
 
             $sleepSeconds = $this->getOptions()->getPollingInterval();
@@ -386,12 +352,47 @@ class Queue implements Countable
 
 
     /**
+     * Returns the approximate number of messages in the queue
+     *
+     * @return integer|null
+     * @throws Exception\UnsupportedMethodCallException
+     */
+    public function count()
+    {
+        if (!$this->canCountMessages()) {
+            throw new Exception\UnsupportedMethodCallException(__FUNCTION__ . '() is not supported by ' . get_class($this->getAdapter()));
+        }
+
+        return $this->getAdapter()->countMessages($this);
+    }
+
+    /**
+     * Delete a message from the queue
+     *
+     * Returns true if the message is deleted, false if the deletion is
+     * unsuccessful.
+     *
+     *
+     * @param  Message $message
+     * @return boolean
+     * @throws Exception\UnsupportedMethodCallException
+     */
+    public function deleteMessage(Message $message)
+    {
+        if (!$this->canDeleteMessage()) {
+            throw new Exception\UnsupportedMethodCallException(__FUNCTION__ . '() is not supported by ' . get_class($this->getAdapter()));
+        }
+
+        return $this->getAdapter()->deleteMessage($this, $message);
+    }
+
+    /**
      * Get an array of all available queues
      *
      * @return array
      * @throws Exception\UnsupportedMethodCallException
      */
-    public function getQueues()
+    public function listQueues()
     {
         if (!$this->canListQueues()) {
             throw new Exception\UnsupportedMethodCallException(__FUNCTION__ . '() is not supported by ' . get_class($this->getAdapter()));
@@ -419,21 +420,62 @@ class Queue implements Countable
      * Capabilities
     *********************************************************************/
 
+    /**
+     * Can queue wait for messages?
+     *
+     * Return true if the adapter is await-capable or enableAwaitEmulation is active.
+     *
+     * @return bool
+     */
     public function canAwait()
     {
-        return ($this->getAdapter() instanceof AwaitCapableInterface);
+        return ($this->getAdapter() instanceof AwaitCapableInterface) || $this->getOptions()->getEnableAwaitEmulation();
     }
 
+    /**
+     * Is queue using await emulations?
+     *
+     * Return true if the adapter isn't await-capable and enableAwaitEmulation is active.
+     *
+     * @return bool
+     */
+    public function isAwaitEmulation()
+    {
+        return !($this->getAdapter() instanceof AwaitCapableInterface) && $this->getOptions()->getEnableAwaitEmulation();
+    }
+
+    /**
+     * Can queue delete message?
+     *
+     * Return true if the adapter is capable to delete messages.
+     *
+     * @return bool
+     */
     public function canDeleteMessage()
     {
         return $this->getAdapter() instanceof DeleteMessageCapableInterface;
     }
 
+    /**
+     * Can count in queue messages?
+     *
+     * Return true if the adapter can count messages.
+     *
+     * @return bool
+     */
     public function canCountMessages()
     {
         return $this->getAdapter() instanceof CountMessagesCapableInterface;
     }
 
+
+    /**
+     * Can list all available queues?
+     *
+     * Return true if the adapter can list all queues available for the current adapter.
+     *
+     * @return bool
+     */
     public function canListQueues()
     {
         return $this->getAdapter() instanceof ListQueuesCapableInterface;
