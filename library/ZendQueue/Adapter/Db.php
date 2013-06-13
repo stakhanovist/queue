@@ -33,14 +33,15 @@ class Db extends AbstractAdapter implements
                                     ListQueuesCapableInterface
 {
     /**
-     * User-provided options
+     * Default options
      *
      * @var array
      */
-    protected $_options = array(
+    protected $defaultOptions = array(
         'queueTableName'     => 'queue',
         'messageTableName'   => 'message'
     );
+
     /**
      * @var ZendDb\TableGateway\TableGateway
      */
@@ -55,18 +56,6 @@ class Db extends AbstractAdapter implements
      * @var \Zend\Db\Adapter\Adapter
      */
     protected $adapter= null;
-
-    /**
-     * Constructor
-     *
-     * @param  array|Traversable $options
-     */
-    public function __construct($options)
-    {
-        parent::__construct($options);
-
-        $this->connect();
-    }
 
     /**
      * Get the TableGateway implementation of the queue table
@@ -99,9 +88,16 @@ class Db extends AbstractAdapter implements
     public function connect()
     {
         try {
-            $this->adapter = new ZendDb\Adapter\Adapter($this->_options['driverOptions']);
-            $this->queueTable = new ZendDb\TableGateway\TableGateway($this->_options['queueTableName'], $this->adapter);
-            $this->messageTable = new ZendDb\TableGateway\TableGateway($this->_options['messageTableName'], $this->adapter);
+
+            $options = $this->getOptions();
+
+            if (isset($options['dbAdapter']) && $options['dbAdapter'] instanceof ZendDb\Adapter\Adapter) {
+                $this->adapter = $options['dbAdapter'];
+            } else {
+                $this->adapter = new ZendDb\Adapter\Adapter($options['driverOptions']);
+            }
+            $this->queueTable = new ZendDb\TableGateway\TableGateway($options['queueTableName'], $this->adapter);
+            $this->messageTable = new ZendDb\TableGateway\TableGateway($options['messageTableName'], $this->adapter);
         } catch (ZendDb\Exception\ExceptionInterface $e) {
             throw new Exception\ConnectionException('Error connecting to database: ' . $e->getMessage(), $e->getCode(), $e);
         }
