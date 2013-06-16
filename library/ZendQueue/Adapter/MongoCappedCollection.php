@@ -12,7 +12,7 @@ namespace ZendQueue\Adapter;
 
 
 use MongoId;
-use Zend\Stdlib\Message;
+use Zend\Stdlib\MessageInterface;
 use ZendQueue\Exception;
 use ZendQueue\Queue;
 use ZendQueue\Adapter\Capabilities\AwaitCapableInterface;
@@ -23,13 +23,8 @@ use ZendQueue\Adapter\Mongo\AbstractMongo;
 class MongoCappedCollection extends AbstractMongo implements AwaitCapableInterface
 {
 
-    const SIZE = 'size';
-    const MAX_MESSAGES = 'maxMessages';
-
-
     const DEFAULT_SIZE = 1000000;
     const DEFAULT_MAX_MESSAGES = 100;
-
 
     /**
      * Default options
@@ -40,7 +35,6 @@ class MongoCappedCollection extends AbstractMongo implements AwaitCapableInterfa
         'size'          => self::DEFAULT_SIZE,
         'maxMessages'   => self::DEFAULT_MAX_MESSAGES,
     );
-
 
     /**
      * Create a new queue
@@ -59,12 +53,11 @@ class MongoCappedCollection extends AbstractMongo implements AwaitCapableInterfa
         return true;
     }
 
-
     /**
+     * Does a queue already exist?
      *
-     * @param  string $name
+     * @param  string $name Queue name
      * @return boolean
-     * @throws Exception\ExceptionInterface
      */
     public function isExists($name)
     {
@@ -78,13 +71,13 @@ class MongoCappedCollection extends AbstractMongo implements AwaitCapableInterfa
      * Send a message to the queue
      *
      * @param  Queue $queue
-     * @param  Message $message Message to send to the active queue
+     * @param  MessageInterface $message Message to send to the active queue
      * @param  SendParameters $params
-     * @return bool
+     * @return MessageInterface
      * @throws Exception\QueueNotFoundException
      * @throws Exception\RuntimeException
      */
-    public function send(Queue $queue, Message $message, SendParameters $params = null)
+    public function send(Queue $queue, MessageInterface $message, SendParameters $params = null)
     {
         $this->_cleanMessageInfo($queue, $message);
 
@@ -111,7 +104,7 @@ class MongoCappedCollection extends AbstractMongo implements AwaitCapableInterfa
 
         $this->_embedMessageInfo($queue, $message, $id, $params ? $params->toArray() : array());
 
-        return true;
+        return $message;
     }
 
 
@@ -121,8 +114,8 @@ class MongoCappedCollection extends AbstractMongo implements AwaitCapableInterfa
      * @param  Queue $queue
      * @param  Closure $callback
      * @param  ReceiveParameters $params
-     * @return Message
-     * @throws Exception\RuntimeException - database error
+     * @return MessageInterface
+     * @throws Exception\RuntimeException
      */
     public function await(Queue $queue, \Closure $callback = null, ReceiveParameters $params = null)
     {
