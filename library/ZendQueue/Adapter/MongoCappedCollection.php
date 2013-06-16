@@ -23,17 +23,15 @@ use ZendQueue\Adapter\Mongo\AbstractMongo;
 class MongoCappedCollection extends AbstractMongo implements AwaitCapableInterface
 {
 
-    const DEFAULT_SIZE = 1000000;
-    const DEFAULT_MAX_MESSAGES = 100;
-
     /**
      * Default options
      *
      * @var array
      */
     protected $defaultOptions = array(
-        'size'          => self::DEFAULT_SIZE,
-        'maxMessages'   => self::DEFAULT_MAX_MESSAGES,
+        'size'          => 1000000,
+        'maxMessages'   => 100,
+        'threshold'     => 10,
     );
 
     /**
@@ -47,7 +45,7 @@ class MongoCappedCollection extends AbstractMongo implements AwaitCapableInterfa
         $options = $this->getOptions();
         $this->_queues[$name] = $this->mongoDb->createCollection($name, true, $options['size'], $options['maxMessages']);
 
-        for($i=0; $i < 100; $i++){
+        for($i=0; $i < $options['maxMessages']; $i++){
             $this->_queues[$name]->insert(array(self::KEY_HANDLED => true));
         }
         return true;
@@ -79,12 +77,17 @@ class MongoCappedCollection extends AbstractMongo implements AwaitCapableInterfa
      */
     public function send(Queue $queue, MessageInterface $message, SendParameters $params = null)
     {
+        $options = $this->getOptions();
+
+        var_dump($options);
+
         $this->_cleanMessageInfo($queue, $message);
 
         $collection = $this->mongoDb->selectCollection($queue->getName());
 
-        if($collection->count(array(self::KEY_HANDLED => true)) < 10) {
-            return false;
+        if ($options['threshold'] && $collection->count(array(self::KEY_HANDLED => true)) < $options['threshold']) {
+            //FIXME: Exception should be explained in a better way
+            throw new Exception\RuntimeException('Cannot send message: capped collection is full.');
         }
 
         $id = new MongoId();
@@ -122,44 +125,77 @@ class MongoCappedCollection extends AbstractMongo implements AwaitCapableInterfa
         $classname = $queue->getOptions()->getMessageSetClass();
         $collection = $this->mongoDb->selectCollection($queue->getName());
 
-        do {
+        //Outer loop: get a cursor
+        while (true) {
 
-            //FIXME:
+            /**
+             * If the query doesn't match any documents, MongoDB does not keep a cursor open server side and thus
+             * the whole "tail" process never starts.
+             *
+             * That occurs when:
+             * - capped collection is empty
+             * - query criteria doesn't match any documents
+             *
+             * Solution:
+             * - we use handled-message as dummy documents, furthermore
+             *   create() inserts dummy documents when the collection is created to avoid empty collection at first use.
+             *
+             * - finally, to get a valid cursor but to avoid re-reading already handled message
+             *   we shouldn't start reading from the beginnig of the collection, so we get the second-last document position
+             *   then we setup the query to start from the next position.
+             *
+             * The tailable cursor will start from the last document always.
+             *
+             *
+             */
+
+            //Obtain the second last position
             $cursor = $collection->find()->sort(array('_id' => -1));
-            $i = 0;
-            foreach ($cursor as $lastValue) {
-                if($i == 1)
-                    break;
-                $i++;
+            $cursor->skip(1);
+            $secondLast = $cursor->getNext();
+
+            if (!$secondLast) {
+                throw new Exception\RuntimeException('Cannot get second last position, maybe there are not enough documents within the collection');
             }
 
-            $cursor = $this->_setupCursor($collection, $params, array('_id' => array('$gt' => $lastValue['_id'])), array('_id', self::KEY_HANDLED));
+            //Setup tailable cursor
+            $cursor = $this->_setupCursor($collection, $params, array('_id' => array('$gt' => $secondLast['_id'])), array('_id', self::KEY_HANDLED));
             $cursor->tailable(true);
             $cursor->awaitData(true);
 
-            do {
+            //Inner loop: read results and wait for more
+            while (true) {
+
+                //If we are at the end of the data, $cursor->hasNext() blocks execution for a while,
+                //after a timeout period or if cursor is dead then it does return as normal.
+                //So, we don't need sleeping because at beginning of each loop, hasNext() will await
                 if (!$cursor->hasNext()) {
-                    // we've read all the results or cursor is dead
+
+                    // is cursor dead ?
                     if ($cursor->dead()) {
-                        //FIXME: should sleep ?
-                        break; //renew cursor
+                        //TODO: if we get a dead cursor repeatedly, an infinte loop or a temporary CPU high load may occur
+                        break; //go to the outer loop, obtaining a new cursor
                     }
-                    // read all results so far, wait for more
-                    //FIXME: should sleep ?
+                    //else, we red all results so far, wait for more
+
                 } else {
+
                     $msg = $cursor->getNext();
 
+                    //To avoid resource-consuming, we ignore handled message early
                     if($msg[self::KEY_HANDLED]) {
-                        continue;
+                        continue; //inner loop
                     }
 
-                    //non-handled message, try to receive it
+                    //we got a non-handled message, try to receive it
                     $msg = $this->_receiveMessageAtomic($queue, $collection, $msg['_id']);
 
+                    //if meanwhile message has been handled already then we ignore it
                     if(null === $msg) {
-                        continue; //meanwhile message has been handled already then ignore it
+                        continue; //inner loop
                     }
 
+                    //Ok, we got a message
                     $iterator = new $classname(array($msg), $queue);
                     $message = $iterator->current();
 
@@ -171,11 +207,11 @@ class MongoCappedCollection extends AbstractMongo implements AwaitCapableInterfa
                         return $message;
                     }
 
-
                 }
-            }while (true);
 
-        }while (true);
+            } //inner loop
+
+        } //outer loop
     }
 
 }
