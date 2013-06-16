@@ -79,8 +79,6 @@ class MongoCappedCollection extends AbstractMongo implements AwaitCapableInterfa
     {
         $options = $this->getOptions();
 
-        var_dump($options);
-
         $this->_cleanMessageInfo($queue, $message);
 
         $collection = $this->mongoDb->selectCollection($queue->getName());
