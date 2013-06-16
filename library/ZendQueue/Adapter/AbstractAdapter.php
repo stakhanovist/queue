@@ -91,7 +91,7 @@ abstract class AbstractAdapter implements AdapterInterface
             }
         }
 
-        $this->_options = array_merge($this->_options, $options);
+        $this->_options = array_merge($this->defaultOptions, $options);
         $this->_options['driverOptions'] = $driverOptions;
 
         return $this;
