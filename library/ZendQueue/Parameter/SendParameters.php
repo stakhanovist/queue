@@ -16,7 +16,7 @@ class SendParameters extends Parameters
 
     const SCHEDULE = 'schedule';
     const INTERVAL = 'interval';
-    const TIMEOUT  = 'timeout';
+    const VISIBILITY_TIMEOUT  = 'timeout';
 
 
     public function setScheduling($scheduleTime = null, $interval = null)

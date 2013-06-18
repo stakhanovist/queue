@@ -673,7 +673,7 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
 
         $queue->send($body);
         $reciveParams = new ReceiveParameters();
-        $reciveParams->setTimeout($default_timeout);
+        $reciveParams->setVisibilityTimeout($default_timeout);
         $messages = $queue->receive(1, $reciveParams); // messages are deleted at the bottom.
 
         if ($this->queueHasSupport($queue, 'count')) {
