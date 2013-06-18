@@ -14,7 +14,7 @@ use Countable;
 use Zend\Stdlib\MessageInterface;
 use ZendQueue\Exception;
 use ZendQueue\Adapter\AdapterInterface;
-use ZendQueue\Adapter\Capabilities\AwaitCapableInterface;
+use ZendQueue\Adapter\Capabilities\AwaitMessagesCapableInterface;
 use ZendQueue\Adapter\Capabilities\ListQueuesCapableInterface;
 use ZendQueue\Adapter\Capabilities\CountMessagesCapableInterface;
 use ZendQueue\Adapter\Capabilities\DeleteMessageCapableInterface;
@@ -324,8 +324,8 @@ class Queue implements Countable
         }
 
         //the adpater support await?
-        if ($this->getAdapter() instanceof AwaitCapableInterface) {
-            return $this->getAdapter()->await($this, $closure, $params);
+        if ($this->getAdapter() instanceof AwaitMessagesCapableInterface) {
+            return $this->getAdapter()->awaitMessages($this, $closure, $params);
         }
 
         //can emulate await?
@@ -432,7 +432,7 @@ class Queue implements Countable
      */
     public function canAwait()
     {
-        return ($this->getAdapter() instanceof AwaitCapableInterface) || $this->getOptions()->getEnableAwaitEmulation();
+        return ($this->getAdapter() instanceof AwaitMessagesCapableInterface) || $this->getOptions()->getEnableAwaitEmulation();
     }
 
     /**
@@ -444,7 +444,7 @@ class Queue implements Countable
      */
     public function isAwaitEmulation()
     {
-        return !($this->getAdapter() instanceof AwaitCapableInterface) && $this->getOptions()->getEnableAwaitEmulation();
+        return !($this->getAdapter() instanceof AwaitMessagesCapableInterface) && $this->getOptions()->getEnableAwaitEmulation();
     }
 
     /**

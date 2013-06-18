@@ -19,8 +19,9 @@ use ZendQueue\Adapter\Capabilities\AwaitCapableInterface;
 use ZendQueue\Parameter\SendParameters;
 use ZendQueue\Parameter\ReceiveParameters;
 use ZendQueue\Adapter\Mongo\AbstractMongo;
+use ZendQueue\Adapter\Capabilities\AwaitMessagesCapableInterface;
 
-class MongoCappedCollection extends AbstractMongo implements AwaitCapableInterface
+class MongoCappedCollection extends AbstractMongo implements AwaitMessagesCapableInterface
 {
 
     /**
@@ -116,7 +117,7 @@ class MongoCappedCollection extends AbstractMongo implements AwaitCapableInterfa
      * @return MessageInterface
      * @throws Exception\RuntimeException
      */
-    public function await(Queue $queue, \Closure $callback = null, ReceiveParameters $params = null)
+    public function awaitMessages(Queue $queue, \Closure $callback = null, ReceiveParameters $params = null)
     {
         $classname = $queue->getOptions()->getMessageSetClass();
         $collection = $this->mongoDb->selectCollection($queue->getName());
