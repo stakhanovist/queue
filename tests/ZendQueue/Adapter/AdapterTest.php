@@ -323,11 +323,11 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
         }
 
         if ($this->adapterHasSupport($adapter, array('getQueues', 'isExists'))) {
-            $this->assertTrue($adapter->isExists($queue->getName()));
+            $this->assertTrue($adapter->isQueueExist($queue->getName()));
         }
 
         // cannot recreate a queue.
-        $this->assertFalse($adapter->create($queue->getName()));
+        $this->assertFalse($adapter->createQueue($queue->getName()));
 
         // delete the queue we created
         $queue->deleteQueue();
@@ -348,8 +348,8 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
         }
 
         $new = $this->createQueueName(__FUNCTION__ . '_2');
-        $this->assertTrue($adapter->create($new));
-        $this->assertTrue($adapter->delete($new));
+        $this->assertTrue($adapter->createQueue($new));
+        $this->assertTrue($adapter->deleteQueue($new));
 
         if ($this->adapterHasSupport($adapter, 'getQueues')) {
             if (in_array($new, $adapter->getQueues())) {
@@ -375,12 +375,12 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
             return;
         }
 
-        $this->assertFalse($adapter->isExists('perl'));
+        $this->assertFalse($adapter->isQueueExist('perl'));
 
         $new = $this->createQueueName(__FUNCTION__ . '_3');
-        $this->assertTrue($adapter->create($new));
-        $this->assertTrue($adapter->isExists($new));
-        $this->assertTrue($adapter->delete($new));
+        $this->assertTrue($adapter->createQueue($new));
+        $this->assertTrue($adapter->isQueueExist($new));
+        $this->assertTrue($adapter->deleteQueue($new));
 
         if ($this->adapterHasSupport($adapter, 'getQueues')) {
             if (in_array($new, $adapter->getQueues())) {
@@ -539,7 +539,7 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
 
         // make sure our current queue is in this list.
         if ($this->adapterHasSupport($adapter, 'isExists')) {
-            $this->assertTrue($adapter->isExists($queue->getName()));
+            $this->assertTrue($adapter->isQueueExist($queue->getName()));
         }
 
         // delete the queue we created

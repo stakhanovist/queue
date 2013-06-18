@@ -73,7 +73,7 @@ abstract class AbstractMongo extends AbstractAdapter implements CountMessagesCap
      * @param  string  $name Queue name
      * @return boolean
      */
-    public function create($name)
+    public function createQueue($name)
     {
         $this->_queues[$name] = $this->mongoDb->createCollection($name);
         return true;
@@ -86,7 +86,7 @@ abstract class AbstractMongo extends AbstractAdapter implements CountMessagesCap
      * @return boolean
      * @throws Exception\ExceptionInterface
      */
-    public function isExists($name)
+    public function isQueueExist($name)
     {
         $collection = $this->mongoDb->selectCollection($name);
         $result = $collection->validate();
@@ -101,7 +101,7 @@ abstract class AbstractMongo extends AbstractAdapter implements CountMessagesCap
      * @param  string $name Queue name
      * @return boolean
      */
-    public function delete($name)
+    public function deleteQueue($name)
     {
         $result = $this->mongoDb->selectCollection($name)->drop();
         if(isset($result['ok']) && $result['ok']) {

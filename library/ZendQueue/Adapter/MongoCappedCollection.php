@@ -41,7 +41,7 @@ class MongoCappedCollection extends AbstractMongo implements AwaitMessagesCapabl
      * @param  string  $name Queue name
      * @return boolean
      */
-    public function create($name)
+    public function createQueue($name)
     {
         $options = $this->getOptions();
         $this->_queues[$name] = $this->mongoDb->createCollection($name, true, $options['size'], $options['maxMessages']);
@@ -58,7 +58,7 @@ class MongoCappedCollection extends AbstractMongo implements AwaitMessagesCapabl
      * @param  string $name Queue name
      * @return boolean
      */
-    public function isExists($name)
+    public function isQueueExist($name)
     {
         $collection = $this->mongoDb->selectCollection($name);
         $result = $collection->validate();

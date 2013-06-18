@@ -61,10 +61,6 @@ interface AdapterInterface
     public function getAvailableReceiveParams();
 
 
-    /********************************************************************
-     * Queue management functions
-    *********************************************************************/
-
     /**
      * Ensure connection
      *
@@ -72,13 +68,19 @@ interface AdapterInterface
      */
     public function connect();
 
+
+    /********************************************************************
+     * Queue management functions
+    *********************************************************************/
+
+
     /**
      * Does a queue already exist?
      *
      * @param  string $name Queue name
      * @return boolean
      */
-    public function isExists($name);
+    public function isQueueExist($name);
 
     /**
      * Create a new queue
@@ -86,7 +88,7 @@ interface AdapterInterface
      * @param  string  $name Queue name
      * @return boolean
      */
-    public function create($name);
+    public function createQueue($name);
 
     /**
      * Delete a queue and all of its messages
@@ -96,7 +98,7 @@ interface AdapterInterface
      * @param  string $name Queue name
      * @return boolean
      */
-    public function delete($name);
+    public function deleteQueue($name);
 
 
     /********************************************************************

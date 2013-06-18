@@ -11,6 +11,8 @@
 namespace ZendQueue;
 
 use Countable;
+use Traversable;
+use Zend\Stdlib\ArrayUtils;
 use Zend\Stdlib\MessageInterface;
 use ZendQueue\Exception;
 use ZendQueue\Adapter\AdapterInterface;
@@ -18,7 +20,6 @@ use ZendQueue\Adapter\Capabilities\AwaitMessagesCapableInterface;
 use ZendQueue\Adapter\Capabilities\ListQueuesCapableInterface;
 use ZendQueue\Adapter\Capabilities\CountMessagesCapableInterface;
 use ZendQueue\Adapter\Capabilities\DeleteMessageCapableInterface;
-use ZendQueue\Adapter\Capabilities\ScheduleMessageCapableInterface;
 use ZendQueue\Parameter\SendParameters;
 use ZendQueue\Parameter\ReceiveParameters;
 use Zend\EventManager\EventManagerInterface;
@@ -119,7 +120,7 @@ class Queue implements Countable
             $options = new QueueOptions($cfg['options']);
         }
 
-        return new self($cfg['name'], $adapter, $options);
+        return new static($cfg['name'], $adapter, $options);
     }
 
     /**
@@ -182,11 +183,11 @@ class Queue implements Countable
     public function ensureQueue()
     {
         $name = $this->getName();
-        if($this->getAdapter()->isExists($name)) {
+        if($this->getAdapter()->isQueueExist($name)) {
             return true;
         }
 
-        return $this->getAdapter()->create($name);
+        return $this->getAdapter()->createQueue($name);
     }
 
     /**
@@ -204,8 +205,8 @@ class Queue implements Countable
 
         $deleted = false;
 
-        if($adapter->isExists($name)) {
-            $deleted = $adapter->delete($name);
+        if($adapter->isQueueExist($name)) {
+            $deleted = $adapter->deleteQueue($name);
         }
 
         /**
