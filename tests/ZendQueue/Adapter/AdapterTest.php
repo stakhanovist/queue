@@ -410,14 +410,14 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
         $message = new Message();
         $message->setContent($body);
 
-        if (!$adapter->send($queue, $message)) {
+        if (!$adapter->sendMessage($queue, $message)) {
             $this->fail('send() failed');
         }
 
         // receive the record we created.
         if ($this->adapterHasSupport($adapter, 'receive')) {
             /* @var MessageIterator $messages */
-            $messages = $adapter->receive($queue);
+            $messages = $adapter->receiveMessages($queue);
             foreach ($messages as $message) {
                 $this->assertTrue($message instanceof Message);
                 $queue->deleteMessage($message);
@@ -446,13 +446,13 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
         $body = 'this is a test message 2';
         $message = new Message();
         $message->setContent($body);
-        if (!$adapter->send($queue, $message)) {
+        if (!$adapter->sendMessage($queue, $message)) {
         	$this->fail('send() failed');
         }
         $this->assertTrue($message instanceof Message);
 
         // get it back
-        $messages = $adapter->receive($queue, 1);
+        $messages = $adapter->receiveMessages($queue, 1);
         $this->assertTrue($messages instanceof MessageIterator);
         $this->assertEquals(1, $messages->count());
         $this->assertTrue($messages->valid());
@@ -492,12 +492,12 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
         $body = 'this is a test message';
         $message = new Message();
         $message->setContent($body);
-        if (!$adapter->send($queue, $message)) {
+        if (!$adapter->sendMessage($queue, $message)) {
         	$this->fail('send() failed');
         }
         $this->assertTrue($message instanceof Message);
 
-        $messages = $adapter->receive($queue);
+        $messages = $adapter->receiveMessages($queue);
         $this->assertTrue($messages instanceof MessageIterator);
         $this->assertTrue($messages->valid());
 
@@ -571,7 +571,7 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
         // send a message
         $message = new Message();
         $message->setContent($body);
-        if (!$adapter->send($queue, $message)) {
+        if (!$adapter->sendMessage($queue, $message)) {
             $this->fail('send() failed');
         }
 
@@ -579,7 +579,7 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($adapter->countMessages($queue), 1);
 
         // receive the message
-        $message = $adapter->receive($queue);
+        $message = $adapter->receiveMessages($queue);
 
         /* we need to delete the messages we put in the queue before
          * counting.
@@ -755,7 +755,7 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
         $queue->send('My Test Message 1');
         $queue->send('My Test Message 2');
 
-        $messages = $adapter->receive($queue, 0);
+        $messages = $adapter->receiveMessages($queue, 0);
         $this->assertEquals(0, count($messages));
     }
 

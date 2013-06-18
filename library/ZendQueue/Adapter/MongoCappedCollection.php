@@ -75,7 +75,7 @@ class MongoCappedCollection extends AbstractMongo implements AwaitMessagesCapabl
      * @throws Exception\QueueNotFoundException
      * @throws Exception\RuntimeException
      */
-    public function send(Queue $queue, MessageInterface $message, SendParameters $params = null)
+    public function sendMessage(Queue $queue, MessageInterface $message, SendParameters $params = null)
     {
         $options = $this->getOptions();
 

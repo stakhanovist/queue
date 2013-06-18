@@ -122,7 +122,7 @@ abstract class AbstractMongo extends AbstractAdapter implements CountMessagesCap
      * @throws Exception\QueueNotFoundException
      * @throws Exception\RuntimeException
      */
-    public function send(Queue $queue, MessageInterface $message, SendParameters $params = null)
+    public function sendMessage(Queue $queue, MessageInterface $message, SendParameters $params = null)
     {
         $this->_cleanMessageInfo($queue, $message);
 
@@ -197,7 +197,7 @@ abstract class AbstractMongo extends AbstractAdapter implements CountMessagesCap
      * @param  ReceiveParameters $params
      * @return MessageIterator
      */
-    public function receive(Queue $queue, $maxMessages = null, ReceiveParameters $params = null)
+    public function receiveMessages(Queue $queue, $maxMessages = null, ReceiveParameters $params = null)
     {
         if ($maxMessages === null) {
             $maxMessages = 1;

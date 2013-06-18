@@ -267,7 +267,7 @@ class Db extends AbstractAdapter implements
      * @throws Exception\QueueNotFoundException
      * @throws Exception\RuntimeException - database error
      */
-    public function send(Queue $queue, MessageInterface $message, SendParameters $params = null)
+    public function sendMessage(Queue $queue, MessageInterface $message, SendParameters $params = null)
     {
 
         $this->_cleanMessageInfo($queue, $message);
@@ -312,7 +312,7 @@ class Db extends AbstractAdapter implements
      * @throws Exception\QueueNotFoundException
      * @throws Exception\RuntimeException - database error
      */
-    public function receive(Queue $queue, $maxMessages = null, ReceiveParameters $params = null)
+    public function receiveMessages(Queue $queue, $maxMessages = null, ReceiveParameters $params = null)
     {
         if ($maxMessages === null) {
             $maxMessages = 1;

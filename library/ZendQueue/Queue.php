@@ -244,7 +244,7 @@ class Queue implements Countable
             }
         }
 
-        return $this->getAdapter()->send($this, $message, $params);
+        return $this->getAdapter()->sendMessage($this, $message, $params);
     }
 
 
@@ -294,7 +294,7 @@ class Queue implements Countable
             throw new Exception\InvalidArgumentException('$maxMessages must be an integer greater than 0 or null');
         }
 
-        return $this->getAdapter()->receive($this, $maxMessages, $params);
+        return $this->getAdapter()->receiveMessages($this, $maxMessages, $params);
     }
 
     /**
