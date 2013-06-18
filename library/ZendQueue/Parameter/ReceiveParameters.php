@@ -27,7 +27,7 @@ class ReceiveParameters extends Parameters
      * @param string $classname
      * @return \ZendQueue\Parameter\ReceiveParameters
      */
-    public function setClassFilter($classname)
+    public function setClassFilter($classname = null)
     {
         if (($classname !== null) && !is_string($classname)) {
             throw new Exception\InvalidArgumentException('$classname must be a string or null');
@@ -41,7 +41,7 @@ class ReceiveParameters extends Parameters
      *
      * @see setVisibilityTimeout()
      *
-     * @return string
+     * @return string|null
      */
     public function getClassFilter()
     {
@@ -61,7 +61,7 @@ class ReceiveParameters extends Parameters
      * @throws Exception\InvalidArgumentException
      * @return \ZendQueue\Parameter\ReceiveParameters
      */
-    public function setVisibilityTimeout($timeout)
+    public function setVisibilityTimeout($timeout = null)
     {
         if (($timeout !== null) && !is_integer($timeout)) {
             throw new Exception\InvalidArgumentException('$timeout must be an integer or null');
@@ -76,7 +76,7 @@ class ReceiveParameters extends Parameters
      *
      * @see setVisibilityTimeout()
      *
-     * @return int
+     * @return int|null
      */
     public function getVisibilityTimeout()
     {
