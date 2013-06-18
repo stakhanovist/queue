@@ -413,12 +413,12 @@ class Queue implements Countable
 
     public function isSendParamSupported($name)
     {
-        return in_array(strtolower($name), $this->getAdapter()->getAvailableSendParams());
+        return in_array($name, $this->getAdapter()->getAvailableSendParams());
     }
 
     public function isReceiveParamSupported($name)
     {
-        return in_array(strtolower($name), $this->getAdapter()->getAvailableReceiveParams());
+        return in_array($name, $this->getAdapter()->getAvailableReceiveParams());
     }
 
     /********************************************************************

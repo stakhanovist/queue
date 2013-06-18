@@ -32,6 +32,10 @@ class ReceiveParameters extends Parameters
         if (($classname !== null) && !is_string($classname)) {
             throw new Exception\InvalidArgumentException('$classname must be a string or null');
         }
+
+        //FIXME: temporary workaround to avoid absolute FQCN
+        $classname = ltrim($classname, '\\');
+
         $this->set(self::CLASS_FILTER, $classname);
         return $this;
     }

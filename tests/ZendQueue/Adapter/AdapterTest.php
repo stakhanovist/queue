@@ -738,6 +738,58 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
         $queue->deleteQueue();
     }
 
+
+    public function testClassFilter()
+    {
+
+        if (!$queue = $this->createQueue(__FUNCTION__)) {
+            return;
+        }
+        $adapter = $queue->getAdapter();
+
+        if (!$queue->isReceiveParamSupported(ReceiveParameters::CLASS_FILTER)) {
+            $queue->deleteQueue();
+            $this->markTestSkipped($this->getAdapterName() . ' does not support class filter');
+            return;
+        }
+
+        $body = 'hello world';
+
+        //Test filter matches
+        $queue->send($body);
+        $reciveParams = new ReceiveParameters();
+        $reciveParams->setClassFilter($queue->getOptions()->getMessageClass());
+        $messages = $queue->receive(1, $reciveParams);
+
+        $this->assertInstanceOf('\ZendQueue\Message\MessageIterator', $messages);
+        $this->assertEquals(1, $messages->count());
+        $this->assertInstanceOf($reciveParams->getClassFilter(), $messages->current());
+
+
+
+        //Reset the queue
+        $queue->deleteQueue();
+        if (!$queue = $this->createQueue(__FUNCTION__)) {
+            return;
+        }
+        $adapter = $queue->getAdapter();
+
+
+        //Test filter doesnt' match
+        $queue->send($body);
+        $reciveParams = new ReceiveParameters();
+        $reciveParams->setClassFilter('Zend\Stdlib\Message'); //Another class
+
+        $messages = $queue->receive(1, $reciveParams);
+
+        $this->assertInstanceOf('\ZendQueue\Message\MessageIterator', $messages);
+
+        $this->assertEquals(0, $messages->count());
+
+        // delete the queue we created
+        $queue->deleteQueue();
+    }
+
     public function testAdapterShouldReturnNoMessagesWhenZeroCountRequested()
     {
         if (!$queue = $this->createQueue(__FUNCTION__)) {
