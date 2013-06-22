@@ -104,6 +104,7 @@ class Db extends AbstractAdapter implements
         return array(
             ReceiveParameters::CLASS_FILTER,
             ReceiveParameters::VISIBILITY_TIMEOUT,
+            ReceiveParameters::PEEK_MODE,
         );
     }
 
@@ -354,7 +355,8 @@ class Db extends AbstractAdapter implements
         }
 
         $timeout   = $params ? $params->getVisibilityTimeout() : null;
-        $filter     = $params ? $params->getClassFilter() : null;
+        $filter    = $params ? $params->getClassFilter() : null;
+        $peek      = $params ? $params->getPeekMode() : false;
         $msgs      = array();
         $name      = $this->messageTable->table;
         $microtime = (int) microtime(true); // cache microtime
@@ -389,18 +391,22 @@ class Db extends AbstractAdapter implements
 
                 foreach($result as $message) {
 
-                    $update = $sql->update($name);
-                    $update->where(array('message_id' => $message['message_id']));
-                    $update->where($where);
                     $message['handle'] = md5(uniqid(rand(), true));
                     $message['timeout'] = $microtime;
-                    $update->set(array('handle' => $message['handle'], 'timeout' => $microtime));
-                    $stmt = $sql->prepareStatementForSqlObject($update);
-                    $rst = $stmt->execute();
+
+                    if (!$peek) {
+                        $update = $sql->update($name);
+                        $update->set(array('handle' => $message['handle'], 'timeout' => $microtime));
+                        $update->where(array('message_id' => $message['message_id']));
+                        $update->where($where);
+
+                        $stmt = $sql->prepareStatementForSqlObject($update);
+                        $rst = $stmt->execute();
+                    }
 
                     // we check count to make sure no other thread has gotten
                     // the rows after our select, but before our update.
-                    if ($rst->count() > 0) {
+                    if ($peek || ($rst->count() > 0)) {
                         $message['metadata'] = isset($message['metadata']) ? unserialize($message['metadata']) : array();
                         $message['metadata'][$queue->getOptions()->getMessageMetadatumKey()] = $this->_buildMessageInfo(
                             $message['handle'],
@@ -454,9 +460,14 @@ class Db extends AbstractAdapter implements
                 $where[] = 'handle IS NULL';
             }
 
-            $db    = $this->messageTable->delete($where);
+            if (!empty($info['options'][SendParameters::REPEATING_INTERVAL])) {
+                $result = $this->messageTable->update(array('schedule' => time() + $info['options'][SendParameters::REPEATING_INTERVAL] , 'handle' => null), $where);
+            } else {
+                $result = $this->messageTable->delete($where);
+            }
 
-            if ($db) {
+            if ($result) {
+                $this->_cleanMessageInfo($queue, $message);
                 return true;
             }
         }

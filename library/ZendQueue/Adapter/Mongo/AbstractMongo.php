@@ -194,7 +194,7 @@ abstract class AbstractMongo extends AbstractAdapter implements CountMessagesCap
             self::KEY_CLASS    => get_class($message),
             self::KEY_CONTENT  => (string) $message->getContent(),
             self::KEY_METADATA => $message->getMetadata(),
-            self::KEY_HANDLE  => false,
+            self::KEY_HANDLE   => false,
         );
 
         try {
