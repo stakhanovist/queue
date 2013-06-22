@@ -28,6 +28,32 @@ abstract class AbstractMongo extends AbstractAdapter implements CountMessagesCap
 
 
     /**
+     * Internal array of queues to save on lookups
+     *
+     * @var array
+     */
+    protected $queues = array();
+
+
+    /**
+     * Constructor.
+     *
+     * $options is an array of key/value pairs or an instance of Traversable
+     * containing configuration options.
+     *
+     * @param  array|Traversable $options An array having configuration data
+     * @throws Exception\InvalidArgumentException
+     * @throws Exception\ExtensionNotLoadedException
+     */
+    public function __construct($options = array())
+    {
+        if (!extension_loaded('mongo')) {
+            throw new Exception\ExtensionNotLoadedException("Mongo extension is not loaded");
+        }
+        parent::__construct($options);
+    }
+
+    /**
      * List avaliable params for receiveMessages()
      *
      * @return array
@@ -82,6 +108,23 @@ abstract class AbstractMongo extends AbstractAdapter implements CountMessagesCap
     }
 
     /**
+     * Returns the ID of the queue
+     *
+     * Name is the only ID of the collection, so if the collection exists the name will be returned
+     *
+     * @param string $name Queue name
+     * @return string
+     */
+    public function getQueueId($name)
+    {
+        if ($this->isQueueExist($name)) {
+            return $name;
+        }
+        //else
+        return null;
+    }
+
+    /**
      * Create a new queue
      *
      * @param  string  $name Queue name
@@ -89,8 +132,11 @@ abstract class AbstractMongo extends AbstractAdapter implements CountMessagesCap
      */
     public function createQueue($name)
     {
-        $this->_queues[$name] = $this->mongoDb->createCollection($name);
-        return true;
+        if($this->mongoDb->createCollection($name)) {
+            return true;
+        }
+
+        return false;
     }
 
 
@@ -119,7 +165,6 @@ abstract class AbstractMongo extends AbstractAdapter implements CountMessagesCap
     {
         $result = $this->mongoDb->selectCollection($name)->drop();
         if(isset($result['ok']) && $result['ok']) {
-            unset($this->_queues[$name]);
             return true;
         }
 

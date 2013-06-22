@@ -40,13 +40,6 @@ abstract class AbstractAdapter implements AdapterInterface
     );
 
     /**
-     * Internal array of queues to save on lookups
-     *
-     * @var array
-     */
-    protected $_queues = array();
-
-    /**
      * Constructor.
      *
      * $options is an array of key/value pairs or an instance of Traversable
@@ -135,10 +128,12 @@ abstract class AbstractAdapter implements AdapterInterface
      */
     protected function _buildMessageInfo($id, $queue, $options = null)
     {
+        $name = $queue instanceof Queue ? $queue->getName() : (string) $queue;
         return array(
             'messageId' => $id,
-            'queue'     => $queue instanceof Queue ? $queue->getName() : (string) $queue,
-            'adapter'   => get_class($this),
+            'queueId'   => $this->getQueueId($name),
+            'queueName' => $name,
+            'adapter'   => get_called_class(),
             'options'   => $options instanceof ParametersInterface ? $options->toArray() : (array) $options,
         );
     }
@@ -156,11 +151,15 @@ abstract class AbstractAdapter implements AdapterInterface
     }
 
     /**
+     * Get message info
+     *
+     * Only received messages have embedded infos.
+     *
      * @param Queue $queue
      * @param MessageInterface $message
      * @return array
      */
-    protected function _extractMessageInfo(Queue $queue, MessageInterface $message)
+    public function getMessageInfo(Queue $queue, MessageInterface $message)
     {
        return $message->getMetadata($queue->getOptions()->getMessageMetadatumKey());
     }

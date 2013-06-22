@@ -44,12 +44,21 @@ class MongoCappedCollection extends AbstractMongo implements AwaitMessagesCapabl
     public function createQueue($name)
     {
         $options = $this->getOptions();
-        $this->_queues[$name] = $this->mongoDb->createCollection($name, true, $options['size'], $options['maxMessages']);
 
-        for($i=0; $i < $options['maxMessages']; $i++){
-            $this->_queues[$name]->insert(array(self::KEY_HANDLED => true));
+        if(version_compare('1.4.0', phpversion('apc')) < 0) {
+            $queue = $this->mongoDb->createCollection($name, true, $options['size'], $options['maxMessages']);
+        } else {
+            $queue = $this->mongoDb->createCollection($name, array('capped' => true, 'size' => $options['size'], 'max' =>  $options['maxMessages']));
         }
-        return true;
+
+        if ($queue) {
+            for($i=0; $i < $options['maxMessages']; $i++){
+                $queue->insert(array(self::KEY_HANDLED => true));
+            }
+            return true;
+        } //else
+
+        return false;
     }
 
     /**

@@ -21,6 +21,7 @@ use ZendQueue\Adapter\Capabilities\ScheduleMessageCapableInterface;
 use ZendQueue\Parameter\SendParameters;
 use ZendQueue\Parameter\ReceiveParameters;
 use ZendQueue\Adapter\AbstractAdapter;
+use Zend\Db\Sql\Sql;
 
 /**
  * Class for using connecting to a Zend_DB-based queuing system
@@ -40,6 +41,13 @@ class Db extends AbstractAdapter implements
         'queueTable'     => 'queue',
         'messageTable'   => 'message'
     );
+
+    /**
+     * Internal array of queues to save on lookups
+     *
+     * @var array
+     */
+    protected $queues = array();
 
     /**
      * @var ZendDb\TableGateway\TableGatewayInterface
@@ -74,6 +82,29 @@ class Db extends AbstractAdapter implements
     public function getMessageTable()
     {
         return $this->messageTable;
+    }
+
+    /**
+     * @return array
+     */
+    public function getAvailableSendParams()
+    {
+        return array(
+            SendParameters::SCHEDULE,
+            SendParameters::INTERVAL,
+            SendParameters::TIMEOUT
+        );
+    }
+
+    /**
+     * @return array
+     */
+    public function getAvailableReceiveParams()
+    {
+        return array(
+            ReceiveParameters::CLASS_FILTER,
+            ReceiveParameters::VISIBILITY_TIMEOUT,
+        );
     }
 
     /**
@@ -117,29 +148,33 @@ class Db extends AbstractAdapter implements
 
     /********************************************************************
      * Queue management functions
-     *********************************************************************/
+    *********************************************************************/
 
     /**
-     * @return array
+     * Get the queue ID
+     *
+     * Returns the queue's row identifier.
+     *
+     * @param  string       $name
+     * @return integer|null
+     * @throws Exception\QueueNotFoundException
      */
-    public function getAvailableSendParams()
+    public function getQueueId($name)
     {
-        return array(
-            SendParameters::SCHEDULE,
-            SendParameters::INTERVAL,
-            SendParameters::TIMEOUT
-        );
-    }
+        if (array_key_exists($name, $this->queues)) {
+            return $this->queues[$name];
+        }
 
-    /**
-     * @return array
-     */
-    public function getAvailableReceiveParams()
-    {
-        return array(
-          ReceiveParameters::CLASS_FILTER,
-          ReceiveParameters::VISIBILITY_TIMEOUT,
-        );
+        $result = $this->queueTable->select(array('queue_name' => $name));
+        foreach($result as $one) {
+            $this->queues[$name] = (int)$one['queue_id'];
+        }
+
+        if (!array_key_exists($name, $this->queues)) {
+            throw new Exception\QueueNotFoundException('Queue does not exist: ' . $name);
+        }
+
+        return $this->queues[$name];
     }
 
 
@@ -213,8 +248,8 @@ class Db extends AbstractAdapter implements
             throw new Exception\RuntimeException($e->getMessage(), $e->getCode(), $e);
         }
 
-        if (array_key_exists($name, $this->_queues)) {
-            unset($this->_queues[$name]);
+        if (array_key_exists($name, $this->queues)) {
+            unset($this->queues[$name]);
         }
 
         return true;
@@ -230,10 +265,10 @@ class Db extends AbstractAdapter implements
     {
         $result = $this->queueTable->select();
         foreach($result as $one) {
-            $this->_queues[$one['queue_name']] = (int)$one['queue_id'];
+            $this->queues[$one['queue_name']] = (int)$one['queue_id'];
         }
 
-        $list = array_keys($this->_queues);
+        $list = array_keys($this->queues);
 
         return $list;
     }
@@ -408,7 +443,7 @@ class Db extends AbstractAdapter implements
      */
     public function deleteMessage(Queue $queue, MessageInterface $message)
     {
-        $info = $this->_extractMessageInfo($queue, $message);
+        $info = $this->getMessageInfo($queue, $message);
 
         if (isset($info['messageId'])) {
             $db    = $this->messageTable->delete(array('message_id' => $info['messageId'], 'queue_id' => $this->getQueueId($queue->getName())));
@@ -417,37 +452,6 @@ class Db extends AbstractAdapter implements
             }
         }
         return false;
-    }
-
-    /********************************************************************
-     * Functions that are not part of the \ZendQueue\Adapter\AdapterAbstract
-     *********************************************************************/
-
-    /**
-     * Get the queue ID
-     *
-     * Returns the queue's row identifier.
-     *
-     * @param  string       $name
-     * @return integer|null
-     * @throws Exception\QueueNotFoundException
-     */
-    protected function getQueueId($name)
-    {
-        if (array_key_exists($name, $this->_queues)) {
-            return $this->_queues[$name];
-        }
-
-        $result = $this->queueTable->select(array('queue_name' => $name));
-        foreach($result as $one) {
-            $this->_queues[$name] = (int)$one['queue_id'];
-        }
-
-        if (!array_key_exists($name, $this->_queues)) {
-            throw new Exception\QueueNotFoundException('Queue does not exist: ' . $name);
-        }
-
-        return $this->_queues[$name];
     }
 
 }

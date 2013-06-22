@@ -67,6 +67,21 @@ class ArrayAdapter extends AbstractAdapter implements DeleteMessageCapableInterf
     }
 
     /**
+     * Returns the ID of the queue
+     *
+     * @param string $name Queue name
+     * @return string
+     */
+    public function getQueueId($name)
+    {
+        if ($this->isQueueExist($name)) {
+            return $name;
+        }
+        //else
+        return null;
+    }
+
+    /**
      * Does a queue already exist?
      *
      * @param string $name
@@ -253,7 +268,7 @@ class ArrayAdapter extends AbstractAdapter implements DeleteMessageCapableInterf
         	throw new Exception\QueueNotFoundException('Queue does not exist:' . $queue->getName());
         }
 
-        $info = $this->_extractMessageInfo($queue, $message);
+        $info = $this->getMessageInfo($queue, $message);
         $messageId = $info['messageId'];
 
         // load the queue
