@@ -153,23 +153,8 @@ class QueueTest extends \PHPUnit_Framework_TestCase
         }
     }
 
-    public function testSchedule()
-    {
-        if (!$this->queue->isSendParamSupported(SendParameters::SCHEDULE)) {
-            $this->markTestSkipped('schedule() not supported');
-        }
-
-        //FIXME: reapeating interval disabled temporary
-
-//         if ($this->queue->isSendParamSupported(SendParameters::REPEATING_INTERVAL)) {
-//             $this->assertInstanceOf($this->queue->getOptions()->getMessageClass(), $this->queue->schedule('Hello World', time() + 2, 2));
-//         } else {
-            $this->assertInstanceOf($this->queue->getOptions()->getMessageClass(), $this->queue->schedule('Hello World', time() + 2));
-//         }
-    }
-
     /**
-     * ArrayAdapter can't await
+     * ArrayAdapter can't await, but emulation is active by default
      * @todo add EventManager case
      */
     public function testAwait()

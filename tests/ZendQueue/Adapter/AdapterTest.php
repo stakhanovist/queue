@@ -22,6 +22,7 @@ use ZendQueue\Adapter\AdapterFactory;
 use ZendQueue\Adapter\Capabilities\DeleteMessageCapableInterface;
 use ZendQueue\Adapter\Capabilities\ListQueuesCapableInterface;
 use ZendQueue\Adapter\Capabilities\CountMessagesCapableInterface;
+use ZendQueue\Adapter\Null;
 
 /*
  * The adapter test class provides a universal test class for all of the
@@ -119,14 +120,14 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
             'options' => $this->getTestOptions(),
         ));
 
-        $queue   = new Queue($name, $adapter, $options);
-
-        if ($this->getAdapterName() != 'Null') {
-            $queue->ensureQueue();
+        if ($adapter instanceof Adapter\Null) {
+            return false;
         }
 
-        return $queue;
+        $queue   = new Queue($name, $adapter, $options);
+        $queue->ensureQueue();
 
+        return $queue;
     }
 
     public function handleErrors($errno, $errstr)
@@ -173,11 +174,6 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
         return $this->adapterHasSupport($queue->getAdapter(), $needles);
     }
 
-    // test the constants
-    public function testConst()
-    {
-        $this->markTestSkipped('must be tested in each individual adapter');
-    }
 
     public function testSetGetOptions()
     {
