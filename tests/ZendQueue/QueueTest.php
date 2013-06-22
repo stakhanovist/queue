@@ -188,16 +188,4 @@ class QueueTest extends \PHPUnit_Framework_TestCase
         });
     }
 
-    public function testGetQueues()
-    {
-        if (!$this->queue->canListQueues()) {
-            $this->markTestSkipped("canListQueues() is not supported");
-        }
-
-        $queues = $this->queue->listQueues();
-
-        $this->assertTrue(is_array($queues));
-
-        $this->assertTrue(in_array($this->name, $queues));
-    }
 }
