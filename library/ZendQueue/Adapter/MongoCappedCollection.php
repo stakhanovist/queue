@@ -53,7 +53,7 @@ class MongoCappedCollection extends AbstractMongo implements AwaitMessagesCapabl
 
         if ($queue) {
             for($i=0; $i < $options['maxMessages']; $i++){
-                $queue->insert(array(self::KEY_HANDLED => true));
+                $queue->insert(array(self::KEY_HANDLE => true));
             }
             return true;
         } //else
@@ -92,7 +92,7 @@ class MongoCappedCollection extends AbstractMongo implements AwaitMessagesCapabl
 
         $collection = $this->mongoDb->selectCollection($queue->getName());
 
-        if ($options['threshold'] && $collection->count(array(self::KEY_HANDLED => true)) < $options['threshold']) {
+        if ($options['threshold'] && $collection->count(array(self::KEY_HANDLE => true)) < $options['threshold']) {
             //FIXME: Exception should be explained in a better way
             throw new Exception\RuntimeException('Cannot send message: capped collection is full.');
         }
@@ -103,7 +103,7 @@ class MongoCappedCollection extends AbstractMongo implements AwaitMessagesCapabl
             self::KEY_CLASS    => get_class($message),
             self::KEY_CONTENT  => (string) $message->getContent(),
             self::KEY_METADATA => $message->getMetadata(),
-            self::KEY_HANDLED  => false,
+            self::KEY_HANDLE  => false,
         );
 
         try {
@@ -169,7 +169,7 @@ class MongoCappedCollection extends AbstractMongo implements AwaitMessagesCapabl
             }
 
             //Setup tailable cursor
-            $cursor = $this->_setupCursor($collection, null, array('_id' => array('$gt' => $secondLast['_id'])), array('_id', self::KEY_HANDLED));
+            $cursor = $this->_setupCursor($collection, null, array('_id' => array('$gt' => $secondLast['_id'])), array('_id', self::KEY_HANDLE));
             $cursor->tailable(true);
             $cursor->awaitData(true);
 
@@ -193,7 +193,7 @@ class MongoCappedCollection extends AbstractMongo implements AwaitMessagesCapabl
                     $msg = $cursor->getNext();
 
                     //To avoid resource-consuming, we ignore handled message early
-                    if($msg[self::KEY_HANDLED]) {
+                    if($msg[self::KEY_HANDLE]) {
                         continue; //inner loop
                     }
 

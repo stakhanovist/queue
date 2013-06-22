@@ -121,15 +121,19 @@ abstract class AbstractAdapter implements AdapterInterface
     }
 
     /**
+     * Build info for received message
+     *
+     * @param mixed $handle
      * @param mixed $id
      * @param Queue|string $queue
      * @param ParametersInterface|array $options
      * @return array
      */
-    protected function _buildMessageInfo($id, $queue, $options = null)
+    protected function _buildMessageInfo($handle, $id, $queue, $options = null)
     {
         $name = $queue instanceof Queue ? $queue->getName() : (string) $queue;
         return array(
+            'handle'    => $handle,
             'messageId' => $id,
             'queueId'   => $this->getQueueId($name),
             'queueName' => $name,
@@ -139,6 +143,8 @@ abstract class AbstractAdapter implements AdapterInterface
     }
 
     /**
+     * Embed info into a sended message
+     *
      * @param Queue $queue
      * @param MessageInterface $message
      * @param mixed $id
@@ -147,7 +153,7 @@ abstract class AbstractAdapter implements AdapterInterface
      */
     protected function _embedMessageInfo(Queue $queue, MessageInterface $message, $id, $options = null)
     {
-        $message->setMetadata($queue->getOptions()->getMessageMetadatumKey(), $this->_buildMessageInfo($id, $queue, $options));
+        $message->setMetadata($queue->getOptions()->getMessageMetadatumKey(), $this->_buildMessageInfo(false, $id, $queue, $options));
     }
 
     /**

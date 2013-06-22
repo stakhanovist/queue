@@ -403,12 +403,12 @@ class Db extends AbstractAdapter implements
                     if ($rst->count() > 0) {
                         $message['metadata'] = isset($message['metadata']) ? unserialize($message['metadata']) : array();
                         $message['metadata'][$queue->getOptions()->getMessageMetadatumKey()] = $this->_buildMessageInfo(
+                            $message['handle'],
                             (int) $message['message_id'],
                             $queue,
                             array(
-                                'timeout'     => $message['timeout'],
-                                'schedule'    => $message['schedule'],
-                                'interval'    => $message['interval'],
+                                SendParameters::SCHEDULE           => $message['schedule'],
+                                SendParameters::REPEATING_INTERVAL => $message['interval'],
                             )
                         );
                         unset($message['id'], $message['timeout'], $message['schedule'], $message['interval']);
@@ -445,8 +445,17 @@ class Db extends AbstractAdapter implements
     {
         $info = $this->getMessageInfo($queue, $message);
 
-        if (isset($info['messageId'])) {
-            $db    = $this->messageTable->delete(array('message_id' => $info['messageId'], 'queue_id' => $this->getQueueId($queue->getName())));
+        if (isset($info['messageId']) && isset($info['handle'])) {
+            $where = array('message_id' => $info['messageId'], 'queue_id' => $this->getQueueId($queue->getName()));
+
+            if ($info['handle']) {
+                $where['handle'] = $info['handle'];
+            } else {
+                $where[] = 'handle IS NULL';
+            }
+
+            $db    = $this->messageTable->delete($where);
+
             if ($db) {
                 return true;
             }

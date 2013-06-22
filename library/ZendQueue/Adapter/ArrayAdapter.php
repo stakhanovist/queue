@@ -233,6 +233,7 @@ class ArrayAdapter extends AbstractAdapter implements DeleteMessageCapableInterf
                     $msg['handle']  = md5(uniqid(rand(), true));
                     $msg['timeout'] = $params ? microtime(true) + $timeout : null;
                     $msg['metadata'][$queue->getOptions()->getMessageMetadatumKey()] = $this->_buildMessageInfo(
+                        $msg['handle'],
                 		$messageId,
                 		$queue
                     );

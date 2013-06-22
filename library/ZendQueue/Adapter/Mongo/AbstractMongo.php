@@ -21,7 +21,7 @@ use ZendQueue\Parameter\ReceiveParameters;
 abstract class AbstractMongo extends AbstractAdapter implements CountMessagesCapableInterface
 {
 
-    const KEY_HANDLED     = 'h';
+    const KEY_HANDLE     = 'h';
     const KEY_CLASS       = 't';
     const KEY_CONTENT     = 'c';
     const KEY_METADATA    = 'm';
@@ -194,7 +194,7 @@ abstract class AbstractMongo extends AbstractAdapter implements CountMessagesCap
             self::KEY_CLASS    => get_class($message),
             self::KEY_CONTENT  => (string) $message->getContent(),
             self::KEY_METADATA => $message->getMetadata(),
-            self::KEY_HANDLED  => false,
+            self::KEY_HANDLE  => false,
         );
 
         try {
@@ -209,8 +209,8 @@ abstract class AbstractMongo extends AbstractAdapter implements CountMessagesCap
     }
 
     protected function _setupCursor(\MongoCollection $collection, ReceiveParameters $params = null,
-        $criteria = array(self::KEY_HANDLED => false),
-        array $fields = array('_id', self::KEY_HANDLED)
+        $criteria = array(self::KEY_HANDLE => false),
+        array $fields = array('_id', self::KEY_HANDLE)
     )
     {
         if($params) {
@@ -226,7 +226,7 @@ abstract class AbstractMongo extends AbstractAdapter implements CountMessagesCap
     {
         $msg = $collection->findAndModify(
             array('_id' => $id),
-            array('$set' => array(self::KEY_HANDLED => true)),
+            array('$set' => array(self::KEY_HANDLE => true)),
             null,
             array(
                 'sort'   => array('$natural' => 1),
@@ -235,12 +235,12 @@ abstract class AbstractMongo extends AbstractAdapter implements CountMessagesCap
         );
 
         //if message has been handled already then ignore it
-        if(empty($msg) || $msg[self::KEY_HANDLED]) { //already handled
+        if(empty($msg) || $msg[self::KEY_HANDLE]) { //already handled
             return null;
         }
 
         $msg[self::KEY_METADATA] = (array) $msg[self::KEY_METADATA];
-        $msg[self::KEY_METADATA][$queue->getOptions()->getMessageMetadatumKey()] = $this->_buildMessageInfo($msg['_id'], $queue);
+        $msg[self::KEY_METADATA][$queue->getOptions()->getMessageMetadatumKey()] = $this->_buildMessageInfo($msg[self::KEY_HANDLE], $msg['_id'], $queue);
 
         return array(
             'class'    => $msg[self::KEY_CLASS],
@@ -289,7 +289,7 @@ abstract class AbstractMongo extends AbstractAdapter implements CountMessagesCap
     public function countMessages(Queue $queue)
     {
         $collection = $this->mongoDb->selectCollection($queue->getName());
-        return $collection->count(array(self::KEY_HANDLED => false));
+        return $collection->count(array(self::KEY_HANDLE => false));
     }
 
 }

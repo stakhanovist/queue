@@ -34,7 +34,7 @@ class MongoCollection extends AbstractMongo implements DeleteMessageCapableInter
 
         if (isset($info['messageId'])) {
             $collection = $this->mongoDb->selectCollection($queue->getName());
-            $result = $collection->remove(array('_id' => $info['messageId']));
+            $result = $collection->remove(array('_id' => $info['messageId'], self::KEY_HANDLE => $info['handle']));
             if(isset($result['ok']) && $result['ok']) {
                 return true;
             }
