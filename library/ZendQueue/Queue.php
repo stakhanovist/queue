@@ -391,6 +391,38 @@ class Queue implements Countable
         return $this->send($message, $params);
     }
 
+    /**
+     * Unschedule a message
+     * 
+     * @param MessageInterface $message
+     * @throws Exception\UnsupportedMethodCallException
+     * @return boolean
+     */
+    public function unschedule(MessageInterface $message)
+    {
+        if (!$this->isSendParamSupported(SendParameters::SCHEDULE)) {
+            throw new Exception\UnsupportedMethodCallException('\''.SendParameters::SCHEDULE.'\' param is not supported by ' . get_class($this->getAdapter()));
+        }
+
+        $info = $this->getAdapter()->getMessageInfo($this, $message);
+
+        $options = $info['options'];
+
+        if (isset($options[SendParameters::SCHEDULE])) {
+            unset($options[SendParameters::SCHEDULE]);
+        }
+
+        if (isset($options[SendParameters::REPEATING_INTERVAL])) {
+            unset($options[SendParameters::REPEATING_INTERVAL]);
+        }
+
+        $info['options'] = $options;
+
+        $message->setMetadata($queue->getOptions()->getMessageMetadatumKey(), $options);
+
+        return $this->deleteMessage($message);
+    }
+
 
     /********************************************************************
      * Available Parameters
