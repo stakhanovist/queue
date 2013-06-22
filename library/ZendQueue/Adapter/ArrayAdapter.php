@@ -74,7 +74,7 @@ class ArrayAdapter extends AbstractAdapter implements DeleteMessageCapableInterf
      */
     public function getQueueId($name)
     {
-        if ($this->isQueueExist($name)) {
+        if ($this->queueExists($name)) {
             return $name;
         }
         //else
@@ -82,12 +82,12 @@ class ArrayAdapter extends AbstractAdapter implements DeleteMessageCapableInterf
     }
 
     /**
-     * Does a queue already exist?
+     * Check if a queue exists
      *
      * @param string $name
      * @return boolean
      */
-    public function isQueueExist($name)
+    public function queueExists($name)
     {
         return array_key_exists($name, $this->_data);
     }
@@ -100,7 +100,7 @@ class ArrayAdapter extends AbstractAdapter implements DeleteMessageCapableInterf
      */
     public function createQueue($name)
     {
-        if ($this->isQueueExist($name)) {
+        if ($this->queueExists($name)) {
             return false;
         }
 
@@ -169,7 +169,7 @@ class ArrayAdapter extends AbstractAdapter implements DeleteMessageCapableInterf
      */
     public function sendMessage(Queue $queue, MessageInterface $message, SendParameters $params = null)
     {
-        if (!$this->isQueueExist($queue->getName())) {
+        if (!$this->queueExists($queue->getName())) {
             throw new Exception\QueueNotFoundException('Queue does not exist: ' . $queue->getName());
         }
 
@@ -264,7 +264,7 @@ class ArrayAdapter extends AbstractAdapter implements DeleteMessageCapableInterf
      */
     public function deleteMessage(Queue $queue, MessageInterface $message)
     {
-        if (!$this->isQueueExist($queue->getName())) {
+        if (!$this->queueExists($queue->getName())) {
         	throw new Exception\QueueNotFoundException('Queue does not exist:' . $queue->getName());
         }
 

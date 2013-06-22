@@ -85,12 +85,12 @@ interface AdapterInterface
     public function getQueueId($name);
 
     /**
-     * Does a queue already exist?
+     * Check if a queue exists
      *
      * @param  string $name Queue name
      * @return boolean
      */
-    public function isQueueExist($name);
+    public function queueExists($name);
 
     /**
      * Create a new queue

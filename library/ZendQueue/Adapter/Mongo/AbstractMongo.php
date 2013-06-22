@@ -117,7 +117,7 @@ abstract class AbstractMongo extends AbstractAdapter implements CountMessagesCap
      */
     public function getQueueId($name)
     {
-        if ($this->isQueueExist($name)) {
+        if ($this->queueExists($name)) {
             return $name;
         }
         //else
@@ -141,12 +141,13 @@ abstract class AbstractMongo extends AbstractAdapter implements CountMessagesCap
 
 
     /**
+     * Check if a queue exists
      *
      * @param  string $name
      * @return boolean
      * @throws Exception\ExceptionInterface
      */
-    public function isQueueExist($name)
+    public function queueExists($name)
     {
         $collection = $this->mongoDb->selectCollection($name);
         $result = $collection->validate();

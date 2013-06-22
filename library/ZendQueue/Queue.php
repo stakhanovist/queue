@@ -183,7 +183,7 @@ class Queue implements Countable
     public function ensureQueue()
     {
         $name = $this->getName();
-        if($this->getAdapter()->isQueueExist($name)) {
+        if($this->getAdapter()->queueExists($name)) {
             return true;
         }
 
@@ -205,7 +205,7 @@ class Queue implements Countable
 
         $deleted = false;
 
-        if($adapter->isQueueExist($name)) {
+        if($adapter->queueExists($name)) {
             $deleted = $adapter->deleteQueue($name);
         }
 

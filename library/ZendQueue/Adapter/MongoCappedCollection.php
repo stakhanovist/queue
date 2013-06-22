@@ -62,12 +62,12 @@ class MongoCappedCollection extends AbstractMongo implements AwaitMessagesCapabl
     }
 
     /**
-     * Does a queue already exist?
+     * Check if a queue exists
      *
      * @param  string $name Queue name
      * @return boolean
      */
-    public function isQueueExist($name)
+    public function queueExists($name)
     {
         $collection = $this->mongoDb->selectCollection($name);
         $result = $collection->validate();

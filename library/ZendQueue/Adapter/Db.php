@@ -179,12 +179,12 @@ class Db extends AbstractAdapter implements
 
 
     /**
-     * Does a queue already exist?
+     * Check if a queue exists
      *
      * @param  string $name
      * @return boolean
      */
-    public function isQueueExist($name)
+    public function queueExists($name)
     {
         $id = 0;
 
@@ -206,7 +206,7 @@ class Db extends AbstractAdapter implements
      */
     public function createQueue($name)
     {
-        if ($this->isQueueExist($name)) {
+        if ($this->queueExists($name)) {
             return false;
         }
 
