@@ -33,7 +33,11 @@ abstract class AbstractMongo extends AbstractAdapter implements CountMessagesCap
      * @var array
      */
     protected $queues = array();
-
+    
+    /**
+     * @var \MongoDB
+     */
+    protected $mongoDb;
 
     /**
      * Constructor.
