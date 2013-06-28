@@ -33,7 +33,11 @@ abstract class AbstractMongo extends AbstractAdapter implements CountMessagesCap
      * @var array
      */
     protected $queues = array();
-
+    
+    /**
+     * @var \MongoDB
+     */
+    protected $mongoDb;
 
     /**
      * Constructor.
@@ -240,7 +244,7 @@ abstract class AbstractMongo extends AbstractAdapter implements CountMessagesCap
         }
 
         $msg[self::KEY_METADATA] = (array) $msg[self::KEY_METADATA];
-        $msg[self::KEY_METADATA][$queue->getOptions()->getMessageMetadatumKey()] = $this->_buildMessageInfo($msg[self::KEY_HANDLE], $msg['_id'], $queue);
+        $msg[self::KEY_METADATA][$queue->getOptions()->getMessageMetadatumKey()] = $this->_buildMessageInfo(true, $msg['_id'], $queue);
 
         return array(
             'class'    => $msg[self::KEY_CLASS],
