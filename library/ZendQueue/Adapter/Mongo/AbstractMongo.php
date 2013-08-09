@@ -10,33 +10,65 @@
 
 namespace ZendQueue\Adapter\Mongo;
 
+use Zend\Stdlib\MessageInterface;
 use ZendQueue\Adapter\AbstractAdapter;
 use ZendQueue\Adapter\Capabilities\CountMessagesCapableInterface;
-use ZendQueue\Adapter\Capabilities\AwaitCapableInterface;
+use ZendQueue\Exception;
 use ZendQueue\Queue;
 use ZendQueue\Parameter\SendParameters;
 use ZendQueue\Parameter\ReceiveParameters;
-use Zend\Stdlib\Message;
 
 abstract class AbstractMongo extends AbstractAdapter implements CountMessagesCapableInterface
 {
 
-    const KEY_HANDLED     = 'h';
+    const KEY_HANDLE     = 'h';
     const KEY_CLASS       = 't';
     const KEY_CONTENT     = 'c';
     const KEY_METADATA    = 'm';
 
 
     /**
+     * Internal array of queues to save on lookups
+     *
+     * @var array
+     */
+    protected $queues = array();
+    
+    /**
      * @var \MongoDB
      */
     protected $mongoDb;
 
-    public function __construct($options)
+    /**
+     * Constructor.
+     *
+     * $options is an array of key/value pairs or an instance of Traversable
+     * containing configuration options.
+     *
+     * @param  array|Traversable $options An array having configuration data
+     * @throws Exception\InvalidArgumentException
+     * @throws Exception\ExtensionNotLoadedException
+     */
+    public function __construct($options = array())
     {
+        if (!extension_loaded('mongo')) {
+            throw new Exception\ExtensionNotLoadedException("Mongo extension is not loaded");
+        }
         parent::__construct($options);
-        $this->connect();
     }
+
+    /**
+     * List avaliable params for receiveMessages()
+     *
+     * @return array
+     */
+    public function getAvailableReceiveParams()
+    {
+        return array(
+            ReceiveParameters::CLASS_FILTER,
+        );
+    }
+
 
     /**
      * Ensure connection
@@ -45,8 +77,7 @@ abstract class AbstractMongo extends AbstractAdapter implements CountMessagesCap
      */
     public function connect()
     {
-        $driverOptions = $this->_options['driverOptions'];
-        $options = isset($driverOptions['options']) ? (array) $driverOptions['options'] : array();
+        $driverOptions = $this->getOptions()['driverOptions'];
 
         if (isset($driverOptions['dsn']) && is_string($driverOptions['dsn'])) {
             $dsn = $driverOptions['dsn'];
@@ -70,7 +101,7 @@ abstract class AbstractMongo extends AbstractAdapter implements CountMessagesCap
             $dsn = "mongodb://$credentials{$driverOptions['host']}/{$driverOptions['dbname']}";
         }
 
-        $mongo = new \Mongo($dsn, $options);
+        $mongo = new \Mongo($dsn);
 
         $dbName = explode('/', $dsn);
         $dbName = array_pop($dbName);
@@ -80,23 +111,47 @@ abstract class AbstractMongo extends AbstractAdapter implements CountMessagesCap
         return true;
     }
 
-    /* (non-PHPdoc)
-     * @see \ZendQueue\Adapter\AdapterInterface::create()
-    */
-    public function create($name)
+    /**
+     * Returns the ID of the queue
+     *
+     * Name is the only ID of the collection, so if the collection exists the name will be returned
+     *
+     * @param string $name Queue name
+     * @return string
+     */
+    public function getQueueId($name)
     {
-        $this->_queues[$name] = $this->mongoDb->createCollection($name);
-        return true;
+        if ($this->queueExists($name)) {
+            return $name;
+        }
+        //else
+        return null;
+    }
+
+    /**
+     * Create a new queue
+     *
+     * @param  string  $name Queue name
+     * @return boolean
+     */
+    public function createQueue($name)
+    {
+        if($this->mongoDb->createCollection($name)) {
+            return true;
+        }
+
+        return false;
     }
 
 
     /**
+     * Check if a queue exists
      *
      * @param  string $name
      * @return boolean
      * @throws Exception\ExceptionInterface
      */
-    public function isExists($name)
+    public function queueExists($name)
     {
         $collection = $this->mongoDb->selectCollection($name);
         $result = $collection->validate();
@@ -111,29 +166,27 @@ abstract class AbstractMongo extends AbstractAdapter implements CountMessagesCap
      * @param  string $name Queue name
      * @return boolean
      */
-    public function delete($name)
+    public function deleteQueue($name)
     {
         $result = $this->mongoDb->selectCollection($name)->drop();
         if(isset($result['ok']) && $result['ok']) {
-            unset($this->_queues[$name]);
             return true;
         }
 
         return false;
     }
 
-
     /**
      * Send a message to the queue
      *
      * @param  Queue $queue
-     * @param  Message $message Message to send to the active queue
+     * @param  MessageInterface $message Message to send to the active queue
      * @param  SendParameters $params
-     * @return bool
+     * @return MessageInterface
      * @throws Exception\QueueNotFoundException
      * @throws Exception\RuntimeException
      */
-    public function send(Queue $queue, Message $message, SendParameters $params = null)
+    public function sendMessage(Queue $queue, MessageInterface $message, SendParameters $params = null)
     {
         $this->_cleanMessageInfo($queue, $message);
 
@@ -145,7 +198,7 @@ abstract class AbstractMongo extends AbstractAdapter implements CountMessagesCap
             self::KEY_CLASS    => get_class($message),
             self::KEY_CONTENT  => (string) $message->getContent(),
             self::KEY_METADATA => $message->getMetadata(),
-            self::KEY_HANDLED  => false,
+            self::KEY_HANDLE   => false,
         );
 
         try {
@@ -156,12 +209,12 @@ abstract class AbstractMongo extends AbstractAdapter implements CountMessagesCap
 
         $this->_embedMessageInfo($queue, $message, $id, $params ? $params->toArray() : array());
 
-        return true;
+        return $message;
     }
 
     protected function _setupCursor(\MongoCollection $collection, ReceiveParameters $params = null,
-        $criteria = array(self::KEY_HANDLED => false),
-        array $fields = array('_id', self::KEY_HANDLED)
+        $criteria = array(self::KEY_HANDLE => false),
+        array $fields = array('_id', self::KEY_HANDLE)
     )
     {
         if($params) {
@@ -177,7 +230,7 @@ abstract class AbstractMongo extends AbstractAdapter implements CountMessagesCap
     {
         $msg = $collection->findAndModify(
             array('_id' => $id),
-            array('$set' => array(self::KEY_HANDLED => true)),
+            array('$set' => array(self::KEY_HANDLE => true)),
             null,
             array(
                 'sort'   => array('$natural' => 1),
@@ -186,12 +239,12 @@ abstract class AbstractMongo extends AbstractAdapter implements CountMessagesCap
         );
 
         //if message has been handled already then ignore it
-        if(empty($msg) || $msg[self::KEY_HANDLED]) { //already handled
+        if(empty($msg) || $msg[self::KEY_HANDLE]) { //already handled
             return null;
         }
 
         $msg[self::KEY_METADATA] = (array) $msg[self::KEY_METADATA];
-        $msg[self::KEY_METADATA][$queue->getOptions()->getMessageMetadatumKey()] = $this->_buildMessageInfo($msg['_id'], $queue);
+        $msg[self::KEY_METADATA][$queue->getOptions()->getMessageMetadatumKey()] = $this->_buildMessageInfo(true, $msg['_id'], $queue);
 
         return array(
             'class'    => $msg[self::KEY_CLASS],
@@ -208,7 +261,7 @@ abstract class AbstractMongo extends AbstractAdapter implements CountMessagesCap
      * @param  ReceiveParameters $params
      * @return MessageIterator
      */
-    public function receive(Queue $queue, $maxMessages = null, ReceiveParameters $params = null)
+    public function receiveMessages(Queue $queue, $maxMessages = null, ReceiveParameters $params = null)
     {
         if ($maxMessages === null) {
             $maxMessages = 1;
@@ -235,13 +288,12 @@ abstract class AbstractMongo extends AbstractAdapter implements CountMessagesCap
     /**
      * Returns the approximate number of messages in the queue
      *
-     *
      * @return integer
      */
     public function countMessages(Queue $queue)
     {
         $collection = $this->mongoDb->selectCollection($queue->getName());
-        return $collection->count(array(self::KEY_HANDLED => false));
+        return $collection->count(array(self::KEY_HANDLE => false));
     }
 
 }

@@ -9,12 +9,12 @@
  */
 
 namespace ZendQueue\Adapter\Capabilities;
-
+use Zend\Stdlib\MessageInterface;
 use ZendQueue\Adapter\AdapterInterface;
 use ZendQueue\Parameter\ReceiveParameters;
 use ZendQueue\Queue;
 
-interface AwaitCapableInterface extends AdapterInterface
+interface AwaitMessagesCapableInterface extends AdapterInterface
 {
     /**
      * Await for messages in the queue and receive them
@@ -22,8 +22,8 @@ interface AwaitCapableInterface extends AdapterInterface
      * @param  Queue $queue
      * @param  Closure $callback
      * @param  ReceiveParameters $params
-     * @return Message
-     * @throws Exception\RuntimeException - database error
+     * @return MessageInterface
+     * @throws Exception\RuntimeException
      */
-     public function await(Queue $queue, \Closure $callback = null, ReceiveParameters $params = null);
+     public function awaitMessages(Queue $queue, \Closure $callback = null, ReceiveParameters $params = null);
 }

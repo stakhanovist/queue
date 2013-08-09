@@ -62,9 +62,11 @@ class QueueTest extends \PHPUnit_Framework_TestCase
 
         $this->options = new QueueOptions();
 
-        $this->adapter = new ArrayAdapter($this->options->getAdapterOptions());
+        $this->adapter = new ArrayAdapter();
 
-        $this->queue = new Queue($this->name, $this->adapter);
+        $this->queue = new Queue($this->name, $this->adapter, $this->options);
+
+        $this->queue->ensureQueue();
     }
 
     protected function tearDown()
@@ -72,24 +74,20 @@ class QueueTest extends \PHPUnit_Framework_TestCase
 
     }
 
-    public function testConstruct()
-    {
-        $obj = new Queue('queueTestConstruct', 'ArrayAdapter');
-        $this->assertTrue($obj instanceof Queue);
-    }
-
-    public function testGetConfig()
+    public function testSetGetConfig()
     {
         $this->assertTrue($this->options instanceof QueueOptions);
         $this->assertEquals($this->options, $this->queue->getOptions());
-        $this->assertTrue(is_array($this->options->getAdapterOptions()));
+
+        $options = new QueueOptions();
+
+        $this->assertTrue($this->queue->setOptions($options) instanceof Queue);
+        $this->assertEquals($options, $this->queue->getOptions());
     }
 
-    public function testSetGetAdapter()
+    public function testGetAdapter()
     {
-        $adapter = new ArrayAdapter($this->options->getAdapterOptions());
-        $this->assertTrue($this->queue->setAdapter($adapter) instanceof Queue);
-        $this->assertTrue($this->queue->getAdapter($adapter) instanceof ArrayAdapter);
+        $this->assertTrue($this->queue->getAdapter() instanceof ArrayAdapter);
     }
 
     public function testGetName()
@@ -100,7 +98,7 @@ class QueueTest extends \PHPUnit_Framework_TestCase
     public function testEnsureQueue()
     {
         $this->assertTrue($this->queue->ensureQueue());
-        $this->assertTrue($this->adapter->isExists($this->name));
+        $this->assertTrue($this->adapter->queueExists($this->name));
     }
 
     public function testSampleBehavior()
@@ -109,17 +107,17 @@ class QueueTest extends \PHPUnit_Framework_TestCase
         // parameter verification
         try {
             $this->queue->send(array());
-            $this->fail('send() $mesage must be a string or an instance of \ZendQueue\Message\Message');
+            $this->fail('send() $mesage must be a string or an instance of \Zend\Stdlib\MessageInterface');
         } catch (\Exception $e) {
             $this->assertTrue(true);
         }
 
         $message = 'Hello world';
-        $this->assertTrue($this->queue->send($message));
+        $this->assertInstanceOf('\Zend\Stdlib\MessageInterface', $this->queue->send($message));
 
         $message = new Message();
         $message->setContent('Hello world again');
-        $this->assertTrue($this->queue->send($message));
+        $this->assertEquals($message, $this->queue->send($message));
 
         // ------------------------------------ count()
         if ($this->queue->canCountMessages()) {
@@ -155,21 +153,8 @@ class QueueTest extends \PHPUnit_Framework_TestCase
         }
     }
 
-    public function testSchedule()
-    {
-        if (!$this->queue->isSendParamSupported(SendParameters::SCHEDULE)) {
-            $this->markTestSkipped('schedule() not supported');
-        }
-
-        $this->assertTrue($this->queue->schedule('Hello World', 2, $interval));
-
-        if ($this->queue->isSendParamSupported(SendParameters::INTERVAL)) {
-            $this->assertTrue($this->queue->schedule('Hello World', 2, 2));
-        }
-    }
-
     /**
-     * ArrayAdapter can't await
+     * ArrayAdapter can't await, but emulation is active by default
      * @todo add EventManager case
      */
     public function testAwait()
@@ -188,14 +173,4 @@ class QueueTest extends \PHPUnit_Framework_TestCase
         });
     }
 
-    public function testGetQueues()
-    {
-        if (!$this->queue->canListQueues()) {
-            $this->markTestSkipped("canListQueues() is not supported");
-        }
-
-        $queues = $this->queue->listQueues();
-        $this->assertTrue(is_array($queues));
-        $this->assertTrue(in_array($this->name, $queues));
-    }
 }

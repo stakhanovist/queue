@@ -10,7 +10,7 @@
 
 namespace ZendQueue\Adapter;
 
-use Zend\Stdlib\Message;
+use Zend\Stdlib\MessageInterface;
 use ZendQueue\Queue;
 use ZendQueue\Exception;
 use ZendQueue\Parameter\SendParameters;
@@ -34,12 +34,23 @@ class Null extends AbstractAdapter
     }
 
     /**
-     * Does a queue already exist?
+     * Returns the ID of the queue
+     *
+     * @param string $name Queue name
+     * @return string
+     */
+    public function getQueueId($name)
+    {
+        return null;
+    }
+
+    /**
+     * Check if a queue exists
      *
      * @param  string $name Queue name
-     * @return boolean
+     * @return bool
     */
-    public function isExists($name)
+    public function queueExists($name)
     {
         return false;
     }
@@ -48,9 +59,9 @@ class Null extends AbstractAdapter
      * Create a new queue
      *
      * @param  string  $name Queue name
-     * @return boolean
+     * @throws Exception\UnsupportedMethodCallException - queue disabled
     */
-    public function create($name)
+    public function createQueue($name)
     {
         throw new Exception\UnsupportedMethodCallException(__FUNCTION__ . '() is not supported by ' . get_called_class());
     }
@@ -61,13 +72,12 @@ class Null extends AbstractAdapter
      * Return false if the queue is not found, true if the queue exists.
      *
      * @param  string $name Queue name
-     * @return boolean
+     * @throws Exception\UnsupportedMethodCallException - queue disabled
     */
-    public function delete($name)
+    public function deleteQueue($name)
     {
         throw new Exception\UnsupportedMethodCallException(__FUNCTION__ . '() is not supported by ' . get_called_class());
     }
-
 
     /********************************************************************
      * Messsage management functions
@@ -77,13 +87,11 @@ class Null extends AbstractAdapter
      * Send a message to the queue
      *
      * @param  Queue $queue
-     * @param  Message $message Message to send to the active queue
+     * @param  MessageInterface $message Message
      * @param  SendParameters $params
-     * @return bool
-     * @throws Exception\QueueNotFoundException
-     * @throws Exception\RuntimeException
+     * @throws Exception\UnsupportedMethodCallException - queue disabled
     */
-    public function send(Queue $queue, Message $message, SendParameters $params = null)
+    public function sendMessage(Queue $queue, MessageInterface $message, SendParameters $params = null)
     {
         throw new Exception\UnsupportedMethodCallException(__FUNCTION__ . '() is not supported by ' . get_called_class());
     }
@@ -94,12 +102,11 @@ class Null extends AbstractAdapter
      * @param  Queue $queue
      * @param  integer|null $maxMessages Maximum number of messages to return
      * @param  ReceiveParameters $params
-     * @return MessageIterator
-    */
-    public function receive(Queue $queue, $maxMessages = null, ReceiveParameters $params = null)
+     * @throws Exception\UnsupportedMethodCallException - queue disabled
+     */
+    public function receiveMessages(Queue $queue, $maxMessages = null, ReceiveParameters $params = null)
     {
         throw new Exception\UnsupportedMethodCallException(__FUNCTION__ . '() is not supported by ' . get_called_class());
     }
-
 
 }

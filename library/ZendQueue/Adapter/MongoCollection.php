@@ -10,20 +10,13 @@
 
 namespace ZendQueue\Adapter;
 
-use Zend\Stdlib\Message;
-use ZendQueue\Exception;
+use Zend\Stdlib\MessageInterface;
 use ZendQueue\Queue;
-use ZendQueue\Adapter\Capabilities\AwaitCapableInterface;
-use ZendQueue\Parameter\SendParameters;
-use ZendQueue\Parameter\ReceiveParameters;
 use ZendQueue\Adapter\Capabilities\DeleteMessageCapableInterface;
 use ZendQueue\Adapter\Mongo\AbstractMongo;
 
 class MongoCollection extends AbstractMongo implements DeleteMessageCapableInterface
 {
-
-
-
     /**
      * Delete a message from the queue
      *
@@ -31,23 +24,22 @@ class MongoCollection extends AbstractMongo implements DeleteMessageCapableInter
      * unsuccessful.
      *
      * @param  Queue $queue
-     * @param  Message $message
+     * @param  MessageInterface $message
      * @return boolean
+     * @throws Exception\QueueNotFoundException
      */
-    public function deleteMessage(Queue $queue, Message $message) {
+    public function deleteMessage(Queue $queue, MessageInterface $message) {
 
-        $info = $this->_extractMessageInfo($queue, $message);
-
+        $info = $this->getMessageInfo($queue, $message);
         if (isset($info['messageId'])) {
             $collection = $this->mongoDb->selectCollection($queue->getName());
-            $result = $collection->remove(array('_id' => $info['messageId']));
+            $result = $collection->remove(array('_id' => $info['messageId'], self::KEY_HANDLE => $info['handle']));
             if(isset($result['ok']) && $result['ok']) {
+                $this->_cleanMessageInfo($queue, $message);
                 return true;
             }
         }
 
         return false;
     }
-
-
 }

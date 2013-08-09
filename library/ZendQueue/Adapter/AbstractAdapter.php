@@ -12,14 +12,13 @@ namespace ZendQueue\Adapter;
 
 use Traversable;
 use Zend\Stdlib\ArrayUtils;
+use Zend\Stdlib\MessageInterface;
+use Zend\Stdlib\ParametersInterface;
 use ZendQueue\Exception;
 use ZendQueue\Queue;
-use ZendQueue\Message\Message;
-use Zend\Stdlib\ParameterObjectInterface;
-use Zend\Stdlib\Parameters;
 
 /**
- * Class for connecting to queues performing common operations.
+ * Abstract class for performing common operations.
  *
  */
 abstract class AbstractAdapter implements AdapterInterface
@@ -29,91 +28,66 @@ abstract class AbstractAdapter implements AdapterInterface
      *
      * @var array
      */
-    protected $_options = array();
+    private $_options = array();
 
     /**
-     * Internal array of queues to save on lookups
+     * Default options
      *
      * @var array
      */
-    protected $_queues = array();
+    protected $defaultOptions = array(
+        'driverOptions' => array()
+    );
 
     /**
      * Constructor.
      *
      * $options is an array of key/value pairs or an instance of Traversable
-     * containing configuration options.  These options are common to most adapters:
+     * containing configuration options.
      *
      * @param  array|Traversable $options An array having configuration data
      * @throws Exception\InvalidArgumentException
      */
-    public function __construct($options)
+    public function __construct($options = array())
     {
+        $this->setOptions($options);
+    }
+
+    /**
+     * Set options
+     *
+     * @param array|Traversable $options
+     * @return AdapterInterface Fluent interface
+     */
+    public function setOptions($options)
+    {
+
         if ($options instanceof Traversable) {
             $options = ArrayUtils::iteratorToArray($options);
         }
 
         /*
          * Verify that adapter parameters are in an array.
-         */
+        */
         if (!is_array($options)) {
             throw new Exception\InvalidArgumentException('Adapter options must be an array or Traversable object');
         }
 
 
         $adapterOptions = array();
-        $driverOptions  = array();
+        $driverOptions  = isset($this->_options['driverOptions']) ? $this->_options['driverOptions'] : array();
 
-        // Normalize the options and merge with the defaults
-        if (array_key_exists('options', $options)) {
-            if (!is_array($options['options'])) {
-                throw new Exception\InvalidArgumentException("Configuration array 'options' must be an array");
-            }
-
-            // Can't use array_merge() because keys might be integers
-            foreach ($options['options'] as $key => $value) {
-                $adapterOptions[$key] = $value;
-            }
-        }
         if (array_key_exists('driverOptions', $options)) {
             // can't use array_merge() because keys might be integers
             foreach ((array)$options['driverOptions'] as $key => $value) {
                 $driverOptions[$key] = $value;
             }
         }
-        $this->_options = array_merge($this->_options, $options);
-        $this->_options['options']       = $adapterOptions;
+
+        $this->_options = array_merge($this->defaultOptions, $options);
         $this->_options['driverOptions'] = $driverOptions;
 
-    }
-
-    protected function _buildMessageInfo($id, $queue, $options = null)
-    {
-        return array(
-            'messageId' => $id,
-            'queue'     => $queue instanceof Queue ? $queue->getName() : (string) $queue,
-            'adapter'   => get_class($this),
-            'options'   => $options instanceof Parameters ? $options->toArray() : (array) $options,
-        );
-    }
-
-
-    protected function _embedMessageInfo(Queue $queue, Message $message, $id, $options = null)
-    {
-        $message->setMetadata($queue->getOptions()->getMessageMetadatumKey(), $this->_buildMessageInfo($id, $queue, $options));
-    }
-
-    protected function _extractMessageInfo(Queue $queue, Message $message)
-    {
-       return $message->getMetadata($queue->getOptions()->getMessageMetadatumKey());
-    }
-
-    protected function _cleanMessageInfo(Queue $queue, Message $message)
-    {
-        $metadatumKey = $queue->getOptions()->getMessageMetadatumKey();
-        if ($message->getMetadata($metadatumKey, null)) {
-            $message->setMetadata($metadatumKey, null);
-        }
+        return $this;
     }
 
     /**
@@ -126,14 +100,87 @@ abstract class AbstractAdapter implements AdapterInterface
         return $this->_options;
     }
 
+    /**
+     * List avaliable params for sendMessage()
+     *
+     * @return array
+     */
+    public function getAvailableSendParams()
+    {
+        return array();
+    }
+
+    /**
+     * List avaliable params for receiveMessages()
+     *
+     * @return array
+     */
     public function getAvailableReceiveParams()
     {
         return array();
     }
 
-    public function getAvailableSendParams()
+    /**
+     * Build info for received message
+     *
+     * @param mixed $handle
+     * @param mixed $id
+     * @param Queue|string $queue
+     * @param ParametersInterface|array $options
+     * @return array
+     */
+    protected function _buildMessageInfo($handle, $id, $queue, $options = null)
     {
-        return array();
+        $name = $queue instanceof Queue ? $queue->getName() : (string) $queue;
+        return array(
+            'handle'    => $handle,
+            'messageId' => $id,
+            'queueId'   => $this->getQueueId($name),
+            'queueName' => $name,
+            'adapter'   => get_called_class(),
+            'options'   => $options instanceof ParametersInterface ? $options->toArray() : (array) $options,
+        );
+    }
+
+    /**
+     * Embed info into a sended message
+     *
+     * @param Queue $queue
+     * @param MessageInterface $message
+     * @param mixed $id
+     * @param ParametersInterface|array $options
+     * @return void
+     */
+    protected function _embedMessageInfo(Queue $queue, MessageInterface $message, $id, $options = null)
+    {
+        $message->setMetadata($queue->getOptions()->getMessageMetadatumKey(), $this->_buildMessageInfo(false, $id, $queue, $options));
+    }
+
+    /**
+     * Get message info
+     *
+     * Only received messages have embedded infos.
+     *
+     * @param Queue $queue
+     * @param MessageInterface $message
+     * @return array
+     */
+    public function getMessageInfo(Queue $queue, MessageInterface $message)
+    {
+       return $message->getMetadata($queue->getOptions()->getMessageMetadatumKey());
+    }
+
+    /**
+     * @param Queue $queue
+     * @param MessageInterface $message
+     * @return void
+     */
+    protected function _cleanMessageInfo(Queue $queue, MessageInterface $message)
+    {
+        $metadatumKey = $queue->getOptions()->getMessageMetadatumKey();
+        if ($message->getMetadata($metadatumKey, null)) {
+            $message->setMetadata($metadatumKey, null);
+        }
     }
 
 }

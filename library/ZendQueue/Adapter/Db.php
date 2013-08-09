@@ -11,8 +11,7 @@
 namespace ZendQueue\Adapter;
 
 use Zend\Db as ZendDb;
-use Zend\Db\Sql\Sql;
-use Zend\Stdlib\Message;
+use Zend\Stdlib\MessageInterface;
 use ZendQueue\Exception;
 use ZendQueue\Queue;
 use ZendQueue\Adapter\Capabilities\CountMessagesCapableInterface;
@@ -22,6 +21,7 @@ use ZendQueue\Adapter\Capabilities\ScheduleMessageCapableInterface;
 use ZendQueue\Parameter\SendParameters;
 use ZendQueue\Parameter\ReceiveParameters;
 use ZendQueue\Adapter\AbstractAdapter;
+use Zend\Db\Sql\Sql;
 
 /**
  * Class for using connecting to a Zend_DB-based queuing system
@@ -33,40 +33,36 @@ class Db extends AbstractAdapter implements
                                     ListQueuesCapableInterface
 {
     /**
-     * User-provided options
+     * Default options
      *
      * @var array
      */
-    protected $_options = array(
-        'queueTableName'     => 'queue',
-        'messageTableName'   => 'message'
+    protected $defaultOptions = array(
+        'queueTable'     => 'queue',
+        'messageTable'   => 'message'
     );
+
     /**
-     * @var ZendDb\TableGateway\TableGateway
+     * Internal array of queues to save on lookups
+     *
+     * @var array
+     */
+    protected $queues = array();
+
+    /**
+     * @var ZendDb\TableGateway\TableGatewayInterface
      */
     protected $queueTable = null;
 
     /**
-     * @var ZendDb\TableGateway\TableGateway
+     * @var ZendDb\TableGateway\TableGatewayInterface
      */
     protected $messageTable = null;
 
     /**
-     * @var \Zend\Db\Adapter\Adapter
+     * @var ZendDb\Adapter\Adapter
      */
     protected $adapter= null;
-
-    /**
-     * Constructor
-     *
-     * @param  array|Traversable $options
-     */
-    public function __construct($options)
-    {
-        parent::__construct($options);
-
-        $this->connect();
-    }
 
     /**
      * Get the TableGateway implementation of the queue table
@@ -89,6 +85,30 @@ class Db extends AbstractAdapter implements
     }
 
     /**
+     * @return array
+     */
+    public function getAvailableSendParams()
+    {
+        return array(
+            SendParameters::SCHEDULE,
+            SendParameters::INTERVAL,
+            SendParameters::TIMEOUT
+        );
+    }
+
+    /**
+     * @return array
+     */
+    public function getAvailableReceiveParams()
+    {
+        return array(
+            ReceiveParameters::CLASS_FILTER,
+            ReceiveParameters::VISIBILITY_TIMEOUT,
+            ReceiveParameters::PEEK_MODE,
+        );
+    }
+
+    /**
      * Connect (or refresh connection) to the db adapter
      *
      * Throws an exception if the adapter cannot connect to DB.
@@ -99,9 +119,27 @@ class Db extends AbstractAdapter implements
     public function connect()
     {
         try {
-            $this->adapter = new ZendDb\Adapter\Adapter($this->_options['driverOptions']);
-            $this->queueTable = new ZendDb\TableGateway\TableGateway($this->_options['queueTableName'], $this->adapter);
-            $this->messageTable = new ZendDb\TableGateway\TableGateway($this->_options['messageTableName'], $this->adapter);
+
+            $options = $this->getOptions();
+
+            if (isset($options['dbAdapter']) && $options['dbAdapter'] instanceof ZendDb\Adapter\Adapter) {
+                $this->adapter = $options['dbAdapter'];
+            } else {
+                $this->adapter = new ZendDb\Adapter\Adapter($options['driverOptions']);
+            }
+
+            if ($options['queueTable'] instanceof ZendDb\TableGateway\TableGatewayInterface) {
+                $this->queueTable = $options['queueTable'];
+            } else {
+                $this->queueTable = new ZendDb\TableGateway\TableGateway($options['queueTable'], $this->adapter);
+            }
+
+            if ($options['messageTable'] instanceof ZendDb\TableGateway\TableGatewayInterface) {
+                $this->messageTable = $options['messageTable'];
+            } else {
+                $this->messageTable = new ZendDb\TableGateway\TableGateway($options['messageTable'], $this->adapter);
+            }
+
         } catch (ZendDb\Exception\ExceptionInterface $e) {
             throw new Exception\ConnectionException('Error connecting to database: ' . $e->getMessage(), $e->getCode(), $e);
         }
@@ -109,41 +147,45 @@ class Db extends AbstractAdapter implements
         return true;
     }
 
-
     /********************************************************************
      * Queue management functions
-     *********************************************************************/
+    *********************************************************************/
 
-    public function getAvailableSendParams()
+    /**
+     * Get the queue ID
+     *
+     * Returns the queue's row identifier.
+     *
+     * @param  string       $name
+     * @return integer|null
+     * @throws Exception\QueueNotFoundException
+     */
+    public function getQueueId($name)
     {
-        return array(
-            SendParameters::SCHEDULE,
-            SendParameters::INTERVAL,
-            SendParameters::TIMEOUT
-        );
-    }
+        if (array_key_exists($name, $this->queues)) {
+            return $this->queues[$name];
+        }
 
-    public function getAvailableReceiveParams()
-    {
-        return array(
-          ReceiveParameters::MSG_CLASS,
-          ReceiveParameters::TIMEOUT,
-        );
+        $result = $this->queueTable->select(array('queue_name' => $name));
+        foreach($result as $one) {
+            $this->queues[$name] = (int)$one['queue_id'];
+        }
+
+        if (!array_key_exists($name, $this->queues)) {
+            throw new Exception\QueueNotFoundException('Queue does not exist: ' . $name);
+        }
+
+        return $this->queues[$name];
     }
 
 
     /**
-     * Does a queue already exist?
-     *
-     * Throws an exception if the adapter cannot determine if a queue exists.
-     * use isSupported('isExists') to determine if an adapter can test for
-     * queue existance.
+     * Check if a queue exists
      *
      * @param  string $name
      * @return boolean
-     * @throws Exception\ExceptionInterface
      */
-    public function isExists($name)
+    public function queueExists($name)
     {
         $id = 0;
 
@@ -163,9 +205,9 @@ class Db extends AbstractAdapter implements
      * @return boolean
      * @throws Exception\RuntimeException - database error
      */
-    public function create($name)
+    public function createQueue($name)
     {
-        if ($this->isExists($name)) {
+        if ($this->queueExists($name)) {
             return false;
         }
 
@@ -191,7 +233,7 @@ class Db extends AbstractAdapter implements
      * @return boolean
      * @throws Exception\RuntimeException - database error
      */
-    public function delete($name)
+    public function deleteQueue($name)
     {
         $id = $this->getQueueId($name); // get primary key
 
@@ -207,8 +249,8 @@ class Db extends AbstractAdapter implements
             throw new Exception\RuntimeException($e->getMessage(), $e->getCode(), $e);
         }
 
-        if (array_key_exists($name, $this->_queues)) {
-            unset($this->_queues[$name]);
+        if (array_key_exists($name, $this->queues)) {
+            unset($this->queues[$name]);
         }
 
         return true;
@@ -217,20 +259,17 @@ class Db extends AbstractAdapter implements
     /**
      * Get an array of all available queues
      *
-     * Not all adapters support getQueues(), use isSupported('getQueues')
-     * to determine if the adapter supports this feature.
-     *
      * @return array
      * @throws Exception\ExceptionInterface - database error
      */
-    public function getQueues()
+    public function listQueues()
     {
         $result = $this->queueTable->select();
         foreach($result as $one) {
-            $this->_queues[$one['queue_name']] = (int)$one['queue_id'];
+            $this->queues[$one['queue_name']] = (int)$one['queue_id'];
         }
 
-        $list = array_keys($this->_queues);
+        $list = array_keys($this->queues);
 
         return $list;
     }
@@ -258,13 +297,13 @@ class Db extends AbstractAdapter implements
      * Send a message to the queue
      *
      * @param  Queue $queue
-     * @param  Message $message Message to send to the active queue
+     * @param  MessageInterface $message Message to send to the active queue
      * @param  SendParameters $params
-     * @return bool
+     * @return MessageInterface
      * @throws Exception\QueueNotFoundException
-     * @throws Exception\RuntimeException
+     * @throws Exception\RuntimeException - database error
      */
-    public function send(Queue $queue, Message $message, SendParameters $params = null)
+    public function sendMessage(Queue $queue, MessageInterface $message, SendParameters $params = null)
     {
 
         $this->_cleanMessageInfo($queue, $message);
@@ -296,26 +335,28 @@ class Db extends AbstractAdapter implements
 
         $this->_embedMessageInfo($queue, $message, $id, $params);
 
-        return true;
+        return $message;
     }
 
     /**
-     * Get messages in the queue
+     * Get messages from the queue
      *
      * @param  Queue $queue
      * @param  integer|null $maxMessages Maximum number of messages to return
      * @param  ReceiveParameters $params
-     * @return Message\MessageIterator
+     * @return MessageIterator
+     * @throws Exception\QueueNotFoundException
      * @throws Exception\RuntimeException - database error
      */
-    public function receive(Queue $queue, $maxMessages = null, ReceiveParameters $params = null)
+    public function receiveMessages(Queue $queue, $maxMessages = null, ReceiveParameters $params = null)
     {
         if ($maxMessages === null) {
             $maxMessages = 1;
         }
 
-        $timeout   = $params ? $params->getTimeout() : null;
-        $class     = $params ? $params->getMessageClass() : null;
+        $timeout   = $params ? $params->getVisibilityTimeout() : null;
+        $filter    = $params ? $params->getClassFilter() : null;
+        $peek      = $params ? $params->getPeekMode() : false;
         $msgs      = array();
         $name      = $this->messageTable->table;
         $microtime = (int) microtime(true); // cache microtime
@@ -325,7 +366,7 @@ class Db extends AbstractAdapter implements
 
         // start transaction handling
         try {
-            if ($maxMessages > 0 ) { // ZF-7666 LIMIT 0 clause not included.
+            if ($maxMessages > 0 ) {
                 $connection->beginTransaction();
 
                 $sql = new Sql($this->adapter);
@@ -338,8 +379,8 @@ class Db extends AbstractAdapter implements
                     $timeout ? '(handle IS NULL OR timeout+' . $timeout . ' < ' . $microtime.')' : 'handle IS NULL',
                 );
 
-                if ($class) {
-                    $where['class'] = (string) $class;
+                if ($filter) {
+                    $where['class'] = (string) $filter;
                 }
 
                 $select->where($where);
@@ -350,27 +391,33 @@ class Db extends AbstractAdapter implements
 
                 foreach($result as $message) {
 
-                    $update = $sql->update($name);
-                    $update->where(array('message_id' => $message['message_id']));
-                    $update->where($where);
                     $message['handle'] = md5(uniqid(rand(), true));
                     $message['timeout'] = $microtime;
-                    $update->set(array('handle' => $message['handle'], 'timeout' => $microtime));
-                    $stmt = $sql->prepareStatementForSqlObject($update);
-                    $rst = $stmt->execute();
-                    if ($rst->count() > 0) {
+
+                    if (!$peek) {
+                        $update = $sql->update($name);
+                        $update->set(array('handle' => $message['handle'], 'timeout' => $microtime));
+                        $update->where(array('message_id' => $message['message_id']));
+                        $update->where($where);
+
+                        $stmt = $sql->prepareStatementForSqlObject($update);
+                        $rst = $stmt->execute();
+                    }
+
+                    // we check count to make sure no other thread has gotten
+                    // the rows after our select, but before our update.
+                    if ($peek || ($rst->count() > 0)) {
                         $message['metadata'] = isset($message['metadata']) ? unserialize($message['metadata']) : array();
                         $message['metadata'][$queue->getOptions()->getMessageMetadatumKey()] = $this->_buildMessageInfo(
+                            $message['handle'],
                             (int) $message['message_id'],
                             $queue,
                             array(
-                                'timeout'     => $message['timeout'],
-                                'schedule'    => $message['schedule'],
-                                'interval'    => $message['interval'],
+                                SendParameters::SCHEDULE           => $message['schedule'],
+                                SendParameters::REPEATING_INTERVAL => $message['interval'],
                             )
                         );
                         unset($message['id'], $message['timeout'], $message['schedule'], $message['interval']);
-
 
                         $msgs[] = $message;
                     }
@@ -388,7 +435,6 @@ class Db extends AbstractAdapter implements
         return new $classname($msgs, $queue);
     }
 
-
     /**
      * Delete a message from the queue
      *
@@ -396,54 +442,36 @@ class Db extends AbstractAdapter implements
      * unsuccessful.
      *
      * @param  Queue $queue
-     * @param  Message $message
+     * @param  MessageInterface $message
      * @return boolean
+     * @throws Exception\QueueNotFoundException
+     * @throws Exception\RuntimeException - database error
      */
-    public function deleteMessage(Queue $queue, Message $message)
+    public function deleteMessage(Queue $queue, MessageInterface $message)
     {
-        $info = $this->_extractMessageInfo($queue, $message);
+        $info = $this->getMessageInfo($queue, $message);
 
-        if (isset($info['messageId'])) {
-            $db    = $this->messageTable->delete(array('message_id' => $info['messageId'], 'queue_id' => $this->getQueueId($queue->getName())));
-            if ($db) {
+        if (isset($info['messageId']) && isset($info['handle'])) {
+            $where = array('message_id' => $info['messageId'], 'queue_id' => $this->getQueueId($queue->getName()));
+
+            if ($info['handle']) {
+                $where['handle'] = $info['handle'];
+            } else {
+                $where[] = 'handle IS NULL';
+            }
+
+            if (!empty($info['options'][SendParameters::REPEATING_INTERVAL])) {
+                $result = $this->messageTable->update(array('schedule' => time() + $info['options'][SendParameters::REPEATING_INTERVAL] , 'handle' => null), $where);
+            } else {
+                $result = $this->messageTable->delete($where);
+            }
+
+            if ($result) {
+                $this->_cleanMessageInfo($queue, $message);
                 return true;
             }
         }
         return false;
     }
-
-
-
-    /********************************************************************
-     * Functions that are not part of the \ZendQueue\Adapter\AdapterAbstract
-     *********************************************************************/
-    /**
-     * Get the queue ID
-     *
-     * Returns the queue's row identifier.
-     *
-     * @param  string       $name
-     * @return integer|null
-     * @throws Exception\QueueNotFoundException
-     */
-    protected function getQueueId($name)
-    {
-        if (array_key_exists($name, $this->_queues)) {
-            return $this->_queues[$name];
-        }
-
-        $result = $this->queueTable->select(array('queue_name' => $name));
-        foreach($result as $one) {
-            $this->_queues[$name] = (int)$one['queue_id'];
-        }
-
-        if (!array_key_exists($name, $this->_queues)) {
-            throw new Exception\QueueNotFoundException('Queue does not exist: ' . $name);
-        }
-
-        return $this->_queues[$name];
-    }
-
-
 
 }

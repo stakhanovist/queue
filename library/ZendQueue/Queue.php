@@ -13,21 +13,18 @@ namespace ZendQueue;
 use Countable;
 use Traversable;
 use Zend\Stdlib\ArrayUtils;
-use Zend\Stdlib\Message;
+use Zend\Stdlib\MessageInterface;
 use ZendQueue\Exception;
 use ZendQueue\Adapter\AdapterInterface;
+use ZendQueue\Adapter\Capabilities\AwaitMessagesCapableInterface;
 use ZendQueue\Adapter\Capabilities\ListQueuesCapableInterface;
 use ZendQueue\Adapter\Capabilities\CountMessagesCapableInterface;
 use ZendQueue\Adapter\Capabilities\DeleteMessageCapableInterface;
-use ZendQueue\Adapter\Capabilities\ScheduleMessageCapableInterface;
 use ZendQueue\Parameter\SendParameters;
 use ZendQueue\Parameter\ReceiveParameters;
-use ZendQueue\Adapter\Capabilities\FilterMessageCapableInterface;
-use ZendQueue\Adapter\Capabilities\VisibilityTimeoutCapableInterface;
 use Zend\EventManager\EventManagerInterface;
 use Zend\EventManager\Event;
-use ZendQueue\Adapter\Capabilities\AwaitCapableInterface;
-use ZendQueue\Adapter\Null;
+use ZendQueue\Adapter\AdapterFactory;
 
 /**
  *
@@ -48,6 +45,11 @@ class Queue implements Countable
     protected $adapter = null;
 
     /**
+     * @var bool
+     */
+    protected $adapterConnected = false;
+
+    /**
      * User-provided configuration
      *
      * @var QueueOptions
@@ -57,43 +59,78 @@ class Queue implements Countable
     /**
      * Constructor
      *
-     * Can be called as
-     * $queue = new Queue('default', $config);
-     * - or -
-     * $queue = new Queue('default', 'ArrayAdapter', $config);
-     * - or -
-     * $queue = new Queue('default', null, $config); // Queue->createQueue();
-     *
      * @param  string $name
-     * @param  string|AdapterInterface|array|Traversable|null $adapter
-     * @param  Traversable|array $options
+     * @param  AdapterInterface $adapter
+     * @param  QueueOptions $options
      * @throws Exception\InvalidArgumentException
      */
-    public function __construct($name, $adapter, $options = array())
+    public function __construct($name, AdapterInterface $adapter, QueueOptions $options = null)
     {
         if (empty($name)) {
             throw new Exception\InvalidArgumentException('No valid param $name passed to constructor: cannot be empty');
         }
+
         $this->name = $name;
 
-        $this->setOptions($options);
+        $this->adapter = $adapter;
 
-        $this->setAdapter($adapter);
+        if (null === $options) {
+            $options = new QueueOptions($options);
+        }
+
+        $this->setOptions($options);
     }
 
+    /**
+     * Instantiate a queue
+     *
+     * @param  array|Traversable $cfg
+     * @return Queue
+     * @throws Exception\InvalidArgumentException
+     */
+    public static function factory($cfg)
+    {
+        if ($cfg instanceof Traversable) {
+            $cfg = ArrayUtils::iteratorToArray($cfg);
+        }
+
+        if (!is_array($cfg)) {
+            throw new Exception\InvalidArgumentException(
+                'The factory needs an associative array '
+                . 'or a Traversable object as an argument'
+            );
+        }
+
+        if (!isset($cfg['name'])) {
+            throw new Exception\InvalidArgumentException('Missing "name"');
+        }
+
+        if ($cfg['adapter'] instanceof AdapterInterface) {
+            // $cfg['adapter'] is already an adapter object
+            $adapter = $cfg['adapter'];
+        } else {
+            $adapter = AdapterFactory::factory($cfg['adapter']);
+        }
+
+        $options = null;
+        if (isset($cfg['options'])) {
+            if (!is_array($cfg['options'])) {
+                throw new Exception\InvalidArgumentException('"options" must be an array, ' . gettype($cfg['options']) . ' given.');
+            }
+            $options = new QueueOptions($cfg['options']);
+        }
+
+        return new static($cfg['name'], $adapter, $options);
+    }
 
     /**
      * Set options
      *
-     * @param  array|\Traversable|QueueOptions $options
+     * @param  QueueOptions $options
      * @return Queue
      */
-    public function setOptions($options)
+    public function setOptions(QueueOptions $options)
     {
-        if (!$options instanceof QueueOptions) {
-            $options = new QueueOptions($options);
-        }
-
         $this->options = $options;
         return $this;
     }
@@ -121,44 +158,6 @@ class Queue implements Countable
         return $this->name;
     }
 
-
-    /**
-     * Set the adapter for this queue
-     *
-     * @param  string|AdapterInterface $adapter
-     * @return Queue Provides a fluent interface
-     * @throws Exception\InvalidArgumentException
-     */
-    public function setAdapter($adapter)
-    {
-        if (is_string($adapter)) {
-            $adapterName = $this->getOptions()->getAdapterNamespace() . '\\' . $adapter;
-
-            /*
-             * Create an instance of the adapter class.
-             * Pass the configuration to the adapter class constructor.
-             */
-            $options = $this->getOptions();
-            $adapter = new $adapterName(array('options' => $options->getAdapterOptions(), 'driverOptions' => $options->getDriverOptions() ));
-        }
-
-        if (($type = gettype($adapter)) != 'object') {
-            throw new Exception\InvalidArgumentException('$adapter must be a string or an object implementing \ZendQueue\Adapter\AdapterInterface. '.$type.' given.');
-        }
-
-        if (!$adapter instanceof AdapterInterface) {
-            throw new Exception\InvalidArgumentException("Adapter class ".get_class($adapter)." does not implement \ZendQueue\Adapter\AdapterInterface");
-        }
-
-        $this->adapter = $adapter;
-
-        if (! ($this->adapter instanceof Null)) {
-            $this->adapter->create($this->getName());
-        }
-
-        return $this;
-    }
-
     /**
      * Get the adapter for this queue
      *
@@ -166,12 +165,17 @@ class Queue implements Countable
      */
     public function getAdapter()
     {
+        //Ensure connection at first using
+        if (!$this->adapterConnected) {
+            $this->adapterConnected = $this->adapter->connect();
+        }
+
         return $this->adapter;
     }
 
 
     /**
-     * Ensure that this queue exist
+     * Ensure that this queue exists
      *
      * @return bool
      * @throws Exception\InvalidArgumentException
@@ -179,11 +183,11 @@ class Queue implements Countable
     public function ensureQueue()
     {
         $name = $this->getName();
-        if($this->getAdapter()->isExists($name)) {
+        if($this->getAdapter()->queueExists($name)) {
             return true;
         }
 
-        return $this->getAdapter()->create($name);
+        return $this->getAdapter()->createQueue($name);
     }
 
     /**
@@ -201,30 +205,29 @@ class Queue implements Countable
 
         $deleted = false;
 
-        if($adapter->isExists($name)) {
-            $deleted = $adapter->delete($name);
+        if($adapter->queueExists($name)) {
+            $deleted = $adapter->deleteQueue($name);
         }
 
         /**
          * @see Adapter\Null
          */
-        $this->setAdapter('Null');
+        $this->adapter = new Adapter\Null();
 
         return $deleted;
     }
-
 
     /**
      * Send a message to the queue
      *
      * @param  mixed $message message
      * @param  SendParamters $params
-     * @return bool
+     * @return MessageInterface
      * @throws Exception\ExceptionInterface
      */
     public function send($message, SendParameters $params = null)
     {
-        if (!($message instanceof Message)) {
+        if (!($message instanceof MessageInterface)) {
             $data = $message;
             $messageClass = $this->getOptions()->getMessageClass();
             if (is_string($data)) {
@@ -241,40 +244,7 @@ class Queue implements Countable
             }
         }
 
-        return $this->getAdapter()->send($this, $message, $params);
-    }
-
-
-    /**
-     * Schedule a message to the queue
-     *
-     * @param  mixed $message message
-     * @param  int $schedule
-     * @param  int $interval
-     * @param  SendParamters $params
-     * @return bool
-     * @throws Exception\UnsupportedMethodCallException
-     */
-    public function schedule($message, $schedule = null, $interval = null, SendParameters $params = null)
-    {
-        if (!$this->isSendParamSupported(SendParameters::SCHEDULE)) {
-            throw new Exception\UnsupportedMethodCallException(__FUNCTION__ . '() is not supported by ' . get_class($this->getAdapter()));
-        }
-
-        if ($interval !== null && !$this->isSendParamSupported(SendParameters::INTERVAL)) {
-            if (!$this->isSendParamSupported(SendParameters::SCHEDULE)) {
-                throw new Exception\UnsupportedMethodCallException('\'interval\' param is not supported by ' . get_class($this->getAdapter()));
-            }
-
-        }
-
-        if ($params === null) {
-            $params = new SendParameters();
-        }
-
-        $params->setScheduling($schedule, $interval);
-
-        return $this->send($message, $params);
+        return $this->getAdapter()->sendMessage($this, $message, $params);
     }
 
     /**
@@ -291,23 +261,22 @@ class Queue implements Countable
             throw new Exception\InvalidArgumentException('$maxMessages must be an integer greater than 0 or null');
         }
 
-        return $this->getAdapter()->receive($this, $maxMessages, $params);
+        return $this->getAdapter()->receiveMessages($this, $maxMessages, $params);
     }
-
 
     /**
      * Await messages
      *
      * @param  ReceiveParameters $params
      * @param  mixed $eventManagerOrClosure
-     * @return Message
+     * @return MessageInterface
      * @throws Exception\InvalidArgumentException
      */
     public function await(ReceiveParameters $params = null, $eventManagerOrClosure = null)
     {
 
         if ($eventManagerOrClosure instanceof EventManagerInterface) {
-            $closure = function(Message $message) use($eventManagerOrClosure) {
+            $closure = function(MessageInterface $message) use($eventManagerOrClosure) {
                 $event = new Event();
                 $event->setParam('message', $message);
                 return !$eventManagerOrClosure->trigger($event)->stopped();
@@ -315,14 +284,16 @@ class Queue implements Countable
         } elseif ($eventManagerOrClosure instanceof \Closure) {
             $closure = $eventManagerOrClosure;
         } elseif ($eventManagerOrClosure === null) {
-            $closure = null;
+            $closure = function(MessageInterface $message) {
+                return false; //short circuit: when a message arrives, the loop ends and the message will be returned directly
+            };
         } else {
             throw new Exception\InvalidArgumentException('Invalid $eventManagerOrClosure type: must be EventManagerInterface, Closure or null.');
         }
 
         //the adpater support await?
-        if ($this->getAdapter() instanceof AwaitCapableInterface) {
-            return $this->getAdapter()->await($this, $closure, $params);
+        if ($this->getAdapter() instanceof AwaitMessagesCapableInterface) {
+            return $this->getAdapter()->awaitMessages($this, $closure, $params);
         }
 
         //can emulate await?
@@ -373,11 +344,11 @@ class Queue implements Countable
      * unsuccessful.
      *
      *
-     * @param  Message $message
+     * @param  MessageInterface $message
      * @return boolean
      * @throws Exception\UnsupportedMethodCallException
      */
-    public function deleteMessage(Message $message)
+    public function deleteMessage(MessageInterface $message)
     {
         if (!$this->canDeleteMessage()) {
             throw new Exception\UnsupportedMethodCallException(__FUNCTION__ . '() is not supported by ' . get_class($this->getAdapter()));
@@ -386,19 +357,70 @@ class Queue implements Countable
         return $this->getAdapter()->deleteMessage($this, $message);
     }
 
+
     /**
-     * Get an array of all available queues
+     * Schedule a message to the queue
      *
-     * @return array
+     * @param  mixed $message message
+     * @param  int $scheduleTime
+     * @param  int $repeatingInterval
+     * @param  SendParamters $params
+     * @return MessageInterface
      * @throws Exception\UnsupportedMethodCallException
      */
-    public function listQueues()
+    public function schedule($message, $scheduleTime = null, $repeatingInterval = null, SendParameters $params = null)
     {
-        if (!$this->canListQueues()) {
-            throw new Exception\UnsupportedMethodCallException(__FUNCTION__ . '() is not supported by ' . get_class($this->getAdapter()));
+        if (!$this->isSendParamSupported(SendParameters::SCHEDULE)) {
+            throw new Exception\UnsupportedMethodCallException('\''.SendParameters::SCHEDULE.'\' param is not supported by ' . get_class($this->getAdapter()));
         }
 
-        return $this->getAdapter()->getQueues();
+        if ($interval !== null && !$this->isSendParamSupported(SendParameters::REPEATING_INTERVAL)) {
+            if (!$this->isSendParamSupported(SendParameters::REPEATING_INTERVAL)) {
+                throw new Exception\UnsupportedMethodCallException('\''.SendParameters::REPEATING_INTERVAL.'\' param is not supported by ' . get_class($this->getAdapter()));
+            }
+
+        }
+
+        if ($params === null) {
+            $params = new SendParameters();
+        }
+
+        $params->setSchedule($scheduleTime)
+        ->setRepeatingInterval($repeatingInterval);
+
+        return $this->send($message, $params);
+    }
+
+    /**
+     * Unschedule a message
+     * 
+     * @param MessageInterface $message
+     * @throws Exception\UnsupportedMethodCallException
+     * @return boolean
+     */
+    public function unschedule(MessageInterface $message)
+    {
+        if (!$this->isSendParamSupported(SendParameters::SCHEDULE)) {
+            throw new Exception\UnsupportedMethodCallException('\''.SendParameters::SCHEDULE.'\' param is not supported by ' . get_class($this->getAdapter()));
+        }
+
+        $info = $this->getAdapter()->getMessageInfo($this, $message);
+
+        $options = $info['options'];
+
+        if (isset($options[SendParameters::SCHEDULE])) {
+            unset($options[SendParameters::SCHEDULE]);
+        }
+
+        if (isset($options[SendParameters::REPEATING_INTERVAL])) {
+            unset($options[SendParameters::REPEATING_INTERVAL]);
+        }
+
+        $info['options'] = $options;
+
+        $message->setMetadata($queue->getOptions()->getMessageMetadatumKey(), $options);
+
+        return $this->deleteMessage($message);
     }
 
 
@@ -408,12 +430,12 @@ class Queue implements Countable
 
     public function isSendParamSupported($name)
     {
-        return in_array(strtolower($name), $this->getAdapter()->getAvailableSendParams());
+        return in_array($name, $this->getAdapter()->getAvailableSendParams());
     }
 
     public function isReceiveParamSupported($name)
     {
-        return in_array(strtolower($name), $this->getAdapter()->getAvailableReceiveParams());
+        return in_array($name, $this->getAdapter()->getAvailableReceiveParams());
     }
 
     /********************************************************************
@@ -429,7 +451,7 @@ class Queue implements Countable
      */
     public function canAwait()
     {
-        return ($this->getAdapter() instanceof AwaitCapableInterface) || $this->getOptions()->getEnableAwaitEmulation();
+        return ($this->getAdapter() instanceof AwaitMessagesCapableInterface) || $this->getOptions()->getEnableAwaitEmulation();
     }
 
     /**
@@ -441,7 +463,7 @@ class Queue implements Countable
      */
     public function isAwaitEmulation()
     {
-        return !($this->getAdapter() instanceof AwaitCapableInterface) && $this->getOptions()->getEnableAwaitEmulation();
+        return !($this->getAdapter() instanceof AwaitMessagesCapableInterface) && $this->getOptions()->getEnableAwaitEmulation();
     }
 
     /**
@@ -470,19 +492,6 @@ class Queue implements Countable
 
 
     /**
-     * Can list all available queues?
-     *
-     * Return true if the adapter can list all queues available for the current adapter.
-     *
-     * @return bool
-     */
-    public function canListQueues()
-    {
-        return $this->getAdapter() instanceof ListQueuesCapableInterface;
-    }
-
-
-    /**
      * returns a listing of Queue details.
      * useful for debugging
      *
@@ -491,11 +500,11 @@ class Queue implements Countable
     public function debugInfo()
     {
         $info = array();
-        $info['self']                     = get_called_class();
-        $info['adapter']                  = get_class($this->getAdapter());
-        $info['currentQueue']             = $this->getName();
-        $info['messageClass']             = $this->getOptions()->getMessageClass();
-        $info['messageSetClass']          = $this->getOptions()->getMessageSetClass();
+        $info['self']               = get_called_class();
+        $info['adapter']            = get_class($this->getAdapter());
+        $info['name']               = $this->getName();
+        $info['messageClass']       = $this->getOptions()->getMessageClass();
+        $info['messageSetClass']    = $this->getOptions()->getMessageSetClass();
 
         return $info;
     }

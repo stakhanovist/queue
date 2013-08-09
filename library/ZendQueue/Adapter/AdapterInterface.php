@@ -10,7 +10,7 @@
 
 namespace ZendQueue\Adapter;
 
-use Zend\Stdlib\Message;
+use Zend\Stdlib\MessageInterface;
 use ZendQueue\Message\MessageIterator;
 use ZendQueue\Queue;
 use ZendQueue\Parameter\SendParameters;
@@ -22,12 +22,47 @@ use ZendQueue\Parameter\ReceiveParameters;
 interface AdapterInterface
 {
     /**
-     * Constructor
+     * Constructor.
      *
-     * @param  array|Traversable $options
-     * @return void
+     * $options is an array of key/value pairs or an instance of Traversable
+     * containing configuration options.
+     *
+     * @param  array|Traversable $options An array having configuration data
+     * @throws Exception\InvalidArgumentException
      */
-    public function __construct($options);
+    public function __construct($options = array());
+
+
+    /**
+     * Set options
+     *
+     * @param array|Traversable $options
+     * @return AdapterInterface Fluent interface
+     */
+    public function setOptions($options);
+
+    /**
+     * Get options
+     *
+     * @return array
+    */
+    public function getOptions();
+
+
+    /**
+     * List avaliable params for sendMessage()
+     *
+     * @return array
+     */
+    public function getAvailableSendParams();
+
+    /**
+     * List avaliable params for receiveMessages()
+     *
+     * @return array
+     */
+    public function getAvailableReceiveParams();
+
 
     /**
      * Ensure connection
@@ -36,13 +71,26 @@ interface AdapterInterface
      */
     public function connect();
 
+
+    /********************************************************************
+     * Queue management functions
+    *********************************************************************/
+
     /**
-     * Does a queue already exist?
+     * Returns the ID of the queue
+     *
+     * @param string $name Queue name
+     * @return mixed
+     */
+    public function getQueueId($name);
+
+    /**
+     * Check if a queue exists
      *
      * @param  string $name Queue name
      * @return boolean
      */
-    public function isExists($name);
+    public function queueExists($name);
 
     /**
      * Create a new queue
@@ -50,7 +98,7 @@ interface AdapterInterface
      * @param  string  $name Queue name
      * @return boolean
      */
-    public function create($name);
+    public function createQueue($name);
 
     /**
      * Delete a queue and all of its messages
@@ -60,24 +108,24 @@ interface AdapterInterface
      * @param  string $name Queue name
      * @return boolean
      */
-    public function delete($name);
+    public function deleteQueue($name);
 
 
     /********************************************************************
-     * Messsage management functions
+     * Message management functions
      *********************************************************************/
 
     /**
      * Send a message to the queue
      *
      * @param  Queue $queue
-     * @param  Message $message Message to send to the active queue
+     * @param  MessageInterface $message Message to send to the active queue
      * @param  SendParameters $params
-     * @return bool
+     * @return MessageInterface
      * @throws Exception\QueueNotFoundException
      * @throws Exception\RuntimeException
      */
-    public function send(Queue $queue, Message $message, SendParameters $params = null);
+    public function sendMessage(Queue $queue, MessageInterface $message, SendParameters $params = null);
 
     /**
      * Get messages from the queue
@@ -86,23 +134,20 @@ interface AdapterInterface
      * @param  integer|null $maxMessages Maximum number of messages to return
      * @param  ReceiveParameters $params
      * @return MessageIterator
+     * @throws Exception\QueueNotFoundException
+     * @throws Exception\RuntimeException
      */
-    public function receive(Queue $queue, $maxMessages = null, ReceiveParameters $params = null);
-
-
-    /********************************************************************
-     * Supporting functions
-     *********************************************************************/
-
-    public function getAvailableReceiveParams();
-
-    public function getAvailableSendParams();
+    public function receiveMessages(Queue $queue, $maxMessages = null, ReceiveParameters $params = null);
 
     /**
-     * Returns the configuration options in this adapter.
+     * Get message info
      *
+     * Only received messages have embedded infos.
+     *
+     * @param Queue $queue
+     * @param MessageInterface $message
      * @return array
      */
-    public function getOptions();
+    public function getMessageInfo(Queue $queue, MessageInterface $message);
 
 }
