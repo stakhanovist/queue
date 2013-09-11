@@ -83,7 +83,7 @@ class Queue extends AbstractPlugin implements ServiceLocatorAwareInterface
             throw new \InvalidArgumentException('Invalid $request: must be an URI as string or an instace of \Zend\Http\Request');
         }
 
-        $this->queue->send($request, $sendParams);
+        $message = $this->queue->send($request, $sendParams);
         return $message;
     }
 }
