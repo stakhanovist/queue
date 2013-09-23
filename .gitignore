@@ -12,3 +12,6 @@ composer.phar
 .project
 .buildpath
 .settings
+
+# PhpStorm
+.idea
