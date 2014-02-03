@@ -11,6 +11,6 @@ before_install:
  - wget http://cs.sensiolabs.org/get/php-cs-fixer.phar
  - cd tests
 script:
- - vendor/phpunit/phpunit/phpunit.php
+ - ../vendor/bin/phpunit
 notifications:
   email: false
