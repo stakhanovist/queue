@@ -6,7 +6,6 @@ php:
   - 5.5
 
 before_install:
- - cp tests/TestConfiguration.php.travis tests/TestConfiguration.php
  - composer install --dev
  - wget http://cs.sensiolabs.org/get/php-cs-fixer.phar
  - cd tests
