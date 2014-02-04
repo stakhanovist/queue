@@ -1,92 +1,110 @@
 <?php
-/**
- * Zend Framework (http://framework.zend.com/)
- *
- * @link      http://github.com/zendframework/zf2 for the canonical source repository
- * @copyright Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
- * @license   http://framework.zend.com/license/new-bsd New BSD License
- * @package   Zend
- */
+namespace ZendQueueTest;
+use Zend\Loader\AutoloaderFactory;
+use Zend\Mvc\Service\ServiceManagerConfig;
+use Zend\ServiceManager\ServiceManager;
+use Zend\Stdlib\ArrayUtils;
 
-/*
- * Set error reporting to the level to which Zend Framework code must comply.
- */
-error_reporting( E_ALL | E_STRICT );
+error_reporting(E_ALL | E_STRICT);
+chdir(__DIR__);
 
-$phpUnitVersion = PHPUnit_Runner_Version::id();
-if ('@package_version@' !== $phpUnitVersion && version_compare($phpUnitVersion, '3.5.0', '<')) {
-    echo 'This version of PHPUnit (' . PHPUnit_Runner_Version::id() . ') is not supported in Zend Framework 2.x unit tests.' . PHP_EOL;
-    exit(1);
-}
-unset($phpUnitVersion);
+class Bootstrap
+{
+    protected static $serviceManager;
+    protected static $config;
+    protected static $bootstrap;
 
-/*
- * Determine the root, library, and tests directories of the framework
- * distribution.
- */
-$zfRoot        = realpath(dirname(__DIR__));
-$zfCoreLibrary = "$zfRoot/library";
-$zfCoreTests   = "$zfRoot/tests";
+    public static function init()
+    {
+        // Load the user-defined test configuration file, if it exists; otherwise, load
+        if (is_readable(__DIR__ . '/TestConfiguration.php')) {
+            $testConfig = include __DIR__ . '/TestConfiguration.php';
+        } else {
+            $testConfig = include __DIR__ . '/TestConfiguration.php.dist';
+        }
 
-/*
- * Prepend the Zend Framework library/ and tests/ directories to the
- * include_path. This allows the tests to run out of the box and helps prevent
- * loading other copies of the framework code and tests that would supersede
- * this copy.
- */
-$path = array(
-    $zfCoreLibrary,
-    $zfCoreTests,
-    get_include_path(),
-);
-set_include_path(implode(PATH_SEPARATOR, $path));
+        $zf2ModulePaths = array();
 
-/**
- * Setup autoloading
- */
-include __DIR__ . '/_autoload.php';
+        if (isset($testConfig['module_listener_options']['module_paths'])) {
+            $modulePaths = $testConfig['module_listener_options']['module_paths'];
+            foreach ($modulePaths as $modulePath) {
+                if (($path = static::findParentPath($modulePath))) {
+                    $zf2ModulePaths[] = $path;
+                }
+            }
+        }
 
-/*
- * Load the user-defined test configuration file, if it exists; otherwise, load
- * the default configuration.
- */
-if (is_readable($zfCoreTests . DIRECTORY_SEPARATOR . 'TestConfiguration.php')) {
-    require_once $zfCoreTests . DIRECTORY_SEPARATOR . 'TestConfiguration.php';
-} else {
-    require_once $zfCoreTests . DIRECTORY_SEPARATOR . 'TestConfiguration.php.dist';
-}
+        $zf2ModulePaths = implode(PATH_SEPARATOR, $zf2ModulePaths) . PATH_SEPARATOR;
+        $zf2ModulePaths .= getenv('ZF2_MODULES_TEST_PATHS') ? : (defined('ZF2_MODULES_TEST_PATHS') ? ZF2_MODULES_TEST_PATHS : '');
 
-if (defined('TESTS_GENERATE_REPORT') && TESTS_GENERATE_REPORT === true) {
-    $codeCoverageFilter = PHP_CodeCoverage_Filter::getInstance();
+        static::initAutoloader();
 
-    $lastArg = end($_SERVER['argv']);
-    if (is_dir($zfCoreTests . '/' . $lastArg)) {
-        $codeCoverageFilter->addDirectoryToWhitelist($zfCoreLibrary . '/' . $lastArg);
-    } elseif (is_file($zfCoreTests . '/' . $lastArg)) {
-        $codeCoverageFilter->addDirectoryToWhitelist(dirname($zfCoreLibrary . '/' . $lastArg));
-    } else {
-        $codeCoverageFilter->addDirectoryToWhitelist($zfCoreLibrary);
+        // use ModuleManager to load this module and it's dependencies
+        $baseConfig = array(
+            'module_listener_options' => array(
+                'module_paths' => explode(PATH_SEPARATOR, $zf2ModulePaths),
+            ),
+        );
+
+        $config = ArrayUtils::merge($baseConfig, $testConfig);
+
+        $serviceManager = new ServiceManager(new ServiceManagerConfig());
+        $serviceManager->setService('ApplicationConfig', $config);
+        $serviceManager->get('ModuleManager')->loadModules();
+
+        static::$serviceManager = $serviceManager;
+        static::$config = $config;
     }
 
-    /*
-     * Omit from code coverage reports the contents of the tests directory
-     */
-    $codeCoverageFilter->addDirectoryToBlacklist($zfCoreTests, '');
-    $codeCoverageFilter->addDirectoryToBlacklist(PEAR_INSTALL_DIR, '');
-    $codeCoverageFilter->addDirectoryToBlacklist(PHP_LIBDIR, '');
+    public static function getServiceManager()
+    {
+        return static::$serviceManager;
+    }
 
-    unset($codeCoverageFilter);
+    public static function getConfig()
+    {
+        return static::$config;
+    }
+
+
+    protected static function initAutoloader()
+    {
+        $vendorPath = static::findParentPath('vendor');
+
+        if (is_readable($vendorPath . '/autoload.php')) {
+            $loader = include $vendorPath . '/autoload.php';
+        } else {
+            $zf2Path = getenv('ZF2_PATH') ? : (defined('ZF2_PATH') ? ZF2_PATH : (is_dir($vendorPath . '/ZF2/library') ? $vendorPath . '/ZF2/library' : false));
+
+            if (!$zf2Path) {
+                throw new RuntimeException('Unable to load ZF2. Run `php composer.phar install` or define a ZF2_PATH environment variable.');
+            }
+
+            include $zf2Path . '/Zend/Loader/AutoloaderFactory.php';
+
+        }
+
+        AutoloaderFactory::factory(array(
+            'Zend\Loader\StandardAutoloader' => array(
+                'autoregister_zf' => true,
+                'namespaces' => array(
+                    __NAMESPACE__ => __DIR__ . '/' . __NAMESPACE__,
+                ),
+            ),
+        ));
+    }
+
+    protected static function findParentPath($path)
+    {
+        $dir = __DIR__;
+        $previousDir = '.';
+        while (!is_dir($dir . '/' . $path)) {
+            $dir = dirname($dir);
+            if ($previousDir === $dir) return false;
+            $previousDir = $dir;
+        }
+        return $dir . '/' . $path;
+    }
 }
 
-
-/**
- * Start output buffering, if enabled
- */
-if (defined('TESTS_ZEND_OB_ENABLED') && constant('TESTS_ZEND_OB_ENABLED')) {
-    ob_start();
-}
-
-/*
- * Unset global variables that are no longer needed.
- */
-unset($zfRoot, $zfCoreLibrary, $zfCoreTests, $path);
+Bootstrap::init();
