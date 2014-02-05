@@ -7,18 +7,12 @@
         "zf2",
         "queue"
     ],
-    "homepage": "https://github.com/loldev/ZendQueue",
+    "homepage": "https://github.com/ripaclub/ZendQueue",
     "autoload": {
         "psr-0": {
             "ZendQueue": "library/"
         }
     },
-    "repositories": [
-        {
-            "type": "vcs",
-            "url": "https://github.com/pruno/phpunit"
-        }
-    ],
 	"require-dev": {
         "phpunit/phpunit": "3.7.*",
         "zendframework/zend-config": "2.2.*"
