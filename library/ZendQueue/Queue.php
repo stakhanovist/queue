@@ -74,11 +74,11 @@ class Queue implements Countable
 
         $this->adapter = $adapter;
 
-        if (null === $options) {
-            $options = new QueueOptions($options);
+        if ($options) {
+            $this->setOptions($options);
         }
 
-        $this->setOptions($options);
+
     }
 
     /**
@@ -393,7 +393,7 @@ class Queue implements Countable
 
     /**
      * Unschedule a message
-     * 
+     *
      * @param MessageInterface $message
      * @throws Exception\UnsupportedMethodCallException
      * @return boolean

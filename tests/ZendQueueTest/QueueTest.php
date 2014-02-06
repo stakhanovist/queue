@@ -18,6 +18,7 @@ use ZendQueue\QueueOptions;
 use ZendQueue\Adapter\ArrayAdapter;
 use ZendQueue\Message\MessageIterator;
 use ZendQueue\Parameter\SendParameters;
+use ZendQueue\Adapter\Null;
 
 /*
  * The adapter test class provides a universal test class for all of the
@@ -74,7 +75,76 @@ class QueueTest extends \PHPUnit_Framework_TestCase
 
     }
 
-    public function testSetGetConfig()
+    public function test__construct()
+    {
+        //Test with two arguments
+        $q = new Queue($this->name, $this->adapter);
+        $this->assertInstanceOf('ZendQueue\QueueOptions', $q->getOptions());
+
+        //Test empty queue name exception
+        $this->setExpectedException('ZendQueue\Exception\InvalidArgumentException');
+        $q = new Queue('', $this->adapter);
+    }
+
+
+    public function testFactory()
+    {
+        $config = array(
+                'name'     => 'A',
+                'adapter'  => array( //Adapter as config
+                    'adapter' => 'ArrayAdapter',
+                    'options' => array('dummyOption' => 'dummyValue'),
+                 ),
+                'options' => array('messageClass' => 'Zend\Stdlib\Message'),
+        );
+
+        $q = Queue::factory($config);
+        $this->assertInstanceOf('ZendQueue\Queue', $q);
+
+        //Test traversable
+        $config = new \ArrayObject($config);
+
+        $q = Queue::factory($config);
+        $this->assertInstanceOf('ZendQueue\Queue', $q);
+
+
+        //Test invalid config type
+        $this->setExpectedException('ZendQueue\Exception\InvalidArgumentException');
+        $q = Queue::factory('wrong config');
+    }
+
+    public function testFactoryMissingName()
+    {
+        $config = array(
+            'name'     => 'A',
+            'adapter'  => array( //Adapter as config
+                'adapter' => 'ArrayAdapter',
+                'options' => array('dummyOption' => 'dummyValue'),
+            ),
+            'options' => 'wrong options',
+        );
+
+
+        $this->setExpectedException('ZendQueue\Exception\InvalidArgumentException');
+        $q = Queue::factory($config);
+    }
+
+    public function testFactoryInvalidOptions()
+    {
+        $config = array(
+            'adapter'  => array( //Adapter as config
+                'adapter' => 'ArrayAdapter',
+                'options' => array('dummyOption' => 'dummyValue'),
+            ),
+            'options' => array('messageClass' => 'Zend\Stdlib\Message'),
+        );
+
+
+        $this->setExpectedException('ZendQueue\Exception\InvalidArgumentException');
+        $q = Queue::factory($config);
+    }
+
+    public function testSetGetOptions()
     {
         $this->assertTrue($this->options instanceof QueueOptions);
         $this->assertEquals($this->options, $this->queue->getOptions());
@@ -83,6 +153,12 @@ class QueueTest extends \PHPUnit_Framework_TestCase
 
         $this->assertTrue($this->queue->setOptions($options) instanceof Queue);
         $this->assertEquals($options, $this->queue->getOptions());
+
+        //test default options
+        $q = new Queue($this->name, $this->adapter);
+        $this->assertEquals($options, $q->getOptions());
+
+
     }
 
     public function testGetAdapter()
@@ -115,13 +191,26 @@ class QueueTest extends \PHPUnit_Framework_TestCase
         $message = 'Hello world';
         $this->assertInstanceOf('\Zend\Stdlib\MessageInterface', $this->queue->send($message));
 
+        $newMessageObj = $this->queue->send(array(
+            'content'   => $message,
+            'metadata'  => array('foo' => 'bar')
+        ));
+
+        $this->assertInstanceOf('\Zend\Stdlib\MessageInterface', $newMessageObj);
+        $this->assertEquals($message, $newMessageObj->getContent());
+        $metadata = $newMessageObj->getMetadata();
+        $this->assertArrayHasKey('__queue', $metadata);
+        $this->assertArrayHasKey('foo', $metadata);
+        $this->assertEquals('bar', $metadata['foo']);
+
         $message = new Message();
         $message->setContent('Hello world again');
         $this->assertEquals($message, $this->queue->send($message));
 
+
         // ------------------------------------ count()
         if ($this->queue->canCountMessages()) {
-            $this->assertEquals($this->queue->count(), 2);
+            $this->assertEquals($this->queue->count(), 3);
         }
 
         // ------------------------------------ receive()
@@ -171,6 +260,37 @@ class QueueTest extends \PHPUnit_Framework_TestCase
         	$queueTest->assertTrue(true);
         	return false; //stop awaiting
         });
+    }
+
+    public function testAwaitUnsupported()
+    {
+        $q = clone $this->queue; //assume array adapter
+        $q->getOptions()->setEnableAwaitEmulation(false);
+
+        $this->setExpectedException('ZendQueue\Exception\UnsupportedMethodCallException');
+        $q->await();
+
+    }
+
+
+    public function testCountUnsupported()
+    {
+        $q = new Queue('test', new Null());
+
+        $this->assertFalse($q->canCountMessages());
+
+        $this->setExpectedException('ZendQueue\Exception\UnsupportedMethodCallException');
+        $q->count();
+    }
+
+    public function testDeleteMessageUnsupported()
+    {
+        $q = new Queue('test', new Null());
+
+        $this->assertFalse($q->canDeleteMessage());
+
+        $this->setExpectedException('ZendQueue\Exception\UnsupportedMethodCallException');
+        $q->deleteMessage(new Message());
     }
 
 }
