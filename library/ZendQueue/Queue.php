@@ -25,6 +25,9 @@ use ZendQueue\Parameter\ReceiveParameters;
 use Zend\EventManager\EventManagerInterface;
 use Zend\EventManager\Event;
 use ZendQueue\Adapter\AdapterFactory;
+use Zend\EventManager\EventManager;
+use Zend\Config\Processor\Queue;
+use ZendQueue\Message\MessageIterator;
 
 /**
  *
@@ -55,6 +58,11 @@ class Queue implements Countable
      * @var QueueOptions
      */
     protected $options;
+
+    /**
+     * @var string
+     */
+    protected $eventIdentifier;
 
     /**
      * Constructor
@@ -268,57 +276,41 @@ class Queue implements Countable
      * Await messages
      *
      * @param  ReceiveParameters $params
-     * @param  mixed $eventManagerOrClosure
      * @return MessageInterface
      * @throws Exception\InvalidArgumentException
      */
-    public function await(ReceiveParameters $params = null, $eventManagerOrClosure = null)
+    public function await(ReceiveParameters $params = null)
     {
 
-        if ($eventManagerOrClosure instanceof EventManagerInterface) {
-            $closure = function(MessageInterface $message) use($eventManagerOrClosure) {
-                $event = new Event();
-                $event->setParam('message', $message);
-                return !$eventManagerOrClosure->trigger($event)->stopped();
-            };
-        } elseif ($eventManagerOrClosure instanceof \Closure) {
-            $closure = $eventManagerOrClosure;
-        } elseif ($eventManagerOrClosure === null) {
-            $closure = function(MessageInterface $message) {
-                return false; //short circuit: when a message arrives, the loop ends and the message will be returned directly
-            };
-        } else {
-            throw new Exception\InvalidArgumentException('Invalid $eventManagerOrClosure type: must be EventManagerInterface, Closure or null.');
+        $e = $this->getEvent();
+        $enablePolling = !$this->getAdapter() instanceof AwaitMessagesCapableInterface;
+
+        if ($enablePolling && !$this->getOptions()->getEnableAwaitEmulation()) {
+            throw new Exception\UnsupportedMethodCallException(__FUNCTION__ . '() is not supported by ' . get_class($this->getAdapter()) . ' and await emulation is not enabled.');
         }
 
-        //the adpater support await?
-        if ($this->getAdapter() instanceof AwaitMessagesCapableInterface) {
-            return $this->getAdapter()->awaitMessages($this, $closure, $params);
-        }
+        do {
 
-        //can emulate await?
-        if ($this->getOptions()->getEnableAwaitEmulation()) {
+            $messages = null;
+            if ($enablePolling) {
+                $messages = $this->getAdapter()->receiveMessages($this, 1, $params);
 
-            $sleepSeconds = $this->getOptions()->getPollingInterval();
-
-            do {
-                $await = true;
-                $message = null;
-                $messages = $this->receive(1, $params);
-
-                if ($messages->count()) {
-                    $message = $messages->current();
-                    $await = $closure($message);
-                } else {
-                    sleep($sleepSeconds);
+                if (!$messages->count()) {
+                    sleep($this->getOptions()->getPollingInterval());
                 }
 
-            } while($await);
+            } else {
+                $message = $this->getAdapter()->awaitMessage($this, $params);
+                $messages = new MessageIterator($message ? array($message) : array(), $this);
+            }
 
-            return $message;
-        }
+            $e->setMessages($messages);
 
-        throw new Exception\UnsupportedMethodCallException(__FUNCTION__ . '() is not supported by ' . get_class($this->getAdapter()) . ' and await emulation is not enabled.');
+            $result = $this->getEventManager()->trigger($messages->count() ? QueueEvent::EVENT_RECEIVE : QueueEvent::EVENT_IDLE, $e);
+
+        } while(!$result->stopped());
+
+        return $message;
     }
 
 
@@ -488,6 +480,80 @@ class Queue implements Countable
     public function canCountMessages()
     {
         return $this->getAdapter() instanceof CountMessagesCapableInterface;
+    }
+
+
+
+    /**
+     * Set the event manager instance used by this context
+     *
+     * @param  EventManagerInterface $events
+     * @return Queue
+     */
+    public function setEventManager(EventManagerInterface $events)
+    {
+        $events->setIdentifiers(array(
+            'Zend\Stdlib\DispatchableInterface',
+            __CLASS__,
+            get_class($this),
+            $this->eventIdentifier,
+            substr(get_class($this), 0, strpos(get_class($this), '\\'))
+        ));
+        $this->events = $events;
+//         $this->attachDefaultListeners();
+
+        return $this;
+    }
+
+    /**
+     * Retrieve the event manager
+     *
+     * Lazy-loads an EventManager instance if none registered.
+     *
+     * @return EventManagerInterface
+     */
+    public function getEventManager()
+    {
+        if (!$this->events) {
+            $this->setEventManager(new EventManager());
+        }
+
+        return $this->events;
+    }
+
+    /**
+     * Set an event to use during the queue event flow
+     *
+     * By default, will re-cast to QueueEvent if another event type is provided.
+     *
+     * @param  Event $e
+     * @return void
+     */
+    public function setEvent(Event $e)
+    {
+        if (!$e instanceof QueueEvent) {
+            $eventParams = $e->getParams();
+            $e = new QueueEvent();
+            $e->setParams($eventParams);
+            unset($eventParams);
+        }
+        $this->event = $e;
+    }
+
+    /**
+     * Get the attached event
+     *
+     * Will create a new QueueEvent if none provided.
+     *
+     * @return QueueEvent
+     */
+    public function getEvent()
+    {
+        if (!$this->event) {
+            $this->setEvent(new QueueEvent());
+        }
+
+        return $this->event;
     }
 
 
