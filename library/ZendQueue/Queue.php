@@ -294,19 +294,17 @@ class Queue implements Countable
             $messages = null;
             if ($enablePolling) {
                 $messages = $this->getAdapter()->receiveMessages($this, 1, $params);
-
-                if (!$messages->count()) {
-                    sleep($this->getOptions()->getPollingInterval());
-                }
-
             } else {
-                $message = $this->getAdapter()->awaitMessage($this, $params);
-                $messages = new MessageIterator($message ? array($message) : array(), $this);
+                $messages = $this->getAdapter()->awaitMessages($this, $params);
             }
 
             $e->setMessages($messages);
 
             $result = $this->getEventManager()->trigger($messages->count() ? QueueEvent::EVENT_RECEIVE : QueueEvent::EVENT_IDLE, $e);
+
+            if ($enablePolling && !$messages->count()) {
+                sleep($this->getOptions()->getPollingInterval());
+            }
 
         } while(!$result->stopped());
 
@@ -500,6 +498,7 @@ class Queue implements Countable
             substr(get_class($this), 0, strpos(get_class($this), '\\'))
         ));
         $this->events = $events;
+        //TODO: we have default listers?
 //         $this->attachDefaultListeners();
 
         return $this;
