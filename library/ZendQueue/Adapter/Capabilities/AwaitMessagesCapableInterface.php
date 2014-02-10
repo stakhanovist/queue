@@ -17,13 +17,15 @@ use ZendQueue\Message\MessageIterator;
 
 interface AwaitMessagesCapableInterface extends AdapterInterface
 {
-    /**
-     * Await for messages in the queue and receive them
+     /**
+     * Await for a message in the queue and receive it
+     * If no message arrives until timeout, an empty MessageSet will be returned.
      *
      * @param  Queue $queue
+     * @param  callable $callback
      * @param  ReceiveParameters $params
      * @return MessageIterator
      * @throws Exception\RuntimeException
      */
-     public function awaitMessages(Queue $queue, ReceiveParameters $params = null);
+    public function awaitMessages(Queue $queue, $callback, ReceiveParameters $params = null);
 }

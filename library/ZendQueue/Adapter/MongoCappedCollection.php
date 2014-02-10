@@ -123,11 +123,12 @@ class MongoCappedCollection extends AbstractMongo implements AwaitMessagesCapabl
      * If no message arrives until timeout, an empty MessageSet will be returned.
      *
      * @param  Queue $queue
+     * @param  callable $callback
      * @param  ReceiveParameters $params
      * @return MessageIterator
      * @throws Exception\RuntimeException
      */
-    public function awaitMessages(Queue $queue, ReceiveParameters $params = null)
+    public function awaitMessages(Queue $queue, $callback, ReceiveParameters $params = null)
     {
         $classname = $queue->getOptions()->getMessageSetClass();
         $collection = $this->mongoDb->selectCollection($queue->getName());
@@ -159,62 +160,71 @@ class MongoCappedCollection extends AbstractMongo implements AwaitMessagesCapabl
          *
          */
 
-        //Obtain the second last position
-        $cursor = $collection->find()->sort(array('_id' => -1));
-        $cursor->skip(1);
-        $secondLast = $cursor->getNext();
+        do {
 
-        if (!$secondLast) {
-            throw new Exception\RuntimeException('Cannot get second-last position, maybe there are not enough documents within the collection');
-        }
+            //Obtain the second last position
+            $cursor = $collection->find()->sort(array('_id' => -1));
+            $cursor->skip(1);
+            $secondLast = $cursor->getNext();
 
-        //Setup tailable cursor
-        $cursor = $this->_setupCursor($collection, null, array('_id' => array('$gt' => $secondLast['_id'])), array('_id', self::KEY_HANDLE));
-        $cursor->tailable(true);
-        $cursor->awaitData(true);
-
-        //Inner loop: read results and wait for more
-        while (true) {
-
-            //We don't need sleeping because at beginning of each loop hasNext() will await.
-            //If we are at the end of results, hasNext() blocks execution for a while,
-            //after a timeout period (or if cursor dies) it does return as normal.
-            if (!$cursor->hasNext()) {
-
-                // is cursor dead ?
-                if ($cursor->dead()) {
-                    //TODO: if we get a dead cursor repeatedly, an infinte loop or a temporary CPU high load may occur
-                    break; //go to the outer loop, obtaining a new cursor
-                }
-                //else, we read all results so far, wait for more
-
-            } else {
-
-                $msg = $cursor->getNext();
-
-                //To avoid resource-consuming, we ignore handled message early
-                if($msg[self::KEY_HANDLE]) {
-                    continue; //inner loop
-                }
-
-                //we got the _id of a non-handled message, try to receive it
-                $msg = $this->_receiveMessageAtomic($queue, $collection, $msg['_id']);
-
-                //if meanwhile message has been handled already then we ignore it
-                if(null === $msg) {
-                    continue; //inner loop
-                }
-
-                //Ok, message received
-                $iterator = new $classname(array($msg), $queue);
-                return $iterator;
-
+            if (!$secondLast) {
+                throw new Exception\RuntimeException('Cannot get second-last position, maybe there are not enough documents within the collection');
             }
 
-        } //inner loop
+            //Setup tailable cursor
+            $cursor = $this->_setupCursor($collection, null, array('_id' => array('$gt' => $secondLast['_id'])), array('_id', self::KEY_HANDLE));
+            $cursor->tailable(true);
+            $cursor->awaitData(true);
 
-        //No message, return control to the outer loop
-        return new $classname(array($msg), $queue);
+            //Inner loop: read results and wait for more
+            do {
+
+                //We don't need sleeping because at beginning of each loop hasNext() will await.
+                //If we are at the end of results, hasNext() blocks execution for a while,
+                //after a timeout period (or if cursor dies) it does return as normal.
+                if (!$cursor->hasNext()) {
+
+                    // is cursor dead ?
+                    if ($cursor->dead()) {
+                        //TODO: if we get a dead cursor repeatedly, an infinte loop or a temporary CPU high load may occur
+                        break; //go to the outer loop, obtaining a new cursor
+                    }
+                    //else, we read all results so far, wait for more
+
+                } else {
+
+                    $msg = $cursor->getNext();
+
+                    //To avoid resource-consuming, we ignore handled message early
+                    if($msg[self::KEY_HANDLE]) {
+                        continue; //inner loop
+                    }
+
+                    //we got the _id of a non-handled message, try to receive it
+                    $msg = $this->_receiveMessageAtomic($queue, $collection, $msg['_id']);
+
+                    //if meanwhile message has been handled already then we ignore it
+                    if(null === $msg) {
+                        continue; //inner loop
+                    }
+
+                    //Ok, message received
+                    $iterator = new $classname(array($msg), $queue);
+                    if (!call_user_func($callback, $iterator)) {
+                        return $this;
+                    }
+
+                }
+
+            } while(true); //inner loop
+
+            //No message, timeout occured
+            $iterator = new $classname(array(), $queue);
+            if (!call_user_func($callback, $iterator)) {
+                return $this;
+            }
+
+        } while (true);
     }
 
 }

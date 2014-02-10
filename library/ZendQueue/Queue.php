@@ -26,7 +26,6 @@ use Zend\EventManager\EventManagerInterface;
 use Zend\EventManager\Event;
 use ZendQueue\Adapter\AdapterFactory;
 use Zend\EventManager\EventManager;
-use Zend\Config\Processor\Queue;
 use ZendQueue\Message\MessageIterator;
 
 /**
@@ -58,6 +57,16 @@ class Queue implements Countable
      * @var QueueOptions
      */
     protected $options;
+
+    /**
+     * @var Event
+     */
+    protected $event;
+
+    /**
+     * @var EventManagerInterface
+     */
+    protected $events;
 
     /**
      * @var string
@@ -276,40 +285,53 @@ class Queue implements Countable
      * Await messages
      *
      * @param  ReceiveParameters $params
-     * @return MessageInterface
+     * @return Queue
      * @throws Exception\InvalidArgumentException
      */
     public function await(ReceiveParameters $params = null)
     {
+        $canAwait = $this->getAdapter() instanceof AwaitMessagesCapableInterface;
 
-        $e = $this->getEvent();
-        $enablePolling = !$this->getAdapter() instanceof AwaitMessagesCapableInterface;
-
-        if ($enablePolling && !$this->getOptions()->getEnableAwaitEmulation()) {
+        if (!$canAwait && !$this->getOptions()->getEnableAwaitEmulation()) {
             throw new Exception\UnsupportedMethodCallException(__FUNCTION__ . '() is not supported by ' . get_class($this->getAdapter()) . ' and await emulation is not enabled.');
         }
 
-        do {
+        $eventManager = $this->getEventManager();
+        $e = $this->getEvent();
+        $callback = function (MessageIterator $iterator) use ($eventManager, $e) {
 
-            $messages = null;
-            if ($enablePolling) {
+            $e->setMessages($iterator);
+
+            if ($iterator->count() > 0) {
+                $result = $eventManager->trigger(QueueEvent::EVENT_RECEIVE, $e);
+                if ($result->stopped()) {
+                    return false;
+                }
+            }
+
+            $result = $eventManager->trigger(QueueEvent::EVENT_IDLE, $e);
+            return !$result->stopped();
+        };
+
+        if ($canAwait) {
+            $this->getAdapter()->awaitMessages($this, $callback, $params);
+        } else { //else, await emulation (polling)
+
+            $pollingInterval = $this->getOptions()->getPollingInterval();
+
+            do {
                 $messages = $this->getAdapter()->receiveMessages($this, 1, $params);
-            } else {
-                $messages = $this->getAdapter()->awaitMessages($this, $params);
-            }
+                $continue = call_user_func($callback, $messages);
 
-            $e->setMessages($messages);
+                if ($continue && !$messages->count()) {
+                    sleep($pollingInterval);
+                }
+            } while($continue);
+        }
 
-            $result = $this->getEventManager()->trigger($messages->count() ? QueueEvent::EVENT_RECEIVE : QueueEvent::EVENT_IDLE, $e);
-
-            if ($enablePolling && !$messages->count()) {
-                sleep($this->getOptions()->getPollingInterval());
-            }
-
-        } while(!$result->stopped());
-
-        return $message;
+        return $this;
     }
+
 
 
     /**

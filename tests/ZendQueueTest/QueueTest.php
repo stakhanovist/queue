@@ -19,6 +19,7 @@ use ZendQueue\Adapter\ArrayAdapter;
 use ZendQueue\Message\MessageIterator;
 use ZendQueue\Parameter\SendParameters;
 use ZendQueue\Adapter\Null;
+use ZendQueue\QueueEvent;
 
 /*
  * The adapter test class provides a universal test class for all of the
@@ -252,14 +253,32 @@ class QueueTest extends \PHPUnit_Framework_TestCase
             $this->markTestSkipped('await() not supported');
         }
 
-        //Ensure we have one message at least
-        $this->queue->send('test');
+
 
         $queueTest = $this;
-        $this->queue->await(null, function() use($queueTest) {
-        	$queueTest->assertTrue(true);
-        	return false; //stop awaiting
+
+
+        $this->queue->getEventManager()->attach(QueueEvent::EVENT_RECEIVE, function(QueueEvent $e) use ($queueTest) {
+
+            $queueTest->assertInstanceOf('ZendQueue\Message\MessageIterator', $e->getMessages());
+            $this->assertCount(1, $e->getMessages());
+            $this->assertEquals('test', $e->getMessages()->current()->getContent());
+
         });
+
+        $this->queue->getEventManager()->attach(QueueEvent::EVENT_IDLE, function(QueueEvent $e) use ($queueTest) {
+
+//             $queueTest->assertInstanceOf('ZendQueue\Message\MessageIterator', $e->getMessages());
+//             $this->assertCount(0, $e->getMessages());
+
+            $e->stopPropagation(true);
+        });
+
+        //Ensure we have one message
+        $this->queue->send('test');
+
+        $this->assertInstanceOf('ZendQueue\Queue', $this->queue->await());
+
     }
 
     public function testAwaitUnsupported()
