@@ -300,17 +300,18 @@ class Queue implements Countable
         $e = $this->getEvent();
         $callback = function (MessageIterator $iterator) use ($eventManager, $e) {
 
+            $e->stopAwait(false);
             $e->setMessages($iterator);
 
             if ($iterator->count() > 0) {
-                $result = $eventManager->trigger(QueueEvent::EVENT_RECEIVE, $e);
-                if ($result->stopped()) {
+                $eventManager->trigger(QueueEvent::EVENT_RECEIVE, $e);
+                if ($e->awaitIsStopped()) {
                     return false;
                 }
             }
 
-            $result = $eventManager->trigger(QueueEvent::EVENT_IDLE, $e);
-            return !$result->stopped();
+            $eventManager->trigger(QueueEvent::EVENT_IDLE, $e);
+            return !$e->awaitIsStopped();
         };
 
         if ($canAwait) {

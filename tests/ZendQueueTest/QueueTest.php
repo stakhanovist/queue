@@ -271,7 +271,7 @@ class QueueTest extends \PHPUnit_Framework_TestCase
 //             $queueTest->assertInstanceOf('ZendQueue\Message\MessageIterator', $e->getMessages());
 //             $this->assertCount(0, $e->getMessages());
 
-            $e->stopPropagation(true);
+            $e->stopAwait(true);
         });
 
         //Ensure we have one message

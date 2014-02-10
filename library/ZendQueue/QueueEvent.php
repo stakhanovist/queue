@@ -29,6 +29,11 @@ class QueueEvent extends Event
     protected $messages;
 
     /**
+     * @var bool
+     */
+    protected $await = false;
+
+    /**
      * @param MessageIterator $message
      * @return QueueEvent
      */
@@ -46,6 +51,26 @@ class QueueEvent extends Event
         return $this->messages;
     }
 
+    /**
+     * Stop queue await
+     *
+     * @param  bool $flag
+     * @return void
+     */
+    public function stopAwait($flag = true)
+    {
+        $this->stopAwait = (bool) $flag;
+    }
+
+    /**
+     * Is await stopped?
+     *
+     * @return bool
+     */
+    public function awaitIsStopped()
+    {
+        return $this->stopAwait;
+    }
 
 
 
