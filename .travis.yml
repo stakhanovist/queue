@@ -10,12 +10,14 @@ php:
 before_script:
     - composer selfupdate
     - composer install --dev --prefer-source;
-    - php -n ./vendor/bin/phpunit
+    - cd tests
+    - php -n ../vendor/bin/phpunit
 
 script:
-    - ../vendor/bin/phpunit --coverage-clover=./build/coverage.clover
+    - ../vendor/bin/phpunit --coverage-clover=../build/coverage.clover
 
 after_script:
+    - cd ..
     - php vendor/bin/coveralls -v
     - wget https://scrutinizer-ci.com/ocular.phar
     - php ocular.phar code-coverage:upload --format=php-clover ./build/coverage.clover
