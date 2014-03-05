@@ -1,5 +1,5 @@
 {
-    "name": "loldev/zend-queue",
+    "name": "ripaclub/zend-queue",
     "description": "Provides a factory function to create specific queue client objects",
     "type": "library",
     "license": "BSD-3-Clause",
