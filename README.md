@@ -1,8 +1,8 @@
 ### ZendQueue component
 
-Master: [![Build Status](https://travis-ci.org/ripaclub/ZendQueue.png?branch=master)](https://travis-ci.org/loldev/ZendQueue)
+Master: [![Build Status](https://travis-ci.org/ripaclub/ZendQueue.png?branch=master)](https://travis-ci.org/ripaclub/ZendQueue)
 
-Develop: [![Build Status](https://travis-ci.org/ripaclub/ZendQueue.png?branch=develop)](https://travis-ci.org/loldev/ZendQueue)
+Develop: [![Build Status](https://travis-ci.org/ripaclub/ZendQueue.png?branch=develop)](https://travis-ci.org/ripaclub/ZendQueue)
 
 You can install using:
 
