@@ -19,15 +19,15 @@
         "phpmd/phpmd": "1.4.*",
         "pdepend/pdepend": "1.1.*",
         "squizlabs/php_codesniffer": "1.5.2",
-        "zendframework/zend-config": "2.2.*"
+        "zendframework/zend-config": "~2"
     },
     "require": {
         "php": ">=5.3.23",
-        "zendframework/zend-stdlib": "2.2.*",
-        "zendframework/zend-servicemanager": "2.2.*",
-        "zendframework/zend-math": "2.2.*",
-        "zendframework/zend-db": "2.2.*",
-        "zendframework/zend-eventmanager": "2.2.*"
+        "zendframework/zend-stdlib": "~2",
+        "zendframework/zend-servicemanager": "~2",
+        "zendframework/zend-math": "~2",
+        "zendframework/zend-db": "~2",
+        "zendframework/zend-eventmanager": "~2"
     },
     "suggest": {
         "zendframework/zend-db": "Zend\\Db required if you are using the DB queue adapter"
