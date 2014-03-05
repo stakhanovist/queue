@@ -87,7 +87,7 @@ class MongoCappedCollection extends AbstractMongo implements AwaitMessagesCapabl
     {
         $options = $this->getOptions();
 
-        $this->_cleanMessageInfo($queue, $message);
+        $this->cleanMessageInfo($queue, $message);
 
         $collection = $this->mongoDb->selectCollection($queue->getName());
 
@@ -111,7 +111,7 @@ class MongoCappedCollection extends AbstractMongo implements AwaitMessagesCapabl
             throw new Exception\RuntimeException($e->getMessage(), $e->getCode(), $e);
         }
 
-        $this->_embedMessageInfo($queue, $message, $id, $params ? $params->toArray() : array());
+        $this->embedMessageInfo($queue, $message, $id, $params ? $params->toArray() : array());
 
         return $message;
     }
@@ -170,7 +170,7 @@ class MongoCappedCollection extends AbstractMongo implements AwaitMessagesCapabl
             }
 
             //Setup tailable cursor
-            $cursor = $this->_setupCursor($collection, null, array('_id' => array('$gt' => $secondLast['_id'])), array('_id', self::KEY_HANDLE));
+            $cursor = $this->setupCursor($collection, null, array('_id' => array('$gt' => $secondLast['_id'])), array('_id', self::KEY_HANDLE));
             $cursor->tailable(true);
             $cursor->awaitData(true);
 
@@ -199,7 +199,7 @@ class MongoCappedCollection extends AbstractMongo implements AwaitMessagesCapabl
                     }
 
                     //we got the _id of a non-handled message, try to receive it
-                    $msg = $this->_receiveMessageAtomic($queue, $collection, $msg['_id']);
+                    $msg = $this->receiveMessageAtomic($queue, $collection, $msg['_id']);
 
                     //if meanwhile message has been handled already then we ignore it
                     if (null === $msg) {

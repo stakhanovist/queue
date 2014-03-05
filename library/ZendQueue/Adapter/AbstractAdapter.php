@@ -28,7 +28,7 @@ abstract class AbstractAdapter implements AdapterInterface
      *
      * @var array
      */
-    private $_options = array();
+    private $options = array();
 
     /**
      * Default options
@@ -75,7 +75,7 @@ abstract class AbstractAdapter implements AdapterInterface
 
 
         $adapterOptions = array();
-        $driverOptions = isset($this->_options['driverOptions']) ? $this->_options['driverOptions'] : array();
+        $driverOptions = isset($this->options['driverOptions']) ? $this->options['driverOptions'] : array();
 
         if (array_key_exists('driverOptions', $options)) {
             // can't use array_merge() because keys might be integers
@@ -84,8 +84,8 @@ abstract class AbstractAdapter implements AdapterInterface
             }
         }
 
-        $this->_options = array_merge($this->defaultOptions, $options);
-        $this->_options['driverOptions'] = $driverOptions;
+        $this->options = array_merge($this->defaultOptions, $options);
+        $this->options['driverOptions'] = $driverOptions;
 
         return $this;
     }
@@ -97,7 +97,7 @@ abstract class AbstractAdapter implements AdapterInterface
      */
     public function getOptions()
     {
-        return $this->_options;
+        return $this->options;
     }
 
     /**
@@ -129,7 +129,7 @@ abstract class AbstractAdapter implements AdapterInterface
      * @param ParametersInterface|array $options
      * @return array
      */
-    protected function _buildMessageInfo($handle, $id, $queue, $options = null)
+    protected function buildMessageInfo($handle, $id, $queue, $options = null)
     {
         $name = $queue instanceof Queue ? $queue->getName() : (string)$queue;
         return array(
@@ -151,9 +151,9 @@ abstract class AbstractAdapter implements AdapterInterface
      * @param ParametersInterface|array $options
      * @return void
      */
-    protected function _embedMessageInfo(Queue $queue, MessageInterface $message, $id, $options = null)
+    protected function embedMessageInfo(Queue $queue, MessageInterface $message, $id, $options = null)
     {
-        $message->setMetadata($queue->getOptions()->getMessageMetadatumKey(), $this->_buildMessageInfo(false, $id, $queue, $options));
+        $message->setMetadata($queue->getOptions()->getMessageMetadatumKey(), $this->buildMessageInfo(false, $id, $queue, $options));
     }
 
     /**
@@ -175,7 +175,7 @@ abstract class AbstractAdapter implements AdapterInterface
      * @param MessageInterface $message
      * @return void
      */
-    protected function _cleanMessageInfo(Queue $queue, MessageInterface $message)
+    protected function cleanMessageInfo(Queue $queue, MessageInterface $message)
     {
         $metadatumKey = $queue->getOptions()->getMessageMetadatumKey();
         if ($message->getMetadata($metadatumKey, null)) {

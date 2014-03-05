@@ -32,7 +32,7 @@ class ArrayAdapter extends AbstractAdapter implements DeleteMessageCapableInterf
     /**
      * @var array
      */
-    protected $_data = array();
+    protected $data = array();
 
 
     /**
@@ -88,7 +88,7 @@ class ArrayAdapter extends AbstractAdapter implements DeleteMessageCapableInterf
      */
     public function queueExists($name)
     {
-        return array_key_exists($name, $this->_data);
+        return array_key_exists($name, $this->data);
     }
 
     /**
@@ -103,7 +103,7 @@ class ArrayAdapter extends AbstractAdapter implements DeleteMessageCapableInterf
             return false;
         }
 
-        $this->_data[$name] = array();
+        $this->data[$name] = array();
 
         return true;
     }
@@ -118,10 +118,10 @@ class ArrayAdapter extends AbstractAdapter implements DeleteMessageCapableInterf
      */
     public function deleteQueue($name)
     {
-        $found = isset($this->_data[$name]);
+        $found = isset($this->data[$name]);
 
         if ($found) {
-            unset($this->_data[$name]);
+            unset($this->data[$name]);
         }
 
         return $found;
@@ -134,7 +134,7 @@ class ArrayAdapter extends AbstractAdapter implements DeleteMessageCapableInterf
      */
     public function listQueues()
     {
-        return array_keys($this->_data);
+        return array_keys($this->data);
     }
 
     /**
@@ -146,11 +146,11 @@ class ArrayAdapter extends AbstractAdapter implements DeleteMessageCapableInterf
      */
     public function countMessages(Queue $queue)
     {
-        if (!isset($this->_data[$queue->getName()])) {
+        if (!isset($this->data[$queue->getName()])) {
             throw new Exception\QueueNotFoundException('Queue does not exist');
         }
 
-        return count($this->_data[$queue->getName()]);
+        return count($this->data[$queue->getName()]);
     }
 
     /********************************************************************
@@ -172,7 +172,7 @@ class ArrayAdapter extends AbstractAdapter implements DeleteMessageCapableInterf
             throw new Exception\QueueNotFoundException('Queue does not exist: ' . $queue->getName());
         }
 
-        $this->_cleanMessageInfo($queue, $message);
+        $this->cleanMessageInfo($queue, $message);
 
         $msg = array(
             'created' => time(),
@@ -182,7 +182,7 @@ class ArrayAdapter extends AbstractAdapter implements DeleteMessageCapableInterf
             'handle' => null,
         );
 
-        $_queue = & $this->_data[$queue->getName()];
+        $_queue = & $this->data[$queue->getName()];
 
         $messageId = md5(Rand::getString(10) . count($_queue));
 
@@ -193,7 +193,7 @@ class ArrayAdapter extends AbstractAdapter implements DeleteMessageCapableInterf
             'data' => $msg,
         );
 
-        $this->_embedMessageInfo($queue, $message, $messageId, $params);
+        $this->embedMessageInfo($queue, $message, $messageId, $params);
 
         return $message;
     }
@@ -220,7 +220,7 @@ class ArrayAdapter extends AbstractAdapter implements DeleteMessageCapableInterf
             $start_time = microtime(true);
 
             $count = 0;
-            $temp = & $this->_data[$queue->getName()];
+            $temp = & $this->data[$queue->getName()];
             foreach ($temp as $messageId => &$msg) {
 
                 if (null !== $filter && $msg['class'] != $filter) {
@@ -231,7 +231,7 @@ class ArrayAdapter extends AbstractAdapter implements DeleteMessageCapableInterf
 
                     $msg['handle'] = md5(uniqid(rand(), true));
                     $msg['timeout'] = $params ? microtime(true) + $timeout : null;
-                    $msg['metadata'][$queue->getOptions()->getMessageMetadatumKey()] = $this->_buildMessageInfo(
+                    $msg['metadata'][$queue->getOptions()->getMessageMetadatumKey()] = $this->buildMessageInfo(
                         $msg['handle'],
                         $messageId,
                         $queue
@@ -272,7 +272,7 @@ class ArrayAdapter extends AbstractAdapter implements DeleteMessageCapableInterf
         $messageId = $info['messageId'];
 
         // load the queue
-        $queue = & $this->_data[$queue->getName()];
+        $queue = & $this->data[$queue->getName()];
 
         if (!array_key_exists($messageId, $queue)) {
             return false;
@@ -292,7 +292,7 @@ class ArrayAdapter extends AbstractAdapter implements DeleteMessageCapableInterf
      */
     public function __sleep()
     {
-        return array('_data');
+        return array('data');
     }
 
     /*
@@ -307,7 +307,7 @@ class ArrayAdapter extends AbstractAdapter implements DeleteMessageCapableInterf
      */
     public function getData()
     {
-        return $this->_data;
+        return $this->data;
     }
 
     /**
@@ -319,7 +319,7 @@ class ArrayAdapter extends AbstractAdapter implements DeleteMessageCapableInterf
      */
     public function setData($data)
     {
-        $this->_data = $data;
+        $this->data = $data;
         return $this;
     }
 }

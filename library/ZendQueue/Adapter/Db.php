@@ -305,7 +305,7 @@ class Db extends AbstractAdapter implements
     public function sendMessage(Queue $queue, MessageInterface $message, SendParameters $params = null)
     {
 
-        $this->_cleanMessageInfo($queue, $message);
+        $this->cleanMessageInfo($queue, $message);
 
         $msg = array(
             'queue_id' => $this->getQueueId($queue->getName()),
@@ -332,7 +332,7 @@ class Db extends AbstractAdapter implements
             throw new Exception\RuntimeException($e->getMessage(), $e->getCode(), $e);
         }
 
-        $this->_embedMessageInfo($queue, $message, $id, $params);
+        $this->embedMessageInfo($queue, $message, $id, $params);
 
         return $message;
     }
@@ -407,7 +407,7 @@ class Db extends AbstractAdapter implements
                     // the rows after our select, but before our update.
                     if ($peek || ($rst->count() > 0)) {
                         $message['metadata'] = isset($message['metadata']) ? unserialize($message['metadata']) : array();
-                        $message['metadata'][$queue->getOptions()->getMessageMetadatumKey()] = $this->_buildMessageInfo(
+                        $message['metadata'][$queue->getOptions()->getMessageMetadatumKey()] = $this->buildMessageInfo(
                             $message['handle'],
                             (int)$message['message_id'],
                             $queue,
@@ -466,7 +466,7 @@ class Db extends AbstractAdapter implements
             }
 
             if ($result) {
-                $this->_cleanMessageInfo($queue, $message);
+                $this->cleanMessageInfo($queue, $message);
                 return true;
             }
         }

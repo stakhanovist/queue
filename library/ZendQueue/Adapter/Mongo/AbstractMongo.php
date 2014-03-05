@@ -194,7 +194,7 @@ abstract class AbstractMongo extends AbstractAdapter implements CountMessagesCap
      */
     public function sendMessage(Queue $queue, MessageInterface $message, SendParameters $params = null)
     {
-        $this->_cleanMessageInfo($queue, $message);
+        $this->cleanMessageInfo($queue, $message);
 
         $collection = $this->mongoDb->selectCollection($queue->getName());
 
@@ -213,7 +213,7 @@ abstract class AbstractMongo extends AbstractAdapter implements CountMessagesCap
             throw new Exception\RuntimeException($e->getMessage(), $e->getCode(), $e);
         }
 
-        $this->_embedMessageInfo($queue, $message, $id, $params ? $params->toArray() : array());
+        $this->embedMessageInfo($queue, $message, $id, $params ? $params->toArray() : array());
 
         return $message;
     }
@@ -250,7 +250,7 @@ abstract class AbstractMongo extends AbstractAdapter implements CountMessagesCap
         }
 
         $msg[self::KEY_METADATA] = (array)$msg[self::KEY_METADATA];
-        $msg[self::KEY_METADATA][$queue->getOptions()->getMessageMetadatumKey()] = $this->_buildMessageInfo(true, $msg['_id'], $queue);
+        $msg[self::KEY_METADATA][$queue->getOptions()->getMessageMetadatumKey()] = $this->buildMessageInfo(true, $msg['_id'], $queue);
 
         return array(
             'class' => $msg[self::KEY_CLASS],
@@ -275,13 +275,13 @@ abstract class AbstractMongo extends AbstractAdapter implements CountMessagesCap
 
         $collection = $this->mongoDb->selectCollection($queue->getName());
 
-        $cursor = $this->_setupCursor($collection, $params);
+        $cursor = $this->setupCursor($collection, $params);
         $cursor->limit((int)$maxMessages);
 
         $msgs = array();
 
         foreach ($cursor as $msg) {
-            $msg = $this->_receiveMessageAtomic($queue, $collection, $msg['_id']);
+            $msg = $this->receiveMessageAtomic($queue, $collection, $msg['_id']);
             if ($msg) {
                 $msgs[] = $msg;
             }
