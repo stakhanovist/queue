@@ -15,11 +15,11 @@ use MongoId;
 use Zend\Stdlib\MessageInterface;
 use ZendQueue\Exception;
 use ZendQueue\Queue;
-use ZendQueue\Adapter\Capabilities\AwaitCapableInterface;
 use ZendQueue\Parameter\SendParameters;
 use ZendQueue\Parameter\ReceiveParameters;
 use ZendQueue\Adapter\Mongo\AbstractMongo;
 use ZendQueue\Adapter\Capabilities\AwaitMessagesCapableInterface;
+use ZendQueue\Message\MessageIterator;
 
 class MongoCappedCollection extends AbstractMongo implements AwaitMessagesCapableInterface
 {
@@ -118,46 +118,48 @@ class MongoCappedCollection extends AbstractMongo implements AwaitMessagesCapabl
     }
 
     /**
-     * Await for messages in the queue and receive them
+     * Await for a message in the queue and receive it
+     * If no message arrives until timeout, an empty MessageSet will be returned.
      *
      * @param  Queue $queue
-     * @param  Closure $callback
+     * @param  callable $callback
      * @param  ReceiveParameters $params
-     * @return MessageInterface
+     * @return MessageIterator
      * @throws Exception\RuntimeException
      */
-    public function awaitMessages(Queue $queue, \Closure $callback = null, ReceiveParameters $params = null)
+    public function awaitMessages(Queue $queue, $callback, ReceiveParameters $params = null)
     {
         $classname = $queue->getOptions()->getMessageSetClass();
         $collection = $this->mongoDb->selectCollection($queue->getName());
 
-        //Outer loop: get a cursor
-        while (true) {
 
-            /**
-             * If the query doesn't match any documents, MongoDB does not keep a cursor open server side and thus
-             * the whole "tail" process never starts.
-             *
-             * That occurs when:
-             * - capped collection is empty
-             * - query criteria doesn't match any documents
-             *
-             * Solution:
-             * - we use handled-message as dummy documents, furthermore
-             *   create() inserts dummy documents when the collection is created to avoid empty collection at first use.
-             *
-             * - finally, to get a valid cursor but to avoid re-reading already handled message
-             *   we shouldn't start reading from the beginnig of the collection, so we get the second-last document position
-             *   then we setup the query to start from the next position.
-             *
-             * Therefore tailable cursor will start from the last document always.
-             *
-             * Inspired by
-             * @link http://shtylman.com/post/the-tail-of-mongodb/
-             *
-             * @FIXME: classFilter isn't yet supported here
-             *
-             */
+
+        /**
+         * If the query doesn't match any documents, MongoDB does not keep a cursor open server side and thus
+         * the whole "tail" process never starts.
+         *
+         * That occurs when:
+         * - capped collection is empty
+         * - query criteria doesn't match any documents
+         *
+         * Solution:
+         * - we use handled-message as dummy documents, furthermore
+         *   create() inserts dummy documents when the collection is created to avoid empty collection at first use.
+         *
+         * - finally, to get a valid cursor but to avoid re-reading already handled message
+         *   we shouldn't start reading from the beginnig of the collection, so we get the second-last document position
+         *   then we setup the query to start from the next position.
+         *
+         * Therefore tailable cursor will start from the last document always.
+         *
+         * Inspired by
+         * @link http://shtylman.com/post/the-tail-of-mongodb/
+         *
+         * @FIXME: classFilter isn't yet supported here
+         *
+         */
+
+        do {
 
             //Obtain the second last position
             $cursor = $collection->find()->sort(array('_id' => -1));
@@ -174,7 +176,7 @@ class MongoCappedCollection extends AbstractMongo implements AwaitMessagesCapabl
             $cursor->awaitData(true);
 
             //Inner loop: read results and wait for more
-            while (true) {
+            do {
 
                 //We don't need sleeping because at beginning of each loop hasNext() will await.
                 //If we are at the end of results, hasNext() blocks execution for a while,
@@ -207,21 +209,21 @@ class MongoCappedCollection extends AbstractMongo implements AwaitMessagesCapabl
 
                     //Ok, message received
                     $iterator = new $classname(array($msg), $queue);
-                    $message = $iterator->current();
-
-                    if ($callback === null) {
-                        return $message;
-                    }
-
-                    if (!$callback($message)) {
-                        return $message;
+                    if (!call_user_func($callback, $iterator)) {
+                        return $this;
                     }
 
                 }
 
-            } //inner loop
+            } while(true); //inner loop
 
-        } //outer loop
+            //No message, timeout occured
+            $iterator = new $classname(array(), $queue);
+            if (!call_user_func($callback, $iterator)) {
+                return $this;
+            }
+
+        } while (true);
     }
 
 }
