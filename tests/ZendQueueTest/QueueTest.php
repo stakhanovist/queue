@@ -260,8 +260,8 @@ class QueueTest extends \PHPUnit_Framework_TestCase
         $this->queue->getEventManager()->attach(QueueEvent::EVENT_RECEIVE, function(QueueEvent $e) use ($queueTest) {
 
             $queueTest->assertInstanceOf('ZendQueue\Message\MessageIterator', $e->getMessages());
-            $this->assertCount(1, $e->getMessages());
-            $this->assertEquals('test', $e->getMessages()->current()->getContent());
+            $queueTest->assertCount(1, $e->getMessages());
+            $queueTest->assertEquals('test', $e->getMessages()->current()->getContent());
 
         });
 
