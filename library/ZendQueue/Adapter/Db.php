@@ -28,9 +28,9 @@ use Zend\Db\Sql\Sql;
  *
  */
 class Db extends AbstractAdapter implements
-                                    CountMessagesCapableInterface,
-                                    DeleteMessageCapableInterface,
-                                    ListQueuesCapableInterface
+    CountMessagesCapableInterface,
+    DeleteMessageCapableInterface,
+    ListQueuesCapableInterface
 {
     /**
      * Default options
@@ -38,8 +38,8 @@ class Db extends AbstractAdapter implements
      * @var array
      */
     protected $defaultOptions = array(
-        'queueTable'     => 'queue',
-        'messageTable'   => 'message'
+        'queueTable' => 'queue',
+        'messageTable' => 'message'
     );
 
     /**
@@ -62,7 +62,7 @@ class Db extends AbstractAdapter implements
     /**
      * @var ZendDb\Adapter\Adapter
      */
-    protected $adapter= null;
+    protected $adapter = null;
 
     /**
      * Get the TableGateway implementation of the queue table
@@ -149,14 +149,14 @@ class Db extends AbstractAdapter implements
 
     /********************************************************************
      * Queue management functions
-    *********************************************************************/
+     *********************************************************************/
 
     /**
      * Get the queue ID
      *
      * Returns the queue's row identifier.
      *
-     * @param  string       $name
+     * @param  string $name
      * @return integer|null
      * @throws Exception\QueueNotFoundException
      */
@@ -167,7 +167,7 @@ class Db extends AbstractAdapter implements
         }
 
         $result = $this->queueTable->select(array('queue_name' => $name));
-        foreach($result as $one) {
+        foreach ($result as $one) {
             $this->queues[$name] = (int)$one['queue_id'];
         }
 
@@ -201,7 +201,7 @@ class Db extends AbstractAdapter implements
     /**
      * Create a new queue
      *
-     * @param  string  $name    queue name
+     * @param  string $name    queue name
      * @return boolean
      * @throws Exception\RuntimeException - database error
      */
@@ -213,7 +213,7 @@ class Db extends AbstractAdapter implements
 
         try {
             $result = $this->queueTable->insert(array('queue_name' => $name));
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             throw new Exception\RuntimeException($e->getMessage(), $e->getCode(), $e);
         }
 
@@ -229,7 +229,7 @@ class Db extends AbstractAdapter implements
      *
      * Returns false if the queue is not found, true if the queue exists
      *
-     * @param  string  $name queue name
+     * @param  string $name queue name
      * @return boolean
      * @throws Exception\RuntimeException - database error
      */
@@ -265,7 +265,7 @@ class Db extends AbstractAdapter implements
     public function listQueues()
     {
         $result = $this->queueTable->select();
-        foreach($result as $one) {
+        foreach ($result as $one) {
             $this->queues[$one['queue_name']] = (int)$one['queue_id'];
         }
 
@@ -283,14 +283,14 @@ class Db extends AbstractAdapter implements
      */
     public function countMessages(Queue $queue)
     {
-        $info  = $this->messageTable->select(array('queue_id' => $this->getQueueId($queue->getName())));
+        $info = $this->messageTable->select(array('queue_id' => $this->getQueueId($queue->getName())));
 
         // return count results
         return $info->count();
     }
 
     /********************************************************************
-    * Messsage management functions
+     * Messsage management functions
      *********************************************************************/
 
     /**
@@ -310,11 +310,11 @@ class Db extends AbstractAdapter implements
 
         $msg = array(
             'queue_id' => $this->getQueueId($queue->getName()),
-            'created'  => time(),
-            'class'    => get_class($message),
-            'content'  => (string) $message->getContent(),
+            'created' => time(),
+            'class' => get_class($message),
+            'content' => (string)$message->getContent(),
             'metadata' => serialize($message->getMetadata()),
-            'md5'      => md5($message->toString())
+            'md5' => md5($message->toString())
         );
 
         if ($params) {
@@ -354,19 +354,19 @@ class Db extends AbstractAdapter implements
             $maxMessages = 1;
         }
 
-        $timeout   = $params ? $params->getVisibilityTimeout() : null;
-        $filter    = $params ? $params->getClassFilter() : null;
-        $peek      = $params ? $params->getPeekMode() : false;
-        $msgs      = array();
-        $name      = $this->messageTable->table;
-        $microtime = (int) microtime(true); // cache microtime
-        $db        = $this->messageTable->getAdapter();
+        $timeout = $params ? $params->getVisibilityTimeout() : null;
+        $filter = $params ? $params->getClassFilter() : null;
+        $peek = $params ? $params->getPeekMode() : false;
+        $msgs = array();
+        $name = $this->messageTable->table;
+        $microtime = (int)microtime(true); // cache microtime
+        $db = $this->messageTable->getAdapter();
         $connection = $db->getDriver()->getConnection();
 
 
         // start transaction handling
         try {
-            if ($maxMessages > 0 ) {
+            if ($maxMessages > 0) {
                 $connection->beginTransaction();
 
                 $sql = new Sql($this->adapter);
@@ -374,13 +374,13 @@ class Db extends AbstractAdapter implements
                 $select->from($name);
 
                 $where = array(
-                    'queue_id'                             => $this->getQueueId($queue->getName()),
-                    '(schedule IS NULL or schedule < ?)'   => $microtime,
-                    $timeout ? '(handle IS NULL OR timeout+' . $timeout . ' < ' . $microtime.')' : 'handle IS NULL',
+                    'queue_id' => $this->getQueueId($queue->getName()),
+                    '(schedule IS NULL or schedule < ?)' => $microtime,
+                    $timeout ? '(handle IS NULL OR timeout+' . $timeout . ' < ' . $microtime . ')' : 'handle IS NULL',
                 );
 
                 if ($filter) {
-                    $where['class'] = (string) $filter;
+                    $where['class'] = (string)$filter;
                 }
 
                 $select->where($where);
@@ -389,7 +389,7 @@ class Db extends AbstractAdapter implements
                 $statement = $sql->prepareStatementForSqlObject($select);
                 $result = $statement->execute();
 
-                foreach($result as $message) {
+                foreach ($result as $message) {
 
                     $message['handle'] = md5(uniqid(rand(), true));
                     $message['timeout'] = $microtime;
@@ -410,10 +410,10 @@ class Db extends AbstractAdapter implements
                         $message['metadata'] = isset($message['metadata']) ? unserialize($message['metadata']) : array();
                         $message['metadata'][$queue->getOptions()->getMessageMetadatumKey()] = $this->_buildMessageInfo(
                             $message['handle'],
-                            (int) $message['message_id'],
+                            (int)$message['message_id'],
                             $queue,
                             array(
-                                SendParameters::SCHEDULE           => $message['schedule'],
+                                SendParameters::SCHEDULE => $message['schedule'],
                                 SendParameters::REPEATING_INTERVAL => $message['interval'],
                             )
                         );
@@ -461,7 +461,7 @@ class Db extends AbstractAdapter implements
             }
 
             if (!empty($info['options'][SendParameters::REPEATING_INTERVAL])) {
-                $result = $this->messageTable->update(array('schedule' => time() + $info['options'][SendParameters::REPEATING_INTERVAL] , 'handle' => null), $where);
+                $result = $this->messageTable->update(array('schedule' => time() + $info['options'][SendParameters::REPEATING_INTERVAL], 'handle' => null), $where);
             } else {
                 $result = $this->messageTable->delete($where);
             }

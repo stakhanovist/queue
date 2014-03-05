@@ -91,12 +91,12 @@ class QueueTest extends \PHPUnit_Framework_TestCase
     public function testFactory()
     {
         $config = array(
-                'name'     => 'A',
-                'adapter'  => array( //Adapter as config
-                    'adapter' => 'ArrayAdapter',
-                    'options' => array('dummyOption' => 'dummyValue'),
-                 ),
-                'options' => array('messageClass' => 'Zend\Stdlib\Message'),
+            'name' => 'A',
+            'adapter' => array( //Adapter as config
+                'adapter' => 'ArrayAdapter',
+                'options' => array('dummyOption' => 'dummyValue'),
+            ),
+            'options' => array('messageClass' => 'Zend\Stdlib\Message'),
         );
 
         $q = Queue::factory($config);
@@ -117,8 +117,8 @@ class QueueTest extends \PHPUnit_Framework_TestCase
     public function testFactoryMissingName()
     {
         $config = array(
-            'name'     => 'A',
-            'adapter'  => array( //Adapter as config
+            'name' => 'A',
+            'adapter' => array( //Adapter as config
                 'adapter' => 'ArrayAdapter',
                 'options' => array('dummyOption' => 'dummyValue'),
             ),
@@ -133,7 +133,7 @@ class QueueTest extends \PHPUnit_Framework_TestCase
     public function testFactoryInvalidOptions()
     {
         $config = array(
-            'adapter'  => array( //Adapter as config
+            'adapter' => array( //Adapter as config
                 'adapter' => 'ArrayAdapter',
                 'options' => array('dummyOption' => 'dummyValue'),
             ),
@@ -193,8 +193,8 @@ class QueueTest extends \PHPUnit_Framework_TestCase
         $this->assertInstanceOf('\Zend\Stdlib\MessageInterface', $this->queue->send($message));
 
         $newMessageObj = $this->queue->send(array(
-            'content'   => $message,
-            'metadata'  => array('foo' => 'bar')
+            'content' => $message,
+            'metadata' => array('foo' => 'bar')
         ));
 
         $this->assertInstanceOf('\Zend\Stdlib\MessageInterface', $newMessageObj);
@@ -235,7 +235,7 @@ class QueueTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue($messages instanceof MessageIterator);
 
         // ------------------------------------ deleteMessage()
-        if($this->queue->canDeleteMessage()) {
+        if ($this->queue->canDeleteMessage()) {
             foreach ($messages as $i => $message) {
                 $this->assertTrue($message instanceof Message);
                 $this->assertTrue($this->queue->deleteMessage($message));
@@ -256,7 +256,6 @@ class QueueTest extends \PHPUnit_Framework_TestCase
 
 
         $queueTest = $this;
-
 
         $this->queue->getEventManager()->attach(QueueEvent::EVENT_RECEIVE, function(QueueEvent $e) use ($queueTest) {
 

@@ -72,16 +72,16 @@ class MessageIteratorTest extends \PHPUnit_Framework_TestCase
 
         // construct messages
         $this->message_count = 5;
-        $data  = array();
+        $data = array();
         $this->metadata = array(
             'one' => 1,
             'two' => 2,
         );
         for ($i = 0; $i < $this->message_count; $i++) {
             $data[] = array(
-                 'class'     => '\ZendQueue\Message\Message',
-                 'metadata'  => $this->metadata,
-                 'content'   => 'Hello world',
+                'class' => '\ZendQueue\Message\Message',
+                'metadata' => $this->metadata,
+                'content' => 'Hello world',
             );
         }
 

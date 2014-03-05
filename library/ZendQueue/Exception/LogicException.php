@@ -15,4 +15,5 @@ namespace ZendQueue\Exception;
  *
  */
 class LogicException extends \LogicException implements ExceptionInterface
-{}
+{
+}

@@ -21,10 +21,10 @@ use ZendQueue\Parameter\ReceiveParameters;
 abstract class AbstractMongo extends AbstractAdapter implements CountMessagesCapableInterface
 {
 
-    const KEY_HANDLE     = 'h';
-    const KEY_CLASS       = 't';
-    const KEY_CONTENT     = 'c';
-    const KEY_METADATA    = 'm';
+    const KEY_HANDLE = 'h';
+    const KEY_CLASS = 't';
+    const KEY_CONTENT = 'c';
+    const KEY_METADATA = 'm';
 
 
     /**
@@ -92,21 +92,20 @@ abstract class AbstractMongo extends AbstractAdapter implements CountMessagesCap
             }
 
 
-
-            $credentials =     array_key_exists('username', $driverOptions) && !empty($driverOptions['username'])
+            $credentials = array_key_exists('username', $driverOptions) && !empty($driverOptions['username'])
             && array_key_exists('password', $driverOptions) && !empty($driverOptions['password']) ?
-            $driverOptions['username'] . ':' . $driverOptions['password'] . '@'
+                $driverOptions['username'] . ':' . $driverOptions['password'] . '@'
                 :
                 '';
 
             $dsn = "mongodb://$credentials{$driverOptions['host']}/{$driverOptions['dbname']}";
         }
 
-		$options = array();
+        $options = array();
 
-		if (isset($driverOptions['options'])) {
-			$options = $driverOptions['options'];
-		}
+        if (isset($driverOptions['options'])) {
+            $options = $driverOptions['options'];
+        }
 
         $mongo = new \Mongo($dsn, $options);
 
@@ -138,12 +137,12 @@ abstract class AbstractMongo extends AbstractAdapter implements CountMessagesCap
     /**
      * Create a new queue
      *
-     * @param  string  $name Queue name
+     * @param  string $name Queue name
      * @return boolean
      */
     public function createQueue($name)
     {
-        if($this->mongoDb->createCollection($name)) {
+        if ($this->mongoDb->createCollection($name)) {
             return true;
         }
 
@@ -176,7 +175,7 @@ abstract class AbstractMongo extends AbstractAdapter implements CountMessagesCap
     public function deleteQueue($name)
     {
         $result = $this->mongoDb->selectCollection($name)->drop();
-        if(isset($result['ok']) && $result['ok']) {
+        if (isset($result['ok']) && $result['ok']) {
             return true;
         }
 
@@ -201,11 +200,11 @@ abstract class AbstractMongo extends AbstractAdapter implements CountMessagesCap
 
         $id = new \MongoId();
         $msg = array(
-            '_id'              => $id,
-            self::KEY_CLASS    => get_class($message),
-            self::KEY_CONTENT  => (string) $message->getContent(),
+            '_id' => $id,
+            self::KEY_CLASS => get_class($message),
+            self::KEY_CONTENT => (string)$message->getContent(),
             self::KEY_METADATA => $message->getMetadata(),
-            self::KEY_HANDLE   => false,
+            self::KEY_HANDLE => false,
         );
 
         try {
@@ -220,11 +219,11 @@ abstract class AbstractMongo extends AbstractAdapter implements CountMessagesCap
     }
 
     protected function _setupCursor(\MongoCollection $collection, ReceiveParameters $params = null,
-        $criteria = array(self::KEY_HANDLE => false),
-        array $fields = array('_id', self::KEY_HANDLE)
+                                    $criteria = array(self::KEY_HANDLE => false),
+                                    array $fields = array('_id', self::KEY_HANDLE)
     )
     {
-        if($params) {
+        if ($params) {
             if ($params->getMessageClass()) {
                 $criteria[self::KEY_CLASS] = $params->getMessageClass();
             }
@@ -240,22 +239,22 @@ abstract class AbstractMongo extends AbstractAdapter implements CountMessagesCap
             array('$set' => array(self::KEY_HANDLE => true)),
             null,
             array(
-                'sort'   => array('$natural' => 1),
-                'new'    => false, //message returned does not include the modifications made on the update
+                'sort' => array('$natural' => 1),
+                'new' => false, //message returned does not include the modifications made on the update
             )
         );
 
         //if message has been handled already then ignore it
-        if(empty($msg) || $msg[self::KEY_HANDLE]) { //already handled
+        if (empty($msg) || $msg[self::KEY_HANDLE]) { //already handled
             return null;
         }
 
-        $msg[self::KEY_METADATA] = (array) $msg[self::KEY_METADATA];
+        $msg[self::KEY_METADATA] = (array)$msg[self::KEY_METADATA];
         $msg[self::KEY_METADATA][$queue->getOptions()->getMessageMetadatumKey()] = $this->_buildMessageInfo(true, $msg['_id'], $queue);
 
         return array(
-            'class'    => $msg[self::KEY_CLASS],
-            'content'  => $msg[self::KEY_CONTENT],
+            'class' => $msg[self::KEY_CLASS],
+            'content' => $msg[self::KEY_CONTENT],
             'metadata' => $msg[self::KEY_METADATA]
         );
     }
@@ -277,13 +276,13 @@ abstract class AbstractMongo extends AbstractAdapter implements CountMessagesCap
         $collection = $this->mongoDb->selectCollection($queue->getName());
 
         $cursor = $this->_setupCursor($collection, $params);
-        $cursor->limit((int) $maxMessages);
+        $cursor->limit((int)$maxMessages);
 
         $msgs = array();
 
         foreach ($cursor as $msg) {
             $msg = $this->_receiveMessageAtomic($queue, $collection, $msg['_id']);
-            if($msg) {
+            if ($msg) {
                 $msgs[] = $msg;
             }
         }

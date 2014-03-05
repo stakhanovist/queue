@@ -11,7 +11,7 @@
 /*
  * Set error reporting to the level to which Zend Framework code must comply.
  */
-error_reporting( E_ALL | E_STRICT );
+error_reporting(E_ALL | E_STRICT);
 
 $phpUnitVersion = PHPUnit_Runner_Version::id();
 if ('@package_version@' !== $phpUnitVersion && version_compare($phpUnitVersion, '3.5.0', '<')) {
@@ -24,9 +24,9 @@ unset($phpUnitVersion);
  * Determine the root, library, and tests directories of the framework
  * distribution.
  */
-$zfRoot        = realpath(dirname(__DIR__));
+$zfRoot = realpath(dirname(__DIR__));
 $zfCoreLibrary = "$zfRoot/library";
-$zfCoreTests   = "$zfRoot/tests";
+$zfCoreTests = "$zfRoot/tests";
 
 /*
  * Prepend the Zend Framework library/ and tests/ directories to the

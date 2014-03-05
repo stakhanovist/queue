@@ -11,6 +11,7 @@
 namespace ZendQueue\Parameter;
 
 use Zend\Stdlib\Parameters;
+
 class SendParameters extends Parameters
 {
 

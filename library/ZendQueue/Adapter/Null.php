@@ -49,7 +49,7 @@ class Null extends AbstractAdapter
      *
      * @param  string $name Queue name
      * @return bool
-    */
+     */
     public function queueExists($name)
     {
         return false;
@@ -58,9 +58,9 @@ class Null extends AbstractAdapter
     /**
      * Create a new queue
      *
-     * @param  string  $name Queue name
+     * @param  string $name Queue name
      * @throws Exception\UnsupportedMethodCallException - queue disabled
-    */
+     */
     public function createQueue($name)
     {
         throw new Exception\UnsupportedMethodCallException(__FUNCTION__ . '() is not supported by ' . get_called_class());
@@ -73,7 +73,7 @@ class Null extends AbstractAdapter
      *
      * @param  string $name Queue name
      * @throws Exception\UnsupportedMethodCallException - queue disabled
-    */
+     */
     public function deleteQueue($name)
     {
         throw new Exception\UnsupportedMethodCallException(__FUNCTION__ . '() is not supported by ' . get_called_class());
@@ -81,7 +81,7 @@ class Null extends AbstractAdapter
 
     /********************************************************************
      * Messsage management functions
-    *********************************************************************/
+     *********************************************************************/
 
     /**
      * Send a message to the queue
@@ -90,7 +90,7 @@ class Null extends AbstractAdapter
      * @param  MessageInterface $message Message
      * @param  SendParameters $params
      * @throws Exception\UnsupportedMethodCallException - queue disabled
-    */
+     */
     public function sendMessage(Queue $queue, MessageInterface $message, SendParameters $params = null)
     {
         throw new Exception\UnsupportedMethodCallException(__FUNCTION__ . '() is not supported by ' . get_called_class());

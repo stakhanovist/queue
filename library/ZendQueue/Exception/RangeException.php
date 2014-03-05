@@ -15,4 +15,5 @@ namespace ZendQueue\Exception;
  *
  */
 class RangeException extends \RangeException implements ExceptionInterface
-{}
+{
+}

@@ -16,4 +16,5 @@ namespace ZendQueue\Exception;
  */
 class InvalidMessageException extends \InvalidArgumentException implements
     ExceptionInterface
-{}
+{
+}

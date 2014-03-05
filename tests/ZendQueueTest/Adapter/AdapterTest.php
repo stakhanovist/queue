@@ -90,7 +90,7 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
 
     public function getTestOptions()
     {
-         return array('driverOptions' => array());
+        return array('driverOptions' => array());
     }
 
     /**
@@ -124,7 +124,7 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
             return false;
         }
 
-        $queue   = new Queue($name, $adapter, $options);
+        $queue = new Queue($name, $adapter, $options);
         $queue->ensureQueue();
 
         return $queue;
@@ -149,14 +149,14 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
             return false;
         }
 
-        if ( is_string($needles)) {
+        if (is_string($needles)) {
             $needles = array($needles);
         }
 
         $supported = $this->getSupportedTests();
 
-        foreach ( $needles as $needle ) {
-            if ( !in_array($needle, $supported)) {
+        foreach ($needles as $needle) {
+            if (!in_array($needle, $supported)) {
                 return false;
             }
         }
@@ -213,27 +213,27 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
         }
 
         try {
-            $obj = new $class( array());
+            $obj = new $class(array());
             $this->fail('__construct() cannot accept an empty array for a configuration');
         } catch (\Exception $e) {
             $this->assertTrue(true);
         }
 
         try {
-            $obj = new $class(array('name' => 'queue1', 'driverOptions'=>\true));
+            $obj = new $class(array('name' => 'queue1', 'driverOptions' => \true));
             $this->fail('__construct() $config[\'options\'] must be an array');
         } catch (\Exception $e) {
             $this->assertTrue(true);
         }
 
         try {
-            $obj = new $class(array('name' => 'queue1', 'driverOptions'=>array('opt'=>'val')));
+            $obj = new $class(array('name' => 'queue1', 'driverOptions' => array('opt' => 'val')));
             $this->fail('__construct() humm I think this test is supposed to work @TODO');
         } catch (\Exception $e) {
             $this->assertTrue(true);
         }
         try {
-            $config = new Config\Config(array('driverOptions' => array() ));
+            $config = new Config\Config(array('driverOptions' => array()));
             $obj = new $class($config);
             $this->fail('__construct() \'name\' is a required configuration value');
         } catch (\Exception $e) {
@@ -287,7 +287,7 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
 
         $list = $queue->receive();
         $this->assertTrue($list instanceof MessageIterator);
-        foreach ( $list as $i => $message ) {
+        foreach ($list as $i => $message) {
             $this->assertTrue($message instanceof Message);
             $queue->deleteMessage($message);
         }
@@ -348,7 +348,7 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
 
         if ($adapter instanceof ListQueuesCapableInterface) {
             if (in_array($new, $adapter->listQueues())) {
-                $this->fail('delete() failed to delete it\'s queue, but returned true: '. $new);
+                $this->fail('delete() failed to delete it\'s queue, but returned true: ' . $new);
             }
         }
 
@@ -379,7 +379,7 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
 
         if ($adapter instanceof ListQueuesCapableInterface) {
             if (in_array($new, $adapter->listQueues())) {
-                $this->fail('delete() failed to delete it\'s queue, but returned true: '. $new);
+                $this->fail('delete() failed to delete it\'s queue, but returned true: ' . $new);
             }
         }
 
@@ -442,7 +442,7 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
         $message = new Message();
         $message->setContent($body);
         if (!$adapter->sendMessage($queue, $message)) {
-        	$this->fail('send() failed');
+            $this->fail('send() failed');
         }
         $this->assertTrue($message instanceof Message);
 
@@ -472,7 +472,7 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
         $adapter = $queue->getAdapter();
 
         // check to see if this function is supported
-        if (! $adapter instanceof DeleteMessageCapableInterface) {
+        if (!$adapter instanceof DeleteMessageCapableInterface) {
             $this->markTestSkipped('deleteMessage() is not supported');
             return;
         }
@@ -487,7 +487,7 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
         $message = new Message();
         $message->setContent($body);
         if (!$adapter->sendMessage($queue, $message)) {
-        	$this->fail('send() failed');
+            $this->fail('send() failed');
         }
         $this->assertTrue($message instanceof Message);
 
@@ -503,7 +503,7 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
         // no more messages, should return false
         // stomp and amazon always return true.
         $falsePositive = array('Activemq', 'Amazon');
-        if (! in_array($this->getAdapterName(), $falsePositive)) {
+        if (!in_array($this->getAdapterName(), $falsePositive)) {
             $this->assertFalse($adapter->deleteMessage($queue, $message));
         }
 
@@ -580,14 +580,13 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
          * the messages that we created if we can.
          */
         if ($adapter instanceof DeleteMessageCapableInterface) {
-            foreach ( $message as $msg ) {
+            foreach ($message as $msg) {
                 $adapter->deleteMessage($queue, $msg);
             }
 
             // test the count for being 0
             $this->assertEquals($adapter->countMessages($queue), 0);
         }
-
 
 
         // delete the queue we created
@@ -615,14 +614,14 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
 
         if ($this->queueHasSupport($queue, 'receiveMessages')) {
             $messages = $queue->receive(5);
-            foreach($messages as $i => $message) {
+            foreach ($messages as $i => $message) {
                 $this->assertEquals($i, $message->getContent());
                 $queue->deleteMessage($message);
             }
 
             $this->assertEquals(5, count($queue));
 
-            for($i = 5; $i < 10; $i++) {
+            for ($i = 5; $i < 10; $i++) {
                 $messages = $queue->receive();
                 $message = $messages->current();
                 $this->assertEquals("{$i}", $message->getContent());
@@ -678,7 +677,7 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
 
         $this->assertTrue($messages instanceof MessageIterator);
 
-        $timeout = $start + $default_timeout +$extra_delay;
+        $timeout = $start + $default_timeout + $extra_delay;
         $found = false;
         $check = microtime(true);
 
@@ -689,7 +688,7 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
                 $check = microtime(true);
                 if ($debug) echo "Checking - found ", count($search), " messages at : ", $check, "\n";
             }
-            if ( count($search) > 0 ) {
+            if (count($search) > 0) {
                 if ($search->current()->getContent() == $body) {
                     $found = true;
                     $end = microtime(true);
@@ -704,7 +703,7 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
             $end = microtime(true);
         }
 
-        $duration = sprintf("%5.2f seconds", $end-$start);
+        $duration = sprintf("%5.2f seconds", $end - $start);
         /*
         There has to be some fuzzyness regarding comparisons because while
         the timeout may be honored, the actual code time, database querying
@@ -724,7 +723,7 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
 
         // now we delete the messages
         if ($adapter instanceof DeleteMessageCapableInterface) {
-            foreach ( $messages as $msg ) {
+            foreach ($messages as $msg) {
                 $adapter->deleteMessage($queue, $msg);
             }
         }
@@ -760,7 +759,6 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
         $this->assertInstanceOf('\ZendQueue\Message\MessageIterator', $messages);
         $this->assertEquals(1, $messages->count());
         $this->assertInstanceOf($reciveParams->getClassFilter(), $messages->current());
-
 
 
         //Reset the queue

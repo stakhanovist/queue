@@ -45,7 +45,7 @@ interface AdapterInterface
      * Get options
      *
      * @return array
-    */
+     */
     public function getOptions();
 
 
@@ -74,7 +74,7 @@ interface AdapterInterface
 
     /********************************************************************
      * Queue management functions
-    *********************************************************************/
+     *********************************************************************/
 
     /**
      * Returns the ID of the queue
@@ -95,7 +95,7 @@ interface AdapterInterface
     /**
      * Create a new queue
      *
-     * @param  string  $name Queue name
+     * @param  string $name Queue name
      * @return boolean
      */
     public function createQueue($name);

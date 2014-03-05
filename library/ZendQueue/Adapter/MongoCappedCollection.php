@@ -30,29 +30,29 @@ class MongoCappedCollection extends AbstractMongo implements AwaitMessagesCapabl
      * @var array
      */
     protected $defaultOptions = array(
-        'size'          => 1000000,
-        'maxMessages'   => 100,
-        'threshold'     => 10,
+        'size' => 1000000,
+        'maxMessages' => 100,
+        'threshold' => 10,
     );
 
     /**
      * Create a new queue
      *
-     * @param  string  $name Queue name
+     * @param  string $name Queue name
      * @return boolean
      */
     public function createQueue($name)
     {
         $options = $this->getOptions();
 
-        if(version_compare(phpversion('mongo'), '1.4.0') < 0) {
+        if (version_compare(phpversion('mongo'), '1.4.0') < 0) {
             $queue = $this->mongoDb->createCollection($name, true, $options['size'], $options['maxMessages']);
         } else {
-            $queue = $this->mongoDb->createCollection($name, array('capped' => true, 'size' => $options['size'], 'max' =>  $options['maxMessages']));
+            $queue = $this->mongoDb->createCollection($name, array('capped' => true, 'size' => $options['size'], 'max' => $options['maxMessages']));
         }
 
         if ($queue) {
-            for($i=0; $i < $options['maxMessages']; $i++){
+            for ($i = 0; $i < $options['maxMessages']; $i++) {
                 $queue->insert(array(self::KEY_HANDLE => true));
             }
             return true;
@@ -99,11 +99,11 @@ class MongoCappedCollection extends AbstractMongo implements AwaitMessagesCapabl
 
         $id = new MongoId();
         $msg = array(
-            '_id'              => $id,
-            self::KEY_CLASS    => get_class($message),
-            self::KEY_CONTENT  => (string) $message->getContent(),
+            '_id' => $id,
+            self::KEY_CLASS => get_class($message),
+            self::KEY_CONTENT => (string)$message->getContent(),
             self::KEY_METADATA => $message->getMetadata(),
-            self::KEY_HANDLE  => false,
+            self::KEY_HANDLE => false,
         );
 
         try {
@@ -195,7 +195,7 @@ class MongoCappedCollection extends AbstractMongo implements AwaitMessagesCapabl
                     $msg = $cursor->getNext();
 
                     //To avoid resource-consuming, we ignore handled message early
-                    if($msg[self::KEY_HANDLE]) {
+                    if ($msg[self::KEY_HANDLE]) {
                         continue; //inner loop
                     }
 
@@ -203,7 +203,7 @@ class MongoCappedCollection extends AbstractMongo implements AwaitMessagesCapabl
                     $msg = $this->_receiveMessageAtomic($queue, $collection, $msg['_id']);
 
                     //if meanwhile message has been handled already then we ignore it
-                    if(null === $msg) {
+                    if (null === $msg) {
                         continue; //inner loop
                     }
 
