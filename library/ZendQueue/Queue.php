@@ -387,7 +387,7 @@ class Queue implements Countable
             throw new Exception\UnsupportedMethodCallException('\''.SendParameters::SCHEDULE.'\' param is not supported by ' . get_class($this->getAdapter()));
         }
 
-        if ($interval !== null && !$this->isSendParamSupported(SendParameters::REPEATING_INTERVAL)) {
+        if ($repeatingInterval !== null && !$this->isSendParamSupported(SendParameters::REPEATING_INTERVAL)) {
             if (!$this->isSendParamSupported(SendParameters::REPEATING_INTERVAL)) {
                 throw new Exception\UnsupportedMethodCallException('\''.SendParameters::REPEATING_INTERVAL.'\' param is not supported by ' . get_class($this->getAdapter()));
             }
@@ -399,7 +399,7 @@ class Queue implements Countable
         }
 
         $params->setSchedule($scheduleTime)
-        ->setRepeatingInterval($repeatingInterval);
+               ->setRepeatingInterval($repeatingInterval);
 
         return $this->send($message, $params);
     }
@@ -431,7 +431,7 @@ class Queue implements Countable
 
         $info['options'] = $options;
 
-        $message->setMetadata($queue->getOptions()->getMessageMetadatumKey(), $options);
+        $message->setMetadata($this->getOptions()->getMessageMetadatumKey(), $options);
 
         return $this->deleteMessage($message);
     }
@@ -504,6 +504,9 @@ class Queue implements Countable
     }
 
 
+    /********************************************************************
+     * Event
+    *********************************************************************/
 
     /**
      * Set the event manager instance used by this context
@@ -578,6 +581,9 @@ class Queue implements Countable
         return $this->event;
     }
 
+    /********************************************************************
+     * Debug
+    *********************************************************************/
 
     /**
      * returns a listing of Queue details.
