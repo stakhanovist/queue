@@ -256,19 +256,23 @@ class QueueTest extends \PHPUnit_Framework_TestCase
 
 
         $queueTest = $this;
+        $eventReceiveTriggered = false;
+        $eventIdleTriggered = false;
 
-        $this->queue->getEventManager()->attach(QueueEvent::EVENT_RECEIVE, function(QueueEvent $e) use ($queueTest) {
+        $this->queue->getEventManager()->attach(QueueEvent::EVENT_RECEIVE, function(QueueEvent $e) use ($queueTest, &$eventReceiveTriggered) {
 
+            $eventReceiveTriggered = true;
             $queueTest->assertInstanceOf('ZendQueue\Message\MessageIterator', $e->getMessages());
             $queueTest->assertCount(1, $e->getMessages());
             $queueTest->assertEquals('test', $e->getMessages()->current()->getContent());
 
         });
 
-        $this->queue->getEventManager()->attach(QueueEvent::EVENT_IDLE, function(QueueEvent $e) use ($queueTest) {
 
-//             $queueTest->assertInstanceOf('ZendQueue\Message\MessageIterator', $e->getMessages());
-//             $this->assertCount(0, $e->getMessages());
+        $this->queue->getEventManager()->attach(QueueEvent::EVENT_IDLE, function(QueueEvent $e) use ($queueTest, &$eventIdleTriggered) {
+
+            $eventIdleTriggered = true;
+            $queueTest->assertInstanceOf('ZendQueue\Message\MessageIterator', $e->getMessages());
 
             $e->stopAwait(true);
         });
@@ -277,7 +281,8 @@ class QueueTest extends \PHPUnit_Framework_TestCase
         $this->queue->send('test');
 
         $this->assertInstanceOf('ZendQueue\Queue', $this->queue->await());
-
+        $this->assertTrue($eventReceiveTriggered, 'QueueEvent::EVENT_RECEIVE has been not triggered');
+        $this->assertTrue($eventIdleTriggered, 'QueueEvent::EVENT_IDLE has been not triggered');
     }
 
     public function testAwaitUnsupported()
