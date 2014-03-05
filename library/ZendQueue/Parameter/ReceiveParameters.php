@@ -112,7 +112,6 @@ class ReceiveParameters extends Parameters
      *
      * @see setPeekMode()
      *
-     * @param bool $peek
      * @throws Exception\InvalidArgumentException
      * @return \ZendQueue\Parameter\ReceiveParameters
      */

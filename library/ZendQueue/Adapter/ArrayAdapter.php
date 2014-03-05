@@ -18,7 +18,6 @@ use ZendQueue\Adapter\Capabilities\ListQueuesCapableInterface;
 use ZendQueue\Adapter\Capabilities\CountMessagesCapableInterface;
 use Zend\Stdlib\MessageInterface;
 use ZendQueue\Parameter\ReceiveParameters;
-use ZendQueue\QueueOptions;
 use Zend\Math\Rand;
 
 /**

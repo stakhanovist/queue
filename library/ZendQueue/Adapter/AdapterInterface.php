@@ -29,6 +29,7 @@ interface AdapterInterface
      *
      * @param  array|Traversable $options An array having configuration data
      * @throws Exception\InvalidArgumentException
+     * @return void
      */
     public function __construct($options = array());
 

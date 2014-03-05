@@ -88,6 +88,9 @@ class MessageIterator implements Countable, Iterator
         $this->data = $data;
     }
 
+    /**
+     * @param integer $index
+     */
     protected function _lazyMessageFactory($index)
     {
         if (!($this->data[$index] instanceof StdMessage)) {

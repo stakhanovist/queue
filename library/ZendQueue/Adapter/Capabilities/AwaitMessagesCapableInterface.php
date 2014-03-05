@@ -9,7 +9,6 @@
  */
 
 namespace ZendQueue\Adapter\Capabilities;
-use Zend\Stdlib\MessageInterface;
 use ZendQueue\Adapter\AdapterInterface;
 use ZendQueue\Parameter\ReceiveParameters;
 use ZendQueue\Queue;

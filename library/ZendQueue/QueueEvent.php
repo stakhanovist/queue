@@ -10,7 +10,6 @@
 namespace ZendQueue;
 
 use Zend\EventManager\Event;
-use Zend\Stdlib\Message;
 use ZendQueue\Message\MessageIterator;
 
 class QueueEvent extends Event
@@ -34,7 +33,7 @@ class QueueEvent extends Event
     protected $await = false;
 
     /**
-     * @param MessageIterator $message
+     * @param MessageIterator $messages
      * @return QueueEvent
      */
     public function setMessages(MessageIterator $messages)
@@ -44,7 +43,7 @@ class QueueEvent extends Event
     }
 
     /**
-     * @return MessageIterator|null
+     * @return MessageIterator
      */
     public function getMessages()
     {

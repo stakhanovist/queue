@@ -17,7 +17,6 @@ use Zend\Stdlib\MessageInterface;
 use ZendQueue\Exception;
 use ZendQueue\Adapter\AdapterInterface;
 use ZendQueue\Adapter\Capabilities\AwaitMessagesCapableInterface;
-use ZendQueue\Adapter\Capabilities\ListQueuesCapableInterface;
 use ZendQueue\Adapter\Capabilities\CountMessagesCapableInterface;
 use ZendQueue\Adapter\Capabilities\DeleteMessageCapableInterface;
 use ZendQueue\Parameter\SendParameters;
@@ -238,7 +237,7 @@ class Queue implements Countable
      * Send a message to the queue
      *
      * @param  mixed $message message
-     * @param  SendParamters $params
+     * @param  SendParameters $params
      * @return MessageInterface
      * @throws Exception\ExceptionInterface
      */
@@ -377,7 +376,7 @@ class Queue implements Countable
      * @param  mixed $message message
      * @param  int $scheduleTime
      * @param  int $repeatingInterval
-     * @param  SendParamters $params
+     * @param  SendParameters $params
      * @return MessageInterface
      * @throws Exception\UnsupportedMethodCallException
      */

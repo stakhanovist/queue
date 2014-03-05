@@ -125,7 +125,7 @@ abstract class AbstractAdapter implements AdapterInterface
      *
      * @param mixed $handle
      * @param mixed $id
-     * @param Queue|string $queue
+     * @param Queue $queue
      * @param ParametersInterface|array $options
      * @return array
      */

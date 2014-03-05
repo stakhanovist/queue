@@ -17,7 +17,6 @@ use ZendQueue\Queue;
 use ZendQueue\Adapter\Capabilities\CountMessagesCapableInterface;
 use ZendQueue\Adapter\Capabilities\DeleteMessageCapableInterface;
 use ZendQueue\Adapter\Capabilities\ListQueuesCapableInterface;
-use ZendQueue\Adapter\Capabilities\ScheduleMessageCapableInterface;
 use ZendQueue\Parameter\SendParameters;
 use ZendQueue\Parameter\ReceiveParameters;
 use ZendQueue\Adapter\AbstractAdapter;
