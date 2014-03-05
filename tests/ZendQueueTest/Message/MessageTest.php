@@ -91,13 +91,13 @@ class MessageTest extends \PHPUnit_Framework_TestCase
 
     }
 
-   public function testDefaultMessageClass()
-   {
-       $this->queue->send('testMessage');
-       $messages = $this->queue->receive();
+    public function testDefaultMessageClass()
+    {
+        $this->queue->send('testMessage');
+        $messages = $this->queue->receive();
 
-       $this->assertInstanceOf('\ZendQueue\Message\Message', $messages->current());
-   }
+        $this->assertInstanceOf('\ZendQueue\Message\Message', $messages->current());
+    }
 
 
 }

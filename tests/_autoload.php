@@ -20,7 +20,7 @@ spl_autoload_register(function ($class) {
         return false;
     }
     $normalized = str_replace('ZendQueueTest\\', '', $class);
-    $filename   = __DIR__ . '/Zend/' . str_replace(array('\\', '_'), '/', $normalized) . '.php';
+    $filename = __DIR__ . '/Zend/' . str_replace(array('\\', '_'), '/', $normalized) . '.php';
     if (!file_exists($filename)) {
         return false;
     }

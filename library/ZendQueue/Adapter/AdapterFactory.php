@@ -55,7 +55,9 @@ abstract class AdapterFactory
 
         if (isset($cfg['options'])) {
             if (!is_array($cfg['options'])) {
-                throw new Exception\InvalidArgumentException('"options" must be an array, ' . gettype($cfg['options']) . ' given.');
+                throw new Exception\InvalidArgumentException('
+                    "options" must be an array, ' . gettype($cfg['options']) . ' given.'
+                );
             }
             $adapter->setOptions($cfg['options']);
         }

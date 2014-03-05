@@ -44,7 +44,7 @@ class QueueAdapterAbstractServiceFactoryTest extends \PHPUnit_Framework_TestCase
 
     public function tearDown()
     {
-         Adapter\AdapterFactory::resetAdapterPluginManager();
+        Adapter\AdapterFactory::resetAdapterPluginManager();
     }
 
     public function testCanLookupAdapterByName()

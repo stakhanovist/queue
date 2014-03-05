@@ -10,13 +10,13 @@
 
 namespace ZendQueueTest\Adapter;
 
-/*
- * The adapter test class provides a universal test class for all of the
- * abstract methods.
- *
- * All methods marked not supported are explictly checked for for throwing
- * an exception.
- */
+    /*
+     * The adapter test class provides a universal test class for all of the
+     * abstract methods.
+     *
+     * All methods marked not supported are explictly checked for for throwing
+     * an exception.
+     */
 
 /**
  * @category   Zend

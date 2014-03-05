@@ -29,18 +29,18 @@ class AdapterPluginManager extends AbstractPluginManager
      * @var array
      */
     protected $invokableClasses = array(
-        'arrayadapter'   => 'ZendQueue\Adapter\ArrayAdapter',
-        'db'             => 'ZendQueue\Adapter\Db',
-        'mongocapped'    => 'ZendQueue\Adapter\MongoCappedCollection',
-        'mongo'          => 'ZendQueue\Adapter\MongoCollection',
-        'null'           => 'ZendQueue\Adapter\Null',
+        'arrayadapter' => 'ZendQueue\Adapter\ArrayAdapter',
+        'db' => 'ZendQueue\Adapter\Db',
+        'mongocapped' => 'ZendQueue\Adapter\MongoCappedCollection',
+        'mongo' => 'ZendQueue\Adapter\MongoCollection',
+        'null' => 'ZendQueue\Adapter\Null',
     );
 
     /**
      * Do not share by default
      *
      * @var array
-    */
+     */
     protected $shareByDefault = false;
 
     /**

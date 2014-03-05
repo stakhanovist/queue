@@ -75,7 +75,7 @@ abstract class AbstractAdapter implements AdapterInterface
 
 
         $adapterOptions = array();
-        $driverOptions  = isset($this->_options['driverOptions']) ? $this->_options['driverOptions'] : array();
+        $driverOptions = isset($this->_options['driverOptions']) ? $this->_options['driverOptions'] : array();
 
         if (array_key_exists('driverOptions', $options)) {
             // can't use array_merge() because keys might be integers
@@ -131,14 +131,14 @@ abstract class AbstractAdapter implements AdapterInterface
      */
     protected function _buildMessageInfo($handle, $id, $queue, $options = null)
     {
-        $name = $queue instanceof Queue ? $queue->getName() : (string) $queue;
+        $name = $queue instanceof Queue ? $queue->getName() : (string)$queue;
         return array(
-            'handle'    => $handle,
+            'handle' => $handle,
             'messageId' => $id,
-            'queueId'   => $this->getQueueId($name),
+            'queueId' => $this->getQueueId($name),
             'queueName' => $name,
-            'adapter'   => get_called_class(),
-            'options'   => $options instanceof ParametersInterface ? $options->toArray() : (array) $options,
+            'adapter' => get_called_class(),
+            'options' => $options instanceof ParametersInterface ? $options->toArray() : (array)$options,
         );
     }
 
@@ -167,7 +167,7 @@ abstract class AbstractAdapter implements AdapterInterface
      */
     public function getMessageInfo(Queue $queue, MessageInterface $message)
     {
-       return $message->getMetadata($queue->getOptions()->getMessageMetadatumKey());
+        return $message->getMetadata($queue->getOptions()->getMessageMetadatumKey());
     }
 
     /**
@@ -182,5 +182,4 @@ abstract class AbstractAdapter implements AdapterInterface
             $message->setMetadata($metadatumKey, null);
         }
     }
-
 }

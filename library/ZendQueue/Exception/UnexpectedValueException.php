@@ -16,4 +16,5 @@ namespace ZendQueue\Exception;
  */
 class UnexpectedValueException extends \UnexpectedValueException implements
     ExceptionInterface
-{}
+{
+}

@@ -60,7 +60,7 @@ class QueueOptions extends AbstractOptions
 
     public function setMessageClass($class)
     {
-        $this->messageClass = (string) $class;
+        $this->messageClass = (string)$class;
         return $this;
     }
 
@@ -71,7 +71,7 @@ class QueueOptions extends AbstractOptions
 
     public function setMessageSetClass($class)
     {
-        $this->messageSetClass = (string) $class;
+        $this->messageSetClass = (string)$class;
         return $this;
     }
 
@@ -82,7 +82,7 @@ class QueueOptions extends AbstractOptions
 
     public function setMessageMetadatumKey($keyName)
     {
-        $this->messageMetadatumKey = (string) $keyName;
+        $this->messageMetadatumKey = (string)$keyName;
         return $this;
     }
 
@@ -97,7 +97,7 @@ class QueueOptions extends AbstractOptions
      */
     public function setEnableAwaitEmulation($flag)
     {
-        $this->enableAwaitEmulation = (bool) $flag;
+        $this->enableAwaitEmulation = (bool)$flag;
         return $this;
     }
 
@@ -111,7 +111,7 @@ class QueueOptions extends AbstractOptions
 
     public function setPollingInterval($sec)
     {
-        $this->pollingInterval = (int) $sec;
+        $this->pollingInterval = (int)$sec;
         return $this;
     }
 
