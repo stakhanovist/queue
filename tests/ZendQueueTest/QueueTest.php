@@ -181,6 +181,7 @@ class QueueTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue($this->adapter->queueExists($this->name));
     }
 
+
     public function testSampleBehavior()
     {
         // ------------------------------------ send()

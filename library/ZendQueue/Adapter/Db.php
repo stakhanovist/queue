@@ -250,7 +250,7 @@ class Db extends AbstractAdapter implements
             unset($this->queues[$name]);
         }
 
-        return (bool) $remove;
+        return true;
     }
 
     /**
@@ -319,7 +319,7 @@ class Db extends AbstractAdapter implements
                 $msg['schedule'] = $params->getSchedule();
             }
 
-            if ($params->getInterval()) {
+            if ($params->getRepeatingInterval()) {
                 $msg['interval'] = $params->getRepeatingInterval();
             }
         }
@@ -357,7 +357,7 @@ class Db extends AbstractAdapter implements
         $msgs = array();
         $name = $this->messageTable->getTable();
         $microtime = (int)microtime(true); // cache microtime
-        $connection = $db->getDriver()->getConnection();
+        $connection = $this->adapter->getDriver()->getConnection();
 
 
         // start transaction handling
