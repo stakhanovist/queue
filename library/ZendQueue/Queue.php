@@ -26,11 +26,12 @@ use Zend\EventManager\Event;
 use ZendQueue\Adapter\AdapterFactory;
 use Zend\EventManager\EventManager;
 use ZendQueue\Message\MessageIterator;
+use Zend\EventManager\EventManagerAwareInterface;
 
 /**
  *
  */
-class Queue implements Countable
+class Queue implements Countable, EventManagerAwareInterface
 {
 
     /**
@@ -68,11 +69,6 @@ class Queue implements Countable
     protected $events;
 
     /**
-     * @var string
-     */
-    protected $eventIdentifier;
-
-    /**
      * Constructor
      *
      * @param  string $name
@@ -93,8 +89,6 @@ class Queue implements Countable
         if ($options) {
             $this->setOptions($options);
         }
-
-
     }
 
     /**
@@ -323,7 +317,7 @@ class Queue implements Countable
                 $messages = $this->getAdapter()->receiveMessages($this, 1, $params);
                 $continue = call_user_func($callback, $messages);
 
-                if ($continue && !$messages->count()) {
+                if ($continue && $messages->count() < 1) {
                     sleep($pollingInterval);
                 }
             } while($continue);
@@ -516,16 +510,11 @@ class Queue implements Countable
     public function setEventManager(EventManagerInterface $events)
     {
         $events->setIdentifiers(array(
-            'Zend\Stdlib\DispatchableInterface',
             __CLASS__,
             get_class($this),
-            $this->eventIdentifier,
-            substr(get_class($this), 0, strpos(get_class($this), '\\'))
+            $this->getName(),
         ));
         $this->events = $events;
-        //TODO: we have default listers?
-//         $this->attachDefaultListeners();
-
         return $this;
     }
 
@@ -551,7 +540,7 @@ class Queue implements Countable
      * By default, will re-cast to QueueEvent if another event type is provided.
      *
      * @param  Event $e
-     * @return void
+     * @return Queue
      */
     public function setEvent(Event $e)
     {
@@ -562,6 +551,8 @@ class Queue implements Countable
             unset($eventParams);
         }
         $this->event = $e;
+
+        return $this;
     }
 
     /**

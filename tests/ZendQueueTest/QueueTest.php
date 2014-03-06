@@ -20,6 +20,9 @@ use ZendQueue\Message\MessageIterator;
 use ZendQueue\Parameter\SendParameters;
 use ZendQueue\Adapter\Null;
 use ZendQueue\QueueEvent;
+use Zend\EventManager\SharedEventManager;
+use Zend\EventManager\EventManager;
+use Zend\EventManager\Event;
 
 /*
  * The adapter test class provides a universal test class for all of the
@@ -253,13 +256,11 @@ class QueueTest extends \PHPUnit_Framework_TestCase
             $this->markTestSkipped('await() not supported');
         }
 
-
-
         $queueTest = $this;
         $eventReceiveTriggered = false;
         $eventIdleTriggered = false;
 
-        $this->queue->getEventManager()->attach(QueueEvent::EVENT_RECEIVE, function(QueueEvent $e) use ($queueTest, &$eventReceiveTriggered) {
+        $receiveHandler = $this->queue->getEventManager()->attach(QueueEvent::EVENT_RECEIVE, function(QueueEvent $e) use ($queueTest, &$eventReceiveTriggered) {
 
             $eventReceiveTriggered = true;
             $queueTest->assertInstanceOf('ZendQueue\Message\MessageIterator', $e->getMessages());
@@ -269,7 +270,7 @@ class QueueTest extends \PHPUnit_Framework_TestCase
         });
 
 
-        $this->queue->getEventManager()->attach(QueueEvent::EVENT_IDLE, function(QueueEvent $e) use ($queueTest, &$eventIdleTriggered) {
+        $idleHandler = $this->queue->getEventManager()->attach(QueueEvent::EVENT_IDLE, function(QueueEvent $e) use ($queueTest, &$eventIdleTriggered) {
 
             $eventIdleTriggered = true;
             $queueTest->assertInstanceOf('ZendQueue\Message\MessageIterator', $e->getMessages());
@@ -283,6 +284,60 @@ class QueueTest extends \PHPUnit_Framework_TestCase
         $this->assertInstanceOf('ZendQueue\Queue', $this->queue->await());
         $this->assertTrue($eventReceiveTriggered, 'QueueEvent::EVENT_RECEIVE has been not triggered');
         $this->assertTrue($eventIdleTriggered, 'QueueEvent::EVENT_IDLE has been not triggered');
+
+        //Cleanup
+        $this->queue->getEventManager()->detach($receiveHandler);
+        $this->queue->getEventManager()->detach($idleHandler);
+    }
+
+
+    public function testStopAwaitOnReceive()
+    {
+        if (!$this->queue->canAwait()) {
+            $this->markTestSkipped('await() not supported');
+        }
+
+        $queueTest = $this;
+        $eventReceiveTriggered = false;
+
+        $receiveHandler= $this->queue->getEventManager()->attach(QueueEvent::EVENT_RECEIVE, function(QueueEvent $e) use ($queueTest, &$eventReceiveTriggered) {
+            $eventReceiveTriggered = true;
+            $e->stopAwait(true);
+        });
+
+        //Ensure we have one message
+        $this->queue->send('test');
+
+       $this->queue->await();
+       $this->assertTrue($eventReceiveTriggered, 'QueueEvent::EVENT_RECEIVE has been not triggered');
+
+       //Cleanup
+       $this->queue->getEventManager()->detach($receiveHandler);
+
+    }
+
+    public function testAwaitEmptyQueue()
+    {
+        if (!$this->queue->canAwait()) {
+            $this->markTestSkipped('await() not supported');
+        }
+
+        $queueTest = $this;
+        $triggerCount = 0;
+
+        $idleHandler= $this->queue->getEventManager()->attach(QueueEvent::EVENT_IDLE, function(QueueEvent $e) use ($queueTest, &$triggerCount) {
+            $triggerCount++;
+            if ($triggerCount == 2) {
+                $e->stopAwait(true);
+            }
+        });
+
+        $this->queue->await();
+        $this->assertEquals(2, $triggerCount, 'QueueEvent::EVENT_IDLE has been not triggered 2 times');
+
+        //Cleanup
+        $this->queue->getEventManager()->detach($idleHandler);
+
     }
 
     public function testAwaitUnsupported()
@@ -345,4 +400,42 @@ class QueueTest extends \PHPUnit_Framework_TestCase
         $this->isTrue($q->isReceiveParamSupported('foo'));
         $this->isFalse($q->isReceiveParamSupported('bar'));
     }
+
+    public function testQueueIsEventManagerAware()
+    {
+        $this->assertInstanceOf('Zend\EventManager\EventManagerAwareInterface', $this->queue);
+
+        $defaultEventManager = $this->queue->getEventManager();
+        $this->assertInstanceOf('Zend\EventManager\EventManagerInterface', $defaultEventManager);
+
+        $newEventManager = new EventManager();
+        $this->assertInstanceOf('ZendQueue\Queue', $this->queue->setEventManager($newEventManager));
+
+        $this->assertSame($newEventManager, $this->queue->getEventManager());
+
+        //Restore original manager
+        $this->queue->setEventManager($defaultEventManager);
+
+    }
+
+    public function testGetSetEvent()
+    {
+        $defaultEvent = $this->queue->getEvent();
+        $this->assertInstanceOf('ZendQueue\QueueEvent', $defaultEvent);
+
+        $newEvent = new Event();
+        $newEvent->setParam('foo', 'bar');
+
+        $this->assertInstanceOf('ZendQueue\Queue', $this->queue->setEvent($newEvent));
+
+        //Test recast
+        $this->assertInstanceOf('ZendQueue\QueueEvent', $this->queue->getEvent());
+        $this->assertSame('bar', $this->queue->getEvent()->getParam('foo'));
+
+        //Restore original event
+        $this->queue->setEvent($defaultEvent);
+
+    }
+
+
 }
