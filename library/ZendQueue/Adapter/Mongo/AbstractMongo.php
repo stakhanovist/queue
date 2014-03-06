@@ -218,7 +218,7 @@ abstract class AbstractMongo extends AbstractAdapter implements CountMessagesCap
         return $message;
     }
 
-    protected function _setupCursor(\MongoCollection $collection, ReceiveParameters $params = null,
+    protected function setupCursor(\MongoCollection $collection, ReceiveParameters $params = null,
                                     $criteria = array(self::KEY_HANDLE => false),
                                     array $fields = array('_id', self::KEY_HANDLE)
     )
@@ -232,7 +232,7 @@ abstract class AbstractMongo extends AbstractAdapter implements CountMessagesCap
         return $collection->find($criteria, $fields);
     }
 
-    protected function _receiveMessageAtomic(Queue $queue, \MongoCollection $collection, $id)
+    protected function receiveMessageAtomic(Queue $queue, \MongoCollection $collection, $id)
     {
         $msg = $collection->findAndModify(
             array('_id' => $id),
