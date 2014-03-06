@@ -312,4 +312,33 @@ class QueueTest extends \PHPUnit_Framework_TestCase
         $q->deleteMessage(new Message());
     }
 
+    public function testDebugInfo()
+    {
+        $q = new Queue('test', new ArrayAdapter());
+        $this->assertInternalType('array', $q->debugInfo());
+    }
+
+    public function testIsAwaitEmulation()
+    {
+        $q = new Queue('test', new ArrayAdapter());
+        $this->isTrue($q->isAwaitEmulation());
+    }
+
+    public function testIsSendParamSupported()
+    {
+        $adapterMock = $this->getMock('ZendQueue\Adapter\AdapterInterface');
+        $adapterMock->expects($this->any())->method("getAvailableSendParams")->will($this->returnValue(array('foo')));
+        $q = new Queue('test', $adapterMock);
+        $this->isTrue($q->isSendParamSupported('foo'));
+        $this->isFalse($q->isSendParamSupported('bar'));
+    }
+
+    public function testIsReceiveParamSupported()
+    {
+        $adapterMock = $this->getMock('ZendQueue\Adapter\AdapterInterface');
+        $adapterMock->expects($this->any())->method("getAvailableReceiveParams")->will($this->returnValue(array('foo')));
+        $q = new Queue('test', $adapterMock);
+        $this->isTrue($q->isReceiveParamSupported('foo'));
+        $this->isFalse($q->isReceiveParamSupported('bar'));
+    }
 }

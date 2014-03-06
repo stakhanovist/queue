@@ -11,6 +11,8 @@
 namespace ZendQueue\Parameter;
 
 use Zend\Stdlib\Parameters;
+use ZendQueue\Exception;
+
 class SendParameters extends Parameters
 {
 
@@ -25,13 +27,13 @@ class SendParameters extends Parameters
      * If $scheduleTime is setted, the message will be "invisibile" to readers
      * until the scheduled time.
      *
-     * @param string $scheduleTime
+     * @param int $scheduleTime
      * @throws Exception\InvalidArgumentException
      * @return \ZendQueue\Parameter\SendParameters
      */
     public function setSchedule($scheduleTime = null)
     {
-        if (($scheduleTime !== null) && !is_string($scheduleTime)) {
+        if (($scheduleTime !== null) && !is_int($scheduleTime)) {
             throw new Exception\InvalidArgumentException('$scheduleTime must be a int or null');
         }
         $this->set(self::SCHEDULE, $scheduleTime);
@@ -57,13 +59,13 @@ class SendParameters extends Parameters
      * If $repeatingInterval is setted, each time the message is acknowleged by a reader
      * the message will be auto scheduled at current time plus interval seconds
      *
-     * @param string $repeatingInterval
+     * @param int $repeatingInterval
      * @throws Exception\InvalidArgumentException
      * @return \ZendQueue\Parameter\SendParameters
      */
     public function setRepeatingInterval($repeatingInterval = null)
     {
-        if (($repeatingInterval !== null) && !is_string($repeatingInterval)) {
+        if (($repeatingInterval !== null) && !is_int($repeatingInterval)) {
             throw new Exception\InvalidArgumentException('$repeatingInterval must be a int or null');
         }
         $this->set(self::REPEATING_INTERVAL, $repeatingInterval);
@@ -75,7 +77,7 @@ class SendParameters extends Parameters
      *
      * @see setRepeatingInterval()
      *
-     * @return int|null
+     * @return int|boolean
      */
     public function getRepeatingInterval()
     {

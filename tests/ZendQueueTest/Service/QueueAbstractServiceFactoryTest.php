@@ -56,11 +56,6 @@ class QueueAbstractServiceFactoryTest extends \PHPUnit_Framework_TestCase
         $this->sm->addAbstractFactory('ZendQueue\Service\QueueAbstractServiceFactory');
     }
 
-    public function tearDown()
-    {
-
-    }
-
     public function testCanLookupQueueByName()
     {
         $this->assertTrue($this->sm->has('queueA'));
@@ -113,4 +108,13 @@ class QueueAbstractServiceFactoryTest extends \PHPUnit_Framework_TestCase
     {
         $this->assertFalse($this->sm->has('invalid'));
     }
+
+    public function testCanCreateServiceWithNameAndConfigEmpty()
+    {
+        $this->sm = new ServiceManager();
+        $this->sm->setService('Config', null);
+        $abstractFactory = new QueueAbstractServiceFactory();
+        $this->isFalse($abstractFactory->canCreateServiceWithName($this->sm, 'foo', 'bar'));
+    }
+
 }

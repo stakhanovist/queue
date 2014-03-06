@@ -113,11 +113,11 @@ class ReceiveParameters extends Parameters
      *
      * @param bool $peek
      * @throws Exception\InvalidArgumentException
-     * @return \ZendQueue\Parameter\ReceiveParameters
+     * @return boolean
      */
     public function getPeekMode()
     {
-        return $this->get(self::PEEK_MODE, null);
+        return $this->get(self::PEEK_MODE, false);
     }
 
 

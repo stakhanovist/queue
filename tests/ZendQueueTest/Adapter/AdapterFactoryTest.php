@@ -10,7 +10,9 @@
 
 namespace ZendQueueTest\Adapter;
 
+use Zend\Stdlib\ArrayObject;
 use ZendQueue\Adapter;
+use ZendQueue\Queue;
 
 /**
  * @category   Zend
@@ -96,5 +98,44 @@ class AdapterFactoryTest extends \PHPUnit_Framework_TestCase
         $this->assertInstanceOf('ZendQueue\Adapter\Null', $adapter);
         $options = $adapter->getOptions();
         $this->assertSame('test', $options['dummy']);
+    }
+
+    public function testFactoryAdapterIsInstanceOfTraversable()
+    {
+        $config = new \ArrayObject();
+        $config['adapter'] = 'Null';
+        $config['options'] = array(
+            'dummy' => 'test'
+        );
+        $adapter = Adapter\AdapterFactory::factory($config);
+        $this->assertInstanceOf('ZendQueue\Adapter\Null', $adapter);
+        $options = $adapter->getOptions();
+        $this->assertSame('test', $options['dummy']);
+    }
+
+    public function testFactoryAdapterInvalidArgument()
+    {
+        $this->setExpectedException("ZendQueue\Exception\InvalidArgumentException");
+        $config = "dummy";
+        $adapter = Adapter\AdapterFactory::factory($config);
+    }
+
+    public function testFactoryAdapterInvalidArgumentAdapterKeyNotFound()
+    {
+        $this->setExpectedException("ZendQueue\Exception\InvalidArgumentException");
+        $config = new \ArrayObject();
+        $config['options'] = array(
+            'dummy' => 'test'
+        );
+        $adapter = Adapter\AdapterFactory::factory($config);
+    }
+
+    public function testFactoryAdapterInvalidArgumentOptionsIsntArray()
+    {
+        $this->setExpectedException("ZendQueue\Exception\InvalidArgumentException");
+        $config = new \ArrayObject();
+        $config['adapter'] = 'Null';
+        $config['options'] = 'string';
+        $adapter = Adapter\AdapterFactory::factory($config);
     }
 }
