@@ -10,7 +10,8 @@
 
 namespace ZendQueueTest\Adapter;
 
-    /*
+    use ZendQueue\Adapter\Null;
+/*
      * The adapter test class provides a universal test class for all of the
      * abstract methods.
      *
@@ -37,7 +38,7 @@ class NullTest extends AdapterTest
     public function getSupportedTests()
     {
         return array(
-            'queueExists',
+           'getQueueId', 'queueExists',
         );
     }
 
@@ -71,6 +72,18 @@ class NullTest extends AdapterTest
     public function getTestConfig()
     {
         return array('driverOptions' => array());
+    }
+
+    public function testGetQueueId()
+    {
+        $null = new Null();
+        $this->assertNull($null->getQueueId('foo'));
+    }
+
+    public function testQueueExists()
+    {
+        $null = new Null();
+        $this->assertFalse($null->queueExists('foo'));
     }
 
 }
