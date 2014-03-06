@@ -26,6 +26,21 @@ namespace ZendQueueTest\Adapter;
  */
 class NullTest extends AdapterTest
 {
+
+    /**
+     * return the list of base test supported.
+     * If some special adapter doesnt' support one of these, this method should be ovveriden
+     * So test will expect an UnsupportedMethodCallException
+     *
+     * @return array
+     */
+    public function getSupportedTests()
+    {
+        return array(
+            'queueExists',
+        );
+    }
+
     /**
      * getAdapterName() is an method to help make AdapterTest work with any
      * new adapters
