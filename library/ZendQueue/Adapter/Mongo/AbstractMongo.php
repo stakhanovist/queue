@@ -45,7 +45,7 @@ abstract class AbstractMongo extends AbstractAdapter implements CountMessagesCap
      * $options is an array of key/value pairs or an instance of Traversable
      * containing configuration options.
      *
-     * @param  array|Traversable $options An array having configuration data
+     * @param  array|\Traversable $options An array having configuration data
      * @throws Exception\InvalidArgumentException
      * @throws Exception\ExtensionNotLoadedException
      */
@@ -224,8 +224,8 @@ abstract class AbstractMongo extends AbstractAdapter implements CountMessagesCap
     )
     {
         if ($params) {
-            if ($params->getMessageClass()) {
-                $criteria[self::KEY_CLASS] = $params->getMessageClass();
+            if ($params->getClassFilter()) {
+                $criteria[self::KEY_CLASS] = $params->getClassFilter();
             }
         }
 

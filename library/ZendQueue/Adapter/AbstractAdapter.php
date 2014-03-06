@@ -73,8 +73,6 @@ abstract class AbstractAdapter implements AdapterInterface
             throw new Exception\InvalidArgumentException('Adapter options must be an array or Traversable object');
         }
 
-
-        $adapterOptions = array();
         $driverOptions = isset($this->options['driverOptions']) ? $this->options['driverOptions'] : array();
 
         if (array_key_exists('driverOptions', $options)) {
@@ -178,7 +176,7 @@ abstract class AbstractAdapter implements AdapterInterface
     protected function cleanMessageInfo(Queue $queue, MessageInterface $message)
     {
         $metadatumKey = $queue->getOptions()->getMessageMetadatumKey();
-        if ($message->getMetadata($metadatumKey, null)) {
+        if ($message->getMetadata($metadatumKey)) {
             $message->setMetadata($metadatumKey, null);
         }
     }

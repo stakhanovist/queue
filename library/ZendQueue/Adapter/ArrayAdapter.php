@@ -188,11 +188,6 @@ class ArrayAdapter extends AbstractAdapter implements DeleteMessageCapableInterf
 
         $_queue[$messageId] = $msg;
 
-        $options = array(
-            'queue' => $queue,
-            'data' => $msg,
-        );
-
         $this->embedMessageInfo($queue, $message, $messageId, $params);
 
         return $message;
@@ -217,8 +212,6 @@ class ArrayAdapter extends AbstractAdapter implements DeleteMessageCapableInterf
 
         $data = array();
         if ($maxMessages > 0) {
-            $start_time = microtime(true);
-
             $count = 0;
             $temp = & $this->data[$queue->getName()];
             foreach ($temp as $messageId => &$msg) {

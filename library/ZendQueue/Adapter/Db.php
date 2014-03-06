@@ -117,30 +117,28 @@ class Db extends AbstractAdapter implements
      */
     public function connect()
     {
-        try {
+        $options = $this->getOptions();
 
-            $options = $this->getOptions();
-
-            if (isset($options['dbAdapter']) && $options['dbAdapter'] instanceof ZendDb\Adapter\Adapter) {
-                $this->adapter = $options['dbAdapter'];
-            } else {
+        if (isset($options['dbAdapter']) && $options['dbAdapter'] instanceof ZendDb\Adapter\Adapter) {
+            $this->adapter = $options['dbAdapter'];
+        } else {
+            try {
                 $this->adapter = new ZendDb\Adapter\Adapter($options['driverOptions']);
+            } catch (ZendDb\Exception\ExceptionInterface $e) {
+                throw new Exception\ConnectionException('Error connecting to database: ' . $e->getMessage(), $e->getCode(), $e);
             }
+        }
 
-            if ($options['queueTable'] instanceof ZendDb\TableGateway\TableGatewayInterface) {
-                $this->queueTable = $options['queueTable'];
-            } else {
-                $this->queueTable = new ZendDb\TableGateway\TableGateway($options['queueTable'], $this->adapter);
-            }
+        if ($options['queueTable'] instanceof ZendDb\TableGateway\TableGatewayInterface) {
+            $this->queueTable = $options['queueTable'];
+        } else {
+            $this->queueTable = new ZendDb\TableGateway\TableGateway($options['queueTable'], $this->adapter);
+        }
 
-            if ($options['messageTable'] instanceof ZendDb\TableGateway\TableGatewayInterface) {
-                $this->messageTable = $options['messageTable'];
-            } else {
-                $this->messageTable = new ZendDb\TableGateway\TableGateway($options['messageTable'], $this->adapter);
-            }
-
-        } catch (ZendDb\Exception\ExceptionInterface $e) {
-            throw new Exception\ConnectionException('Error connecting to database: ' . $e->getMessage(), $e->getCode(), $e);
+        if ($options['messageTable'] instanceof ZendDb\TableGateway\TableGatewayInterface) {
+            $this->messageTable = $options['messageTable'];
+        } else {
+            $this->messageTable = new ZendDb\TableGateway\TableGateway($options['messageTable'], $this->adapter);
         }
 
         return true;
@@ -243,7 +241,7 @@ class Db extends AbstractAdapter implements
         }
 
         try {
-            $remove = $this->queueTable->delete(array('queue_id' => $id));
+            $this->queueTable->delete(array('queue_id' => $id));
         } catch (\Exception $e) {
             throw new Exception\RuntimeException($e->getMessage(), $e->getCode(), $e);
         }
@@ -252,7 +250,7 @@ class Db extends AbstractAdapter implements
             unset($this->queues[$name]);
         }
 
-        return true;
+        return (bool) $remove;
     }
 
     /**
@@ -322,7 +320,7 @@ class Db extends AbstractAdapter implements
             }
 
             if ($params->getInterval()) {
-                $msg['interval'] = $params->getInterval();
+                $msg['interval'] = $params->getRepeatingInterval();
             }
         }
 
@@ -357,9 +355,8 @@ class Db extends AbstractAdapter implements
         $filter = $params ? $params->getClassFilter() : null;
         $peek = $params ? $params->getPeekMode() : false;
         $msgs = array();
-        $name = $this->messageTable->table;
+        $name = $this->messageTable->getTable();
         $microtime = (int)microtime(true); // cache microtime
-        $db = $this->messageTable->getAdapter();
         $connection = $db->getDriver()->getConnection();
 
 
@@ -393,6 +390,8 @@ class Db extends AbstractAdapter implements
                     $message['handle'] = md5(uniqid(rand(), true));
                     $message['timeout'] = $microtime;
 
+                    $keepMessage = true;
+
                     if (!$peek) {
                         $update = $sql->update($name);
                         $update->set(array('handle' => $message['handle'], 'timeout' => $microtime));
@@ -401,11 +400,14 @@ class Db extends AbstractAdapter implements
 
                         $stmt = $sql->prepareStatementForSqlObject($update);
                         $rst = $stmt->execute();
+                        if ($rst->count() < 1) {
+                            $keepMessage = false;
+                        }
                     }
 
                     // we check count to make sure no other thread has gotten
                     // the rows after our select, but before our update.
-                    if ($peek || ($rst->count() > 0)) {
+                    if ($keepMessage) {
                         $message['metadata'] = isset($message['metadata']) ? unserialize($message['metadata']) : array();
                         $message['metadata'][$queue->getOptions()->getMessageMetadatumKey()] = $this->buildMessageInfo(
                             $message['handle'],
