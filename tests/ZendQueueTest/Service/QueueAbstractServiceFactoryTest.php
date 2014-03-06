@@ -33,6 +33,7 @@ class QueueAbstractServiceFactoryTest extends \PHPUnit_Framework_TestCase
         $adapter->setOptions(array('dummyOption' => 'dummyValue'));
 
         $this->sm = new ServiceManager();
+        $this->sm->setInvokableClass('custom', 'ZendQueue\Adapter\Null');
         $this->sm->setService('Config', array(
             'queues' => array(
 
@@ -49,6 +50,12 @@ class QueueAbstractServiceFactoryTest extends \PHPUnit_Framework_TestCase
                 'queueB' => array(
                     'name' => 'B',
                     'adapter' => $adapter, //Adapter as instance
+                    'options' => array('messageClass' => 'Zend\Stdlib\Message'),
+                ),
+
+                'queueC' => array(
+                    'name' => 'C',
+                    'adapter' => 'custom',
                     'options' => array('messageClass' => 'Zend\Stdlib\Message'),
                 ),
 
@@ -78,7 +85,7 @@ class QueueAbstractServiceFactoryTest extends \PHPUnit_Framework_TestCase
         $qA = $this->sm->get('queueA');
         $this->assertInstanceOf('ZendQueue\Adapter\ArrayAdapter', $qA->getAdapter());
 
-        if ($qA->getOptions() instanceof ZendQueue\Adapter\AdapterInterface) {
+        if ($qA->getOptions() instanceof \ZendQueue\Adapter\AdapterInterface) {
             $options = $qA->getAdapter()->getOptions();
             $this->assertEquals('dummyValue', $options['dummyOption']);
         }
@@ -92,7 +99,7 @@ class QueueAbstractServiceFactoryTest extends \PHPUnit_Framework_TestCase
         $qB = $this->sm->get('queueB');
         $this->assertInstanceOf('ZendQueue\Adapter\ArrayAdapter', $qB->getAdapter());
 
-        if ($qB->getOptions() instanceof ZendQueue\Adapter\AdapterInterface) {
+        if ($qB->getOptions() instanceof \ZendQueue\Adapter\AdapterInterface) {
             $options = $qB->getAdapter()->getOptions();
             $this->assertEquals('dummyValue', $options['dummyOption']);
         }
@@ -104,6 +111,12 @@ class QueueAbstractServiceFactoryTest extends \PHPUnit_Framework_TestCase
 
     }
 
+    public function testCreateServicebyNameWithServiceAdapter()
+    {
+        $qC = $this->sm->get('queueC');
+        $this->assertInstanceOf('ZendQueue\Adapter\Null', $qC->getAdapter());
+    }
+
     public function testInvalidServiceNameWillBeIgnored()
     {
         $this->assertFalse($this->sm->has('invalid'));
@@ -111,10 +124,21 @@ class QueueAbstractServiceFactoryTest extends \PHPUnit_Framework_TestCase
 
     public function testCanCreateServiceWithNameAndConfigEmpty()
     {
-        $this->sm = new ServiceManager();
-        $this->sm->setService('Config', null);
+        $sm = new ServiceManager();
+        $sm->setService('Config', null);
         $abstractFactory = new QueueAbstractServiceFactory();
-        $this->isFalse($abstractFactory->canCreateServiceWithName($this->sm, 'foo', 'bar'));
+        $this->isFalse($abstractFactory->canCreateServiceWithName($sm, 'foo', 'bar'));
+    }
+
+    public function testGetConfigNoKeyConfig()
+    {
+        $adapter = new ArrayAdapter();
+        $adapter->setOptions(array('dummyOption' => 'dummyValue'));
+
+        $sm = new ServiceManager();
+        $sm->setService('Config', 'foo');
+        $abstractFactory = new QueueAbstractServiceFactory();
+        $abstractFactory->canCreateServiceWithName($sm, 'foo', 'bar');
     }
 
 }

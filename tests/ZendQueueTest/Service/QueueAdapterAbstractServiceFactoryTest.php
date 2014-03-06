@@ -11,7 +11,6 @@
 namespace ZendQueue\Service;
 
 use ZendQueue\Adapter;
-
 use Zend\ServiceManager\ServiceManager;
 
 /**
@@ -68,4 +67,21 @@ class QueueAdapterAbstractServiceFactoryTest extends \PHPUnit_Framework_TestCase
     {
         $this->assertFalse($this->sm->has('invalid'));
     }
+
+    public function testCanCreateServiceWithNameAndConfigEmpty()
+    {
+        $sm = new ServiceManager();
+        $sm->setService('Config', null);
+        $abstractFactory = new QueueAdapterAbstractServiceFactory();
+        $this->isFalse($abstractFactory->canCreateServiceWithName($sm, 'foo', 'bar'));
+    }
+
+    public function testGetConfigNoKeyConfig()
+    {
+        $sm = new ServiceManager();
+        $sm->setService('Config', 'foo');
+        $abstractFactory = new QueueAdapterAbstractServiceFactory();
+        $abstractFactory->canCreateServiceWithName($sm, 'foo', 'bar');
+    }
+
 }
