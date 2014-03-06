@@ -121,7 +121,7 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
             'options' => $this->getTestOptions(),
         ));
 
-        $queue = new Queue($name, $adapter, $options);
+        $queue = new Queue($this->createQueueName($name), $adapter, $options);
 
         if (!$adapter instanceof Adapter\Null) {
              $queue->ensureQueue();
@@ -158,6 +158,17 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
         return true;
     }
 
+    protected function checkMessageInfo($info, Queue $queue)
+    {
+        $this->assertInternalType('array', $info);
+
+        $this->assertArrayHasKey('adapter', $info);
+        $this->assertSame(get_class($queue->getAdapter()), $info['adapter']);
+
+        $this->assertArrayHasKey('queueName', $info);
+        $this->assertSame($queue->getName(), $info['queueName']);
+    }
+
 
     public function testSetGetOptions()
     {
@@ -176,6 +187,30 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
 
         $this->assertTrue(is_array($new));
         $this->assertEquals($adapterOptions['dummy'], $new['dummy']);
+
+        // delete the queue we created
+        $adapter->deleteQueue($queue->getName());
+    }
+
+    public function testGetAvailableSendParams()
+    {
+        $queue = $this->createQueue(__FUNCTION__);
+        $adapter = $queue->getAdapter();
+        $this->checkAdapterSupport($adapter, 'deleteQueue');
+
+        $this->assertInternalType('array', $adapter->getAvailableSendParams());
+
+        // delete the queue we created
+        $adapter->deleteQueue($queue->getName());
+    }
+
+    public function testGetAvailableReceiveParams()
+    {
+        $queue = $this->createQueue(__FUNCTION__);
+        $adapter = $queue->getAdapter();
+        $this->checkAdapterSupport($adapter, 'deleteQueue');
+
+        $this->assertInternalType('array', $adapter->getAvailableReceiveParams());
 
         // delete the queue we created
         $adapter->deleteQueue($queue->getName());
@@ -400,6 +435,18 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
         $adapter->deleteQueue($queue->getName());
     }
 
+    public function testSendMessageShouldThrowExcepetionWhenQueueDoesntExist()
+    {
+        $this->setExpectedException('ZendQueue\Exception\QueueNotFoundException');
+
+        $queue = $this->createQueue(__FUNCTION__);
+        $adapter = $queue->getAdapter();
+        $this->checkAdapterSupport($adapter, 'sendMessage');
+
+        $nonExistingQueue = new Queue('non-existing-queue', $adapter);
+        $adapter->sendMessage($nonExistingQueue, new Message);
+    }
+
     public function testReceive()
     {
         $queue = $this->createQueue(__FUNCTION__);
@@ -430,6 +477,41 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
         // delete the queue we created
         $adapter->deleteQueue($queue->getName());
     }
+
+
+    public function testMessageInfo()
+    {
+        $queue = $this->createQueue(__FUNCTION__);
+        $adapter = $queue->getAdapter();
+        $this->checkAdapterSupport($adapter, array('sendMessage', 'receiveMessages', 'deleteQueue'));
+
+        $infoKey = $queue->getOptions()->getMessageMetadatumKey();
+        $body = 'this is a test message';
+        $message = new Message();
+        $message->setContent($body);
+        $message->setMetadata($infoKey, 'foo');
+
+        $adapter->sendMessage($queue, $message);
+
+        $messageInfo = $message->getMetadata($infoKey);
+
+        //test message was cleaned
+        $this->assertNotEquals('foo', $messageInfo);
+
+        //test messageInfo is ok after send
+        $this->checkMessageInfo($messageInfo, $queue);
+
+
+        $message = $adapter->receiveMessages($queue)->current();
+        $messageInfo = $message->getMetadata($infoKey);
+
+        //test messageInfo is ok after receive
+        $this->checkMessageInfo($messageInfo, $queue);
+
+        // delete the queue we created
+        $adapter->deleteQueue($queue->getName());
+    }
+
 
     public function testDeleteMessage()
     {
@@ -477,6 +559,23 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
 
         // delete the queue we created
         $adapter->deleteQueue($queue->getName());
+    }
+
+    public function testDeleteMessageShouldThrowExcepetionWhenQueueDoesntExist()
+    {
+        $this->setExpectedException('ZendQueue\Exception\QueueNotFoundException');
+
+        $queue = $this->createQueue(__FUNCTION__);
+        $adapter = $queue->getAdapter();
+
+        // check to see if this function is supported
+        if (!$adapter instanceof DeleteMessageCapableInterface) {
+            $this->markTestSkipped('deleteMessage() is not supported');
+            return;
+        }
+
+        $nonExistingQueue = new Queue('non-existing-queue', $adapter);
+        $adapter->deleteMessage($nonExistingQueue, new Message);
     }
 
     public function testListQueues()
