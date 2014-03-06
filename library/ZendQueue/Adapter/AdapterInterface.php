@@ -29,6 +29,7 @@ interface AdapterInterface
      *
      * @param  array|Traversable $options An array having configuration data
      * @throws Exception\InvalidArgumentException
+     * @return void
      */
     public function __construct($options = array());
 
@@ -45,7 +46,7 @@ interface AdapterInterface
      * Get options
      *
      * @return array
-    */
+     */
     public function getOptions();
 
 
@@ -74,7 +75,7 @@ interface AdapterInterface
 
     /********************************************************************
      * Queue management functions
-    *********************************************************************/
+     *********************************************************************/
 
     /**
      * Returns the ID of the queue
@@ -95,7 +96,7 @@ interface AdapterInterface
     /**
      * Create a new queue
      *
-     * @param  string  $name Queue name
+     * @param  string $name Queue name
      * @return boolean
      */
     public function createQueue($name);

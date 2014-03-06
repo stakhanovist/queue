@@ -12,11 +12,12 @@ namespace ZendQueue\Parameter;
 
 use ZendQueue\Exception;
 use Zend\Stdlib\Parameters;
+
 class ReceiveParameters extends Parameters
 {
 
     const CLASS_FILTER = 'classFilter';
-    const VISIBILITY_TIMEOUT  = 'visibilityTimeout';
+    const VISIBILITY_TIMEOUT = 'visibilityTimeout';
     const PEEK_MODE = 'peekMode';
 
     /**
@@ -111,7 +112,6 @@ class ReceiveParameters extends Parameters
      *
      * @see setPeekMode()
      *
-     * @param bool $peek
      * @throws Exception\InvalidArgumentException
      * @return boolean
      */

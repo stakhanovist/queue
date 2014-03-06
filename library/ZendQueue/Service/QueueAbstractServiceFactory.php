@@ -74,7 +74,7 @@ class QueueAbstractServiceFactory implements AbstractFactoryInterface
         if (isset($config['adapter']) && is_string($config['adapter']) && $services->has($config['adapter'])) {
             $adapter = $services->get($config['adapter']);
             if ($adapter instanceof Adapter\AdapterInterface) {
-               $config['adapter'] = $adapter;
+                $config['adapter'] = $adapter;
             }
         }
 
@@ -101,7 +101,7 @@ class QueueAbstractServiceFactory implements AbstractFactoryInterface
 
         $config = $services->get('Config');
         if (!isset($config[$this->configKey])
-        || !is_array($config[$this->configKey])
+            || !is_array($config[$this->configKey])
         ) {
             $this->config = array();
             return $this->config;

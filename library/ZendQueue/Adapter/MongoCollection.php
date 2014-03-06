@@ -28,14 +28,15 @@ class MongoCollection extends AbstractMongo implements DeleteMessageCapableInter
      * @return boolean
      * @throws Exception\QueueNotFoundException
      */
-    public function deleteMessage(Queue $queue, MessageInterface $message) {
+    public function deleteMessage(Queue $queue, MessageInterface $message)
+    {
 
         $info = $this->getMessageInfo($queue, $message);
         if (isset($info['messageId'])) {
             $collection = $this->mongoDb->selectCollection($queue->getName());
             $result = $collection->remove(array('_id' => $info['messageId'], self::KEY_HANDLE => $info['handle']));
-            if(isset($result['ok']) && $result['ok']) {
-                $this->_cleanMessageInfo($queue, $message);
+            if (isset($result['ok']) && $result['ok']) {
+                $this->cleanMessageInfo($queue, $message);
                 return true;
             }
         }

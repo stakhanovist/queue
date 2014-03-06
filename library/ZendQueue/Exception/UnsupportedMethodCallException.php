@@ -16,4 +16,5 @@ namespace ZendQueue\Exception;
  */
 class UnsupportedMethodCallException extends \BadMethodCallException implements
     ExceptionInterface
-{}
+{
+}

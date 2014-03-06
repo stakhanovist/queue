@@ -34,25 +34,25 @@ class QueueAbstractServiceFactoryTest extends \PHPUnit_Framework_TestCase
 
         $this->sm = new ServiceManager();
         $this->sm->setService('Config', array(
-          'queues' => array(
+            'queues' => array(
 
-            'queueA' => array(
-                'name'     => 'A',
-                'adapter'  => array( //Adapter as config
-                    'adapter' => 'ArrayAdapter',
-                    'options' => array('dummyOption' => 'dummyValue'),
-                 ),
-                'options' => array('messageClass' => 'Zend\Stdlib\Message'),
-            ),
+                'queueA' => array(
+                    'name' => 'A',
+                    'adapter' => array( //Adapter as config
+                        'adapter' => 'ArrayAdapter',
+                        'options' => array('dummyOption' => 'dummyValue'),
+                    ),
+                    'options' => array('messageClass' => 'Zend\Stdlib\Message'),
+                ),
 
 
-            'queueB' => array(
-                'name'     => 'B',
-                'adapter'  => $adapter, //Adapter as instance
-                'options' => array('messageClass' => 'Zend\Stdlib\Message'),
-            ),
+                'queueB' => array(
+                    'name' => 'B',
+                    'adapter' => $adapter, //Adapter as instance
+                    'options' => array('messageClass' => 'Zend\Stdlib\Message'),
+                ),
 
-        )));
+            )));
         $this->sm->addAbstractFactory('ZendQueue\Service\QueueAbstractServiceFactory');
     }
 

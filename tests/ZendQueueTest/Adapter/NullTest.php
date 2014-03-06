@@ -10,13 +10,14 @@
 
 namespace ZendQueueTest\Adapter;
 
+    use ZendQueue\Adapter\Null;
 /*
- * The adapter test class provides a universal test class for all of the
- * abstract methods.
- *
- * All methods marked not supported are explictly checked for for throwing
- * an exception.
- */
+     * The adapter test class provides a universal test class for all of the
+     * abstract methods.
+     *
+     * All methods marked not supported are explictly checked for for throwing
+     * an exception.
+     */
 
 /**
  * @category   Zend
@@ -26,6 +27,21 @@ namespace ZendQueueTest\Adapter;
  */
 class NullTest extends AdapterTest
 {
+
+    /**
+     * return the list of base test supported.
+     * If some special adapter doesnt' support one of these, this method should be ovveriden
+     * So test will expect an UnsupportedMethodCallException
+     *
+     * @return array
+     */
+    public function getSupportedTests()
+    {
+        return array(
+           'getQueueId', 'queueExists',
+        );
+    }
+
     /**
      * getAdapterName() is an method to help make AdapterTest work with any
      * new adapters
@@ -56,6 +72,18 @@ class NullTest extends AdapterTest
     public function getTestConfig()
     {
         return array('driverOptions' => array());
+    }
+
+    public function testGetQueueId()
+    {
+        $null = new Null();
+        $this->assertNull($null->getQueueId('foo'));
+    }
+
+    public function testQueueExists()
+    {
+        $null = new Null();
+        $this->assertFalse($null->queueExists('foo'));
     }
 
 }

@@ -30,7 +30,7 @@ class AdapterFactoryTest extends \PHPUnit_Framework_TestCase
 
     public function tearDown()
     {
-       Adapter\AdapterFactory::resetAdapterPluginManager();
+        Adapter\AdapterFactory::resetAdapterPluginManager();
     }
 
     public function testDefaultAdapterPluginManager()
@@ -49,14 +49,14 @@ class AdapterFactoryTest extends \PHPUnit_Framework_TestCase
     public function testAdapterFactory()
     {
         $adapter1 = Adapter\AdapterFactory::factory(array(
-                'adapter' => 'ArrayAdapter',
-                'options' => array('dummyOption' => 'dummyValue'),
+            'adapter' => 'ArrayAdapter',
+            'options' => array('dummyOption' => 'dummyValue'),
         ));
         $this->assertInstanceOf('ZendQueue\Adapter\ArrayAdapter', $adapter1);
 
         $adapter2 = Adapter\AdapterFactory::factory(array(
-                'adapter' => 'ArrayAdapter',
-                'options' => array('dummyOption' => 'dummyValue'),
+            'adapter' => 'ArrayAdapter',
+            'options' => array('dummyOption' => 'dummyValue'),
         ));
         $this->assertInstanceOf('ZendQueue\Adapter\ArrayAdapter', $adapter2);
 

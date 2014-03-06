@@ -56,7 +56,7 @@ class MessageIterator implements Countable, Iterator
     protected $messageClass = '\ZendQueue\Message\Message';
 
 
-     /**
+    /**
      * MessageIterator pointer.
      *
      * @var integer
@@ -88,6 +88,9 @@ class MessageIterator implements Countable, Iterator
         $this->data = $data;
     }
 
+    /**
+     * @param integer $index
+     */
     protected function _lazyMessageFactory($index)
     {
         if (!($this->data[$index] instanceof StdMessage)) {
@@ -139,10 +142,10 @@ class MessageIterator implements Countable, Iterator
      */
     public function setQueue(Queue $queue)
     {
-        $this->queue          = $queue;
-        $this->queueClass     = get_class($queue);
-        $this->queueName      = $queue->getName();
-        $this->messageClass   = $queue->getOptions()->getMessageClass();
+        $this->queue = $queue;
+        $this->queueClass = get_class($queue);
+        $this->queueName = $queue->getName();
+        $this->messageClass = $queue->getOptions()->getMessageClass();
 
         return $this;
     }

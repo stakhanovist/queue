@@ -15,4 +15,5 @@ namespace ZendQueue\Exception;
  *
  */
 class ExtensionNotLoadedException extends RuntimeException
-{}
+{
+}

@@ -17,7 +17,6 @@ use Zend\Stdlib\MessageInterface;
 use ZendQueue\Exception;
 use ZendQueue\Adapter\AdapterInterface;
 use ZendQueue\Adapter\Capabilities\AwaitMessagesCapableInterface;
-use ZendQueue\Adapter\Capabilities\ListQueuesCapableInterface;
 use ZendQueue\Adapter\Capabilities\CountMessagesCapableInterface;
 use ZendQueue\Adapter\Capabilities\DeleteMessageCapableInterface;
 use ZendQueue\Parameter\SendParameters;
@@ -200,7 +199,7 @@ class Queue implements Countable
     public function ensureQueue()
     {
         $name = $this->getName();
-        if($this->getAdapter()->queueExists($name)) {
+        if ($this->getAdapter()->queueExists($name)) {
             return true;
         }
 
@@ -222,7 +221,7 @@ class Queue implements Countable
 
         $deleted = false;
 
-        if($adapter->queueExists($name)) {
+        if ($adapter->queueExists($name)) {
             $deleted = $adapter->deleteQueue($name);
         }
 
@@ -238,7 +237,7 @@ class Queue implements Countable
      * Send a message to the queue
      *
      * @param  mixed $message message
-     * @param  SendParamters $params
+     * @param  SendParameters $params
      * @return MessageInterface
      * @throws Exception\ExceptionInterface
      */
@@ -250,9 +249,9 @@ class Queue implements Countable
             if (is_string($data)) {
                 $message = new $messageClass;
                 $message->setContent($data);
-            } else if(is_array($data) && isset($data['content'])) {
+            } else if (is_array($data) && isset($data['content'])) {
                 $message = new $messageClass;
-                $message->setContent((string) $data['content']);
+                $message->setContent((string)$data['content']);
                 if (isset($data['metadata'])) {
                     $message->setMetadata($data['metadata']);
                 }
@@ -377,19 +376,19 @@ class Queue implements Countable
      * @param  mixed $message message
      * @param  int $scheduleTime
      * @param  int $repeatingInterval
-     * @param  SendParamters $params
+     * @param  SendParameters $params
      * @return MessageInterface
      * @throws Exception\UnsupportedMethodCallException
      */
     public function schedule($message, $scheduleTime = null, $repeatingInterval = null, SendParameters $params = null)
     {
         if (!$this->isSendParamSupported(SendParameters::SCHEDULE)) {
-            throw new Exception\UnsupportedMethodCallException('\''.SendParameters::SCHEDULE.'\' param is not supported by ' . get_class($this->getAdapter()));
+            throw new Exception\UnsupportedMethodCallException('\'' . SendParameters::SCHEDULE . '\' param is not supported by ' . get_class($this->getAdapter()));
         }
 
         if ($repeatingInterval !== null && !$this->isSendParamSupported(SendParameters::REPEATING_INTERVAL)) {
             if (!$this->isSendParamSupported(SendParameters::REPEATING_INTERVAL)) {
-                throw new Exception\UnsupportedMethodCallException('\''.SendParameters::REPEATING_INTERVAL.'\' param is not supported by ' . get_class($this->getAdapter()));
+                throw new Exception\UnsupportedMethodCallException('\'' . SendParameters::REPEATING_INTERVAL . '\' param is not supported by ' . get_class($this->getAdapter()));
             }
 
         }
@@ -414,7 +413,7 @@ class Queue implements Countable
     public function unschedule(MessageInterface $message)
     {
         if (!$this->isSendParamSupported(SendParameters::SCHEDULE)) {
-            throw new Exception\UnsupportedMethodCallException('\''.SendParameters::SCHEDULE.'\' param is not supported by ' . get_class($this->getAdapter()));
+            throw new Exception\UnsupportedMethodCallException('\'' . SendParameters::SCHEDULE . '\' param is not supported by ' . get_class($this->getAdapter()));
         }
 
         $info = $this->getAdapter()->getMessageInfo($this, $message);
@@ -439,7 +438,7 @@ class Queue implements Countable
 
     /********************************************************************
      * Available Parameters
-    *********************************************************************/
+     *********************************************************************/
 
     public function isSendParamSupported($name)
     {
@@ -453,7 +452,7 @@ class Queue implements Countable
 
     /********************************************************************
      * Capabilities
-    *********************************************************************/
+     *********************************************************************/
 
     /**
      * Can queue wait for messages?
@@ -594,15 +593,14 @@ class Queue implements Countable
     public function debugInfo()
     {
         $info = array();
-        $info['self']               = get_called_class();
-        $info['adapter']            = get_class($this->getAdapter());
-        $info['name']               = $this->getName();
-        $info['messageClass']       = $this->getOptions()->getMessageClass();
-        $info['messageSetClass']    = $this->getOptions()->getMessageSetClass();
+        $info['self'] = get_called_class();
+        $info['adapter'] = get_class($this->getAdapter());
+        $info['name'] = $this->getName();
+        $info['messageClass'] = $this->getOptions()->getMessageClass();
+        $info['messageSetClass'] = $this->getOptions()->getMessageSetClass();
 
         return $info;
     }
-
 
 
 }
