@@ -6,9 +6,8 @@ before_commands:
     - "composer install --dev --prefer-source"
 
 tools:
-    external_code_coverage: true
-    external_code_coverage:
-             timeout: 600
+	external_code_coverage:
+        timeout: 1800
     php_code_sniffer:
         enabled: true
         command: vendor/bin/phpcs
