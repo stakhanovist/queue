@@ -285,9 +285,9 @@ class Queue implements Countable, EventManagerAwareInterface
     public function await(ReceiveParameters $params = null)
     {
         $adapter  = $this->getAdapter();
-        $canAwait = $adapter instanceof AwaitMessagesCapableInterface;
+        $adapterCanAwait = $adapter instanceof AwaitMessagesCapableInterface;
 
-        if (!$canAwait && !$this->getOptions()->getEnableAwaitEmulation()) {
+        if (!$adapterCanAwait && !$this->getOptions()->getEnableAwaitEmulation()) {
             throw new Exception\UnsupportedMethodCallException(__FUNCTION__ . '() is not supported by ' . get_class($this->getAdapter()) . ' and await emulation is not enabled.');
         }
 
@@ -309,7 +309,7 @@ class Queue implements Countable, EventManagerAwareInterface
             return !$e->awaitIsStopped();
         };
 
-        if ($canAwait) {
+        if ($adapterCanAwait) {
             $adapter->awaitMessages($this, $callback, $params);
         } else { //else, await emulation (polling)
 

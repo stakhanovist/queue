@@ -23,6 +23,7 @@ use ZendQueue\QueueEvent;
 use Zend\EventManager\SharedEventManager;
 use Zend\EventManager\EventManager;
 use Zend\EventManager\Event;
+use ZendQueue\Parameter\ReceiveParameters;
 
 /*
  * The adapter test class provides a universal test class for all of the
@@ -349,6 +350,21 @@ class QueueTest extends \PHPUnit_Framework_TestCase
         $this->setExpectedException('ZendQueue\Exception\UnsupportedMethodCallException');
         $q->await();
 
+    }
+
+    public function testAwaitWithParamsAndCapableAdapter()
+    {
+        $mockAdapter = $this->getMock('ZendQueue\Adapter\Capabilities\AwaitMessagesCapableInterface');
+
+        $receiveParams = new ReceiveParameters();
+
+        $q = new Queue('test', $mockAdapter);
+
+        $mockAdapter->expects($this->any())->method('awaitMessages')->with(
+            $this->equalTo($q), $this->equalTo(function(){}), $this->equalTo($receiveParams)
+        );
+
+        $this->assertSame($q, $q->await($receiveParams));
     }
 
 
