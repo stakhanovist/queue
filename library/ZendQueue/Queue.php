@@ -115,6 +115,7 @@ class Queue implements Countable, EventManagerAwareInterface
             throw new Exception\InvalidArgumentException('Missing "name"');
         }
 
+        /** @var $adapter \ZendQueue\Adapter\AdapterInterface */
         if ($cfg['adapter'] instanceof AdapterInterface) {
             // $cfg['adapter'] is already an adapter object
             $adapter = $cfg['adapter'];
@@ -283,7 +284,8 @@ class Queue implements Countable, EventManagerAwareInterface
      */
     public function await(ReceiveParameters $params = null)
     {
-        $canAwait = $this->getAdapter() instanceof AwaitMessagesCapableInterface;
+        $adapter  = $this->getAdapter();
+        $canAwait = $adapter instanceof AwaitMessagesCapableInterface;
 
         if (!$canAwait && !$this->getOptions()->getEnableAwaitEmulation()) {
             throw new Exception\UnsupportedMethodCallException(__FUNCTION__ . '() is not supported by ' . get_class($this->getAdapter()) . ' and await emulation is not enabled.');
@@ -308,13 +310,13 @@ class Queue implements Countable, EventManagerAwareInterface
         };
 
         if ($canAwait) {
-            $this->getAdapter()->awaitMessages($this, $callback, $params);
+            $adapter->awaitMessages($this, $callback, $params);
         } else { //else, await emulation (polling)
 
             $pollingInterval = $this->getOptions()->getPollingInterval();
 
             do {
-                $messages = $this->getAdapter()->receiveMessages($this, 1, $params);
+                $messages = $adapter->receiveMessages($this, 1, $params);
                 $continue = call_user_func($callback, $messages);
 
                 if ($continue && $messages->count() < 1) {

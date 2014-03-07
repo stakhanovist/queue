@@ -10,8 +10,10 @@
 
 namespace ZendQueue\Adapter;
 
+use Traversable;
 use ZendQueue\Exception;
 use Zend\Stdlib\ArrayUtils;
+
 
 abstract class AdapterFactory
 {
@@ -31,7 +33,7 @@ abstract class AdapterFactory
      */
     public static function factory($cfg)
     {
-        if ($cfg instanceof \Traversable) {
+        if ($cfg instanceof Traversable) {
             $cfg = ArrayUtils::iteratorToArray($cfg);
         }
 
