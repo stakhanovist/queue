@@ -30,7 +30,7 @@ class QueueEvent extends Event
     /**
      * @var bool
      */
-    protected $await = false;
+    protected $stopAwait = false;
 
     /**
      * @param MessageIterator $messages
