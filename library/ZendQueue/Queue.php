@@ -354,7 +354,7 @@ class Queue implements Countable, EventManagerAwareInterface
      * @return boolean
      * @throws Exception\UnsupportedMethodCallException
      */
-    public function deleteMessage(MessageInterface $message)
+    public function delete(MessageInterface $message)
     {
         if (!$this->canDeleteMessage()) {
             throw new Exception\UnsupportedMethodCallException(__FUNCTION__ . '() is not supported by ' . get_class($this->getAdapter()));
@@ -426,7 +426,7 @@ class Queue implements Countable, EventManagerAwareInterface
 
         $message->setMetadata($this->getOptions()->getMessageMetadatumKey(), $options);
 
-        return $this->deleteMessage($message);
+        return $this->delete($message);
     }
 
 

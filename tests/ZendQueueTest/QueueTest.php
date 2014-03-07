@@ -242,7 +242,7 @@ class QueueTest extends \PHPUnit_Framework_TestCase
         if ($this->queue->canDeleteMessage()) {
             foreach ($messages as $i => $message) {
                 $this->assertTrue($message instanceof Message);
-                $this->assertTrue($this->queue->deleteMessage($message));
+                $this->assertTrue($this->queue->delete($message));
             }
         }
     }
@@ -369,7 +369,12 @@ class QueueTest extends \PHPUnit_Framework_TestCase
         $this->assertFalse($q->canDeleteMessage());
 
         $this->setExpectedException('ZendQueue\Exception\UnsupportedMethodCallException');
-        $q->deleteMessage(new Message());
+        $q->delete(new Message());
+    }
+
+    public function testScheduleMessage()
+    {
+
     }
 
     public function testDebugInfo()

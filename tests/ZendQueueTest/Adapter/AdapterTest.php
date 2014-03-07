@@ -295,7 +295,7 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
         foreach ($list as $i => $message) {
             $this->assertTrue($message instanceof Message);
             if ($adapter instanceof DeleteMessageCapableInterface) {
-                $queue->deleteMessage($message);
+                $queue->delete($message);
             }
         }
 
@@ -426,7 +426,7 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
         foreach ($messages as $message) {
             $this->assertTrue($message instanceof Message);
             if ($adapter instanceof DeleteMessageCapableInterface) {
-                $queue->deleteMessage($message);
+                $queue->delete($message);
             }
         }
 
@@ -698,7 +698,7 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
         foreach ($messages as $i => $message) {
             $this->assertEquals($i, $message->getContent());
             if ($adapter instanceof DeleteMessageCapableInterface) {
-                $queue->deleteMessage($message);
+                $queue->delete($message);
             }
         }
 
@@ -709,7 +709,7 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
             $message = $messages->current();
             $this->assertEquals("{$i}", $message->getContent());
             if ($adapter instanceof DeleteMessageCapableInterface) {
-                $queue->deleteMessage($message);
+                $queue->delete($message);
             }
         }
 
