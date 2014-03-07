@@ -374,7 +374,108 @@ class QueueTest extends \PHPUnit_Framework_TestCase
 
     public function testScheduleMessage()
     {
+        $time = time() + 3600;
+        $repeting = 60;
+        $message = new Message();
 
+        $expectedParams = new SendParameters();
+        $expectedParams->setSchedule($time);
+        $expectedParams->setRepeatingInterval($repeting);
+
+        $mockAdapter = $this->getMock('ZendQueue\Adapter\AdapterInterface');
+        $mockAdapter->expects($this->any())->method('getAvailableSendParams')->will($this->returnValue(array(
+            SendParameters::SCHEDULE,
+            SendParameters::REPEATING_INTERVAL
+        )));
+
+        $q = new Queue('test', $mockAdapter);
+
+        $mockAdapter->expects($this->any())->method('sendMessage')->with(
+            $this->equalTo($q), $this->equalTo($message), $this->equalTo($expectedParams)
+        )->will($this->returnValue($message));
+
+        $this->assertTrue($q->isSendParamSupported(SendParameters::SCHEDULE));
+        $this->assertTrue($q->isSendParamSupported(SendParameters::REPEATING_INTERVAL));
+
+        $this->assertSame($message, $q->schedule($message, $time, $repeting));
+    }
+
+    public function testScheduleMessageUnsupported()
+    {
+        $q = new Queue('test', new Null());
+
+        $this->assertFalse($q->isSendParamSupported(SendParameters::SCHEDULE));
+
+        $this->setExpectedException('ZendQueue\Exception\UnsupportedMethodCallException');
+        $q->schedule(new Message());
+    }
+
+    public function testScheduleMessageRepeatingIntervalUnsupported()
+    {
+        $mockAdapter = $this->getMock('ZendQueue\Adapter\AdapterInterface');
+        $mockAdapter->expects($this->any())->method('getAvailableSendParams')->will($this->returnValue(array(
+            SendParameters::SCHEDULE
+        )));
+        $mockAdapter->expects($this->any())->method('sendMessage');
+
+
+        $q = new Queue('test', $mockAdapter);
+
+        $this->assertTrue($q->isSendParamSupported(SendParameters::SCHEDULE));
+        $this->assertFalse($q->isSendParamSupported(SendParameters::REPEATING_INTERVAL));
+
+        $this->setExpectedException('ZendQueue\Exception\InvalidArgumentException');
+        $q->schedule(new Message(), 1, 1);
+    }
+
+    public function testUnscheduleMessage()
+    {
+        $message = new Message();
+
+        $providedOptions = array(
+            SendParameters::SCHEDULE            => time() + 60,
+            SendParameters::REPEATING_INTERVAL  => 3600,
+        );
+
+        $mockAdapter = $this->getMock('ZendQueue\Adapter\Capabilities\DeleteMessageCapableInterface');
+        $mockAdapter->expects($this->any())->method('getAvailableSendParams')->will($this->returnValue(array(
+            SendParameters::SCHEDULE,
+            SendParameters::REPEATING_INTERVAL
+        )));
+
+        $q = new Queue('test', $mockAdapter);
+        $message->setMetadata($q->getOptions()->getMessageMetadatumKey(), array('options' => $providedOptions));
+
+
+        $mockAdapter->expects($this->any())->method('getMessageInfo')->with(
+            $this->equalTo($q), $this->equalTo($message)
+        )->will($this->returnValue(array('options' => $providedOptions)));
+
+
+        $mockAdapter->expects($this->any())->method('deleteMessage')->with(
+            $this->equalTo($q), $this->equalTo($message)
+        )->will($this->returnValue(true));
+
+
+        $this->assertTrue($q->isSendParamSupported(SendParameters::SCHEDULE));
+        $this->assertTrue($q->isSendParamSupported(SendParameters::REPEATING_INTERVAL));
+
+        $this->assertTrue($q->unschedule($message));
+
+        $messageInfo = $message->getMetadata($q->getOptions()->getMessageMetadatumKey());
+        $this->assertArrayHasKey('options', $messageInfo);
+        $this->assertArrayNotHasKey(SendParameters::SCHEDULE, $messageInfo['options']);
+        $this->assertArrayNotHasKey(SendParameters::REPEATING_INTERVAL, $messageInfo['options']);
+    }
+
+    public function testUnscheduleMessageUnsupported()
+    {
+        $q = new Queue('test', new Null());
+
+        $this->assertFalse($q->isSendParamSupported(SendParameters::SCHEDULE));
+
+        $this->setExpectedException('ZendQueue\Exception\UnsupportedMethodCallException');
+        $q->unschedule(new Message());
     }
 
     public function testDebugInfo()

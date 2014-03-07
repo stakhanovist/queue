@@ -383,10 +383,7 @@ class Queue implements Countable, EventManagerAwareInterface
         }
 
         if ($repeatingInterval !== null && !$this->isSendParamSupported(SendParameters::REPEATING_INTERVAL)) {
-            if (!$this->isSendParamSupported(SendParameters::REPEATING_INTERVAL)) {
-                throw new Exception\UnsupportedMethodCallException('\'' . SendParameters::REPEATING_INTERVAL . '\' param is not supported by ' . get_class($this->getAdapter()));
-            }
-
+            throw new Exception\InvalidArgumentException('\'' . SendParameters::REPEATING_INTERVAL . '\' param is not supported by ' . get_class($this->getAdapter()));
         }
 
         if ($params === null) {
@@ -408,13 +405,14 @@ class Queue implements Countable, EventManagerAwareInterface
      */
     public function unschedule(MessageInterface $message)
     {
-        if (!$this->isSendParamSupported(SendParameters::SCHEDULE)) {
-            throw new Exception\UnsupportedMethodCallException('\'' . SendParameters::SCHEDULE . '\' param is not supported by ' . get_class($this->getAdapter()));
+        if (!$this->isSendParamSupported(SendParameters::SCHEDULE) || !$this->canDeleteMessage()) {
+            throw new Exception\UnsupportedMethodCallException(
+                '\'' . SendParameters::SCHEDULE . '\' param or delete message capabilities are not supported by ' . get_class($this->getAdapter())
+            );
         }
 
         $info = $this->getAdapter()->getMessageInfo($this, $message);
-
-        $options = $info['options'];
+        $options = &$info['options'];
 
         if (isset($options[SendParameters::SCHEDULE])) {
             unset($options[SendParameters::SCHEDULE]);
@@ -424,9 +422,7 @@ class Queue implements Countable, EventManagerAwareInterface
             unset($options[SendParameters::REPEATING_INTERVAL]);
         }
 
-        $info['options'] = $options;
-
-        $message->setMetadata($this->getOptions()->getMessageMetadatumKey(), $options);
+        $message->setMetadata($this->getOptions()->getMessageMetadatumKey(), $info);
 
         return $this->delete($message);
     }
