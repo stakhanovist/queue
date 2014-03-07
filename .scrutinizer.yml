@@ -6,7 +6,7 @@ before_commands:
     - "composer install --dev --prefer-source"
 
 tools:
-	external_code_coverage:
+    external_code_coverage:
         timeout: 1800
     php_code_sniffer:
         enabled: true
