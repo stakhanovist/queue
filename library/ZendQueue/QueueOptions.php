@@ -15,8 +15,14 @@ use Zend\Stdlib\AbstractOptions;
 class QueueOptions extends AbstractOptions
 {
 
+    /**
+     * @var array
+     */
     protected $driverOptions = array();
 
+    /**
+     * @var array
+     */
     protected $adapterOptions = array();
 
 
@@ -58,41 +64,66 @@ class QueueOptions extends AbstractOptions
      */
     protected $pollingInterval = 1;
 
+    /**
+     * @param string $class
+     * @return QueueOptions
+     */
     public function setMessageClass($class)
     {
         $this->messageClass = (string)$class;
         return $this;
     }
 
+    /**
+     * @return string
+     */
     public function getMessageClass()
     {
         return $this->messageClass;
     }
 
+    /**
+     * @param string $class
+     * @return QueueOptions
+     */
     public function setMessageSetClass($class)
     {
         $this->messageSetClass = (string)$class;
         return $this;
     }
 
+    /**
+     * @return string
+     */
     public function getMessageSetClass()
     {
         return $this->messageSetClass;
     }
 
+    /**
+     * Set the key name used to embed queue info into message's metadata
+     *
+     * @param string $keyName
+     * @return QueueOptions
+     */
     public function setMessageMetadatumKey($keyName)
     {
         $this->messageMetadatumKey = (string)$keyName;
         return $this;
     }
 
+    /**
+     * Get the key name used to embed queue info into message's metadata
+     *
+     * @return string
+     */
     public function getMessageMetadatumKey()
     {
         return $this->messageMetadatumKey;
     }
 
     /**
-     * @param true $flag
+     * @param bool $flag
      * @return \ZendQueue\QueueOptions
      */
     public function setEnableAwaitEmulation($flag)
@@ -109,16 +140,22 @@ class QueueOptions extends AbstractOptions
         return $this->enableAwaitEmulation;
     }
 
+    /**
+     * @param int $sec
+     * @return QueueOptions
+     */
     public function setPollingInterval($sec)
     {
         $this->pollingInterval = (int)$sec;
         return $this;
     }
 
+    /**
+     * @return int
+     */
     public function getPollingInterval()
     {
         return $this->pollingInterval;
     }
-
 
 }
