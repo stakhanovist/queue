@@ -18,6 +18,7 @@ use ZendQueue\Adapter\Capabilities\CountMessagesCapableInterface;
 use Zend\Stdlib\MessageInterface;
 use ZendQueue\Parameter\ReceiveParameters;
 use Zend\Math\Rand;
+use ZendQueue\Message\MessageIterator;
 use ZendQueue\SpecificationInterface as Queue;
 
 /**
@@ -199,7 +200,7 @@ class ArrayAdapter extends AbstractAdapter implements DeleteMessageCapableInterf
      * @param Queue $queue
      * @param integer $maxMessages Maximum number of messages to return
      * @param ReceiveParameters $params
-     * @return Message\MessageIterator
+     * @return MessageIterator
      */
     public function receiveMessages(Queue $queue, $maxMessages = null, ReceiveParameters $params = null)
     {

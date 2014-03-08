@@ -21,6 +21,7 @@ use ZendQueue\Parameter\SendParameters;
 use ZendQueue\Parameter\ReceiveParameters;
 use ZendQueue\Adapter\AbstractAdapter;
 use Zend\Db\Sql\Sql;
+use ZendQueue\Message\MessageIterator;
 
 /**
  * Class for using connecting to a Zend_DB-based queuing system

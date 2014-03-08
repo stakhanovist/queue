@@ -10,6 +10,7 @@
 
 namespace ZendQueue\Adapter;
 
+use Traversable;
 use Zend\Stdlib\MessageInterface;
 use ZendQueue\Message\MessageIterator;
 use ZendQueue\Parameter\SendParameters;
