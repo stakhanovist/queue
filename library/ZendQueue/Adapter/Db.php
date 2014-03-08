@@ -124,8 +124,11 @@ class Db extends AbstractAdapter implements
         } else {
             try {
                 $this->adapter = new ZendDb\Adapter\Adapter($options['driverOptions']);
-            } catch (ZendDb\Exception\ExceptionInterface $e) {
-                throw new Exception\ConnectionException('Error connecting to database: ' . $e->getMessage(), $e->getCode(), $e);
+            } catch (\Exception $e) {
+                if ($e instanceof ZendDb\Exception\ExceptionInterface) {
+                    throw new Exception\ConnectionException('Error connecting to database: ' . $e->getMessage(), $e->getCode(), $e);
+                }
+                throw $e;
             }
         }
 

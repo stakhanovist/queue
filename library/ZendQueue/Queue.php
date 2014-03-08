@@ -338,11 +338,12 @@ class Queue implements Countable, SpecificationInterface, EventManagerAwareInter
      */
     public function count()
     {
-        if (!$this->canCountMessages()) {
+        $adapter = $this->getAdapter();
+        if (!$adapter instanceof CountMessagesCapableInterface) {
             throw new Exception\UnsupportedMethodCallException(__FUNCTION__ . '() is not supported by ' . get_class($this->getAdapter()));
         }
 
-        return $this->getAdapter()->countMessages($this);
+        return $adapter->countMessages($this);
     }
 
     /**
@@ -358,11 +359,12 @@ class Queue implements Countable, SpecificationInterface, EventManagerAwareInter
      */
     public function delete(MessageInterface $message)
     {
-        if (!$this->canDeleteMessage()) {
+        $adapter = $this->getAdapter();
+        if (!$adapter instanceof DeleteMessageCapableInterface) {
             throw new Exception\UnsupportedMethodCallException(__FUNCTION__ . '() is not supported by ' . get_class($this->getAdapter()));
         }
 
-        return $this->getAdapter()->deleteMessage($this, $message);
+        return $adapter->deleteMessage($this, $message);
     }
 
 
