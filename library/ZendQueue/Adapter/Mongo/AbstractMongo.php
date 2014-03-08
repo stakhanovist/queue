@@ -17,6 +17,7 @@ use ZendQueue\Exception;
 use ZendQueue\SpecificationInterface as Queue;
 use ZendQueue\Parameter\SendParameters;
 use ZendQueue\Parameter\ReceiveParameters;
+use ZendQueue\Message\MessageIterator;
 
 abstract class AbstractMongo extends AbstractAdapter implements CountMessagesCapableInterface
 {
