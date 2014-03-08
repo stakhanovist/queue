@@ -10,6 +10,9 @@
 
 namespace ZendQueue\Adapter\Mongo;
 
+use MongoId;
+use MongoDB;
+use MongoCollection;
 use Zend\Stdlib\MessageInterface;
 use ZendQueue\Adapter\AbstractAdapter;
 use ZendQueue\Adapter\Capabilities\CountMessagesCapableInterface;
@@ -18,6 +21,7 @@ use ZendQueue\SpecificationInterface as Queue;
 use ZendQueue\Parameter\SendParameters;
 use ZendQueue\Parameter\ReceiveParameters;
 use ZendQueue\Message\MessageIterator;
+
 
 abstract class AbstractMongo extends AbstractAdapter implements CountMessagesCapableInterface
 {
@@ -78,42 +82,41 @@ abstract class AbstractMongo extends AbstractAdapter implements CountMessagesCap
      */
     public function connect()
     {
-        $driverOptions = $this->getOptions();
-        $driverOptions = $driverOptions['driverOptions'];
+        $adapterOptions = $this->getOptions();
 
-        if (isset($driverOptions['dsn']) && is_string($driverOptions['dsn'])) {
-            $dsn = $driverOptions['dsn'];
-        } else {
-            if (!isset($driverOptions['host'])) {
-                throw new Exception\InvalidArgumentException(__FUNCTION__ . ' expects a "host" key to be present inside the driverOptions, if "dsn" key is not used');
-            }
-
-            if (!isset($driverOptions['dbname'])) {
-                throw new Exception\InvalidArgumentException(__FUNCTION__ . ' expects a "dbname" key to be present inside the driverOptions, if "dsn" key is not used');
-            }
-
-
-            $credentials = array_key_exists('username', $driverOptions) && !empty($driverOptions['username'])
-            && array_key_exists('password', $driverOptions) && !empty($driverOptions['password']) ?
-                $driverOptions['username'] . ':' . $driverOptions['password'] . '@'
-                :
-                '';
-
-            $dsn = "mongodb://$credentials{$driverOptions['host']}/{$driverOptions['dbname']}";
+        if (isset($adapterOptions['mongoDb']) && $adapterOptions['mongoDb'] instanceof MongoDB) {
+            $this->mongoDb = $adapterOptions['mongoDb'];
+            return true;
         }
 
-        $options = array();
+        $mongoClass = (version_compare(phpversion('mongo'), '1.3.0', '<')) ? 'Mongo' : 'MongoClient';
+        $driverOptions = $adapterOptions['driverOptions'];
+
+        $dsn = isset($driverOptions['dsn']) ? $driverOptions['dsn'] : 'mongodb://' . ini_get('mongo.default_host') . ':' . ini_get('mongo.default_port');
+
+        $db = null;
+        if (isset($driverOptions['db'])) {
+            $db = $driverOptions['db'];
+        } else {
+            //Extract db name from dsn
+            $db = explode('/', $dsn);
+            if (!empty($db[3])) {
+                $db = $db[3];
+            }
+        }
+
+        if (!$db) {
+            throw new Exception\InvalidArgumentException(__FUNCTION__ . ' expects a "db" key to be present or it must be contained into "dsn" value');
+        }
 
         if (isset($driverOptions['options'])) {
-            $options = $driverOptions['options'];
+            $mongoClient = new $mongoClass($dsn, $driverOptions['options']);
+        } else {
+            $mongoClient = new $mongoClass($dsn);
         }
 
-        $mongo = new \Mongo($dsn, $options);
-
-        $dbName = explode('/', $dsn);
-        $dbName = array_pop($dbName);
-
-        $this->mongoDb = $mongo->{$dbName};
+        /** @var $mongoClient \MongoClient */
+        $this->mongoDb = $mongoClient->selectDB($db);
 
         return true;
     }
@@ -199,7 +202,7 @@ abstract class AbstractMongo extends AbstractAdapter implements CountMessagesCap
 
         $collection = $this->mongoDb->selectCollection($queue->getName());
 
-        $id = new \MongoId();
+        $id = new MongoId();
         $msg = array(
             '_id' => $id,
             self::KEY_CLASS => get_class($message),
@@ -219,7 +222,7 @@ abstract class AbstractMongo extends AbstractAdapter implements CountMessagesCap
         return $message;
     }
 
-    protected function setupCursor(\MongoCollection $collection, ReceiveParameters $params = null,
+    protected function setupCursor(MongoCollection $collection, ReceiveParameters $params = null,
                                     $criteria = array(self::KEY_HANDLE => false),
                                     array $fields = array('_id', self::KEY_HANDLE)
     )
@@ -233,7 +236,7 @@ abstract class AbstractMongo extends AbstractAdapter implements CountMessagesCap
         return $collection->find($criteria, $fields);
     }
 
-    protected function receiveMessageAtomic(Queue $queue, \MongoCollection $collection, $id)
+    protected function receiveMessageAtomic(Queue $queue, MongoCollection $collection, $id)
     {
         $msg = $collection->findAndModify(
             array('_id' => $id),
