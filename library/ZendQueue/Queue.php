@@ -94,44 +94,44 @@ class Queue implements Countable, EventManagerAwareInterface
     /**
      * Instantiate a queue
      *
-     * @param  array|Traversable $cfg
+     * @param  array|Traversable $config
      * @return Queue
      * @throws Exception\InvalidArgumentException
      */
-    public static function factory($cfg)
+    public static function factory($config)
     {
-        if ($cfg instanceof Traversable) {
-            $cfg = ArrayUtils::iteratorToArray($cfg);
+        if ($config instanceof Traversable) {
+            $config = ArrayUtils::iteratorToArray($config);
         }
 
-        if (!is_array($cfg)) {
+        if (!is_array($config)) {
             throw new Exception\InvalidArgumentException(
                 'The factory needs an associative array '
                 . 'or a Traversable object as an argument'
             );
         }
 
-        if (!isset($cfg['name'])) {
+        if (!isset($config['name'])) {
             throw new Exception\InvalidArgumentException('Missing "name"');
         }
 
         /** @var $adapter \ZendQueue\Adapter\AdapterInterface */
-        if ($cfg['adapter'] instanceof AdapterInterface) {
-            // $cfg['adapter'] is already an adapter object
-            $adapter = $cfg['adapter'];
+        if ($config['adapter'] instanceof AdapterInterface) {
+            // $config['adapter'] is already an adapter object
+            $adapter = $config['adapter'];
         } else {
-            $adapter = AdapterFactory::factory($cfg['adapter']);
+            $adapter = AdapterFactory::factory($config['adapter']);
         }
 
         $options = null;
-        if (isset($cfg['options'])) {
-            if (!is_array($cfg['options'])) {
-                throw new Exception\InvalidArgumentException('"options" must be an array, ' . gettype($cfg['options']) . ' given.');
+        if (isset($config['options'])) {
+            if (!is_array($config['options'])) {
+                throw new Exception\InvalidArgumentException('"options" must be an array, ' . gettype($config['options']) . ' given.');
             }
-            $options = new QueueOptions($cfg['options']);
+            $options = new QueueOptions($config['options']);
         }
 
-        return new static($cfg['name'], $adapter, $options);
+        return new static($config['name'], $adapter, $options);
     }
 
     /**
