@@ -20,7 +20,6 @@
         "pdepend/pdepend": "1.1.*",
         "squizlabs/php_codesniffer": "1.5.2",
     	"zendframework/zendframework" : "2.2.*",
-    	"ext-mongo": "*"
     },
     "require": {
         "php": ">=5.3.23",
