@@ -12,9 +12,9 @@ namespace ZendQueue\Adapter;
 
 use Zend\Stdlib\MessageInterface;
 use ZendQueue\Message\MessageIterator;
-use ZendQueue\Queue;
 use ZendQueue\Parameter\SendParameters;
 use ZendQueue\Parameter\ReceiveParameters;
+use ZendQueue\SpecificationInterface as Queue;
 
 /**
  * Interface for common queue operations

@@ -11,7 +11,6 @@
 namespace ZendQueue\Adapter;
 
 use ZendQueue\Exception;
-use ZendQueue\Queue;
 use ZendQueue\Parameter\SendParameters;
 use ZendQueue\Adapter\Capabilities\DeleteMessageCapableInterface;
 use ZendQueue\Adapter\Capabilities\ListQueuesCapableInterface;
@@ -19,6 +18,7 @@ use ZendQueue\Adapter\Capabilities\CountMessagesCapableInterface;
 use Zend\Stdlib\MessageInterface;
 use ZendQueue\Parameter\ReceiveParameters;
 use Zend\Math\Rand;
+use ZendQueue\SpecificationInterface as Queue;
 
 /**
  * Class for using a standard PHP array as a queue
@@ -293,8 +293,7 @@ class ArrayAdapter extends AbstractAdapter implements DeleteMessageCapableInterf
     */
 
     /**
-     * returns underlying _data array
-     * $queue->getAdapter()->getData();
+     * returns underlying data array
      *
      * @return ArrayAdapter
      */
@@ -304,8 +303,7 @@ class ArrayAdapter extends AbstractAdapter implements DeleteMessageCapableInterf
     }
 
     /**
-     * sets the underlying _data array
-     * $queue->getAdapter()->setData($data);
+     * sets the underlying data array
      *
      * @param $data array
      * @return ArrayAdapter

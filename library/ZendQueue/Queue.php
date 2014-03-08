@@ -31,7 +31,7 @@ use Zend\EventManager\EventManagerAwareInterface;
 /**
  *
  */
-class Queue implements Countable, EventManagerAwareInterface
+class Queue implements Countable, SpecificationInterface, EventManagerAwareInterface
 {
 
     /**
@@ -160,7 +160,7 @@ class Queue implements Countable, EventManagerAwareInterface
     }
 
     /**
-     * Get Queue name
+     * Get the queue name
      *
      * @return string
      */

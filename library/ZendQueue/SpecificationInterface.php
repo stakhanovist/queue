@@ -8,17 +8,24 @@
  * @package   Zend_Queue
  */
 
-namespace ZendQueue\Adapter\Capabilities;
+namespace ZendQueue;
 
-use ZendQueue\Adapter\AdapterInterface;
-use ZendQueue\SpecificationInterface as Queue;
-
-interface CountMessagesCapableInterface extends AdapterInterface
+/**
+ *
+ */
+interface SpecificationInterface
 {
     /**
-     * Returns the approximate number of messages in the queue
+     * Get the queue name
      *
-     * @return integer|null
+     * @return string
      */
-    public function countMessages(Queue $queue);
+    public function getName();
+
+    /**
+     * Get options
+     *
+     * @return QueueOptions
+     */
+    public function getOptions();
 }

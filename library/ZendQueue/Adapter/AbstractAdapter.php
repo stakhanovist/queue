@@ -15,7 +15,7 @@ use Zend\Stdlib\ArrayUtils;
 use Zend\Stdlib\MessageInterface;
 use Zend\Stdlib\ParametersInterface;
 use ZendQueue\Exception;
-use ZendQueue\Queue;
+use ZendQueue\SpecificationInterface as Queue;
 
 /**
  * Abstract class for performing common operations.

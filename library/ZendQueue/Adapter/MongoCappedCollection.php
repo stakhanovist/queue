@@ -14,7 +14,7 @@ namespace ZendQueue\Adapter;
 use MongoId;
 use Zend\Stdlib\MessageInterface;
 use ZendQueue\Exception;
-use ZendQueue\Queue;
+use ZendQueue\SpecificationInterface as Queue;
 use ZendQueue\Parameter\SendParameters;
 use ZendQueue\Parameter\ReceiveParameters;
 use ZendQueue\Adapter\Mongo\AbstractMongo;
