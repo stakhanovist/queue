@@ -404,13 +404,14 @@ class Db extends AbstractAdapter implements
 
                         $stmt = $sql->prepareStatementForSqlObject($update);
                         $rst = $stmt->execute();
+
+                        // we check count to make sure no other thread has gotten
+                        // the rows after our select, but before our update.
                         if ($rst->count() < 1) {
                             $keepMessage = false;
                         }
                     }
 
-                    // we check count to make sure no other thread has gotten
-                    // the rows after our select, but before our update.
                     if ($keepMessage) {
                         $message['metadata'] = isset($message['metadata']) ? unserialize($message['metadata']) : array();
                         $message['metadata'][$queue->getOptions()->getMessageMetadatumKey()] = $this->buildMessageInfo(
