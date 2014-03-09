@@ -8,12 +8,13 @@
  * @package   Zend_Queue
  */
 
-namespace ZendQueueTest\Adapter\Mongo\TestAsset;
+namespace ZendQueueTest\Adapter\Mongo;
 
 use ZendQueue\Adapter\Mongo\AbstractMongo;
 use ZendQueue\Parameter\ReceiveParameters;
-use ZendQueue\Adapter\MongoCollection;
+use MongoCollection;
 use ZendQueue\Adapter\AbstractAdapter;
+use ZendQueue\SpecificationInterface as Queue;
 
 class ConcreteMongo extends AbstractMongo
 {

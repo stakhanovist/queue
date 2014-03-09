@@ -9,8 +9,6 @@
  */
 
 namespace ZendQueueTest\Adapter\Mongo;
-
-use ZendQueueTest\Adapter\Mongo\TestAsset\ConcreteMongo;
 /**
  * @category   Zend
  * @package    Zend_Queue
@@ -43,6 +41,8 @@ class AbstractMongoTest extends \PHPUnit_Framework_TestCase
         ->disableOriginalConstructor()
         ->setMethods(array('save'))
         ->getMock();
+
+        $this->mongoDb = null;
 
         $this->abstractMongo = new ConcreteMongo(array(
             'mongoDb' => $this->mongoDb
