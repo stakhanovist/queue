@@ -83,6 +83,7 @@ interface AdapterInterface
      *
      * @param string $name Queue name
      * @return mixed
+     * @throws Exception\QueueNotFoundException
      */
     public function getQueueId($name);
 
