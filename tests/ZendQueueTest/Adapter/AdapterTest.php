@@ -23,6 +23,7 @@ use ZendQueue\Adapter\Capabilities\DeleteMessageCapableInterface;
 use ZendQueue\Adapter\Capabilities\ListQueuesCapableInterface;
 use ZendQueue\Adapter\Capabilities\CountMessagesCapableInterface;
 use ZendQueue\Adapter\Null;
+use ZendQueue\Adapter\Capabilities\AwaitMessagesCapableInterface;
 
 /*
  * The adapter test class provides a universal test class for all of the
@@ -891,5 +892,46 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
 
         // delete the queue we created
         $adapter->deleteQueue($queue->getName());
+    }
+
+    /**
+     * Sample
+     *
+     */
+    public function testAwaitMessages()
+    {
+        $queue = $this->createQueue(__FUNCTION__);
+        $adapter = $queue->getAdapter();
+
+        if (!$adapter instanceof AwaitMessagesCapableInterface) {
+            $this->markTestSkipped($this->getAdapterName() . ' does not support await');
+        }
+
+        $receiveCount = 0;
+        $messages = null;
+
+        $queue->send('foo');
+
+        $return = $adapter->awaitMessages($queue, function($msgs) use (&$receiveCount, &$messages, $queue) {
+            $receiveCount++;
+            $messages = $msgs;
+
+            if ($receiveCount >= 5) {
+                return false; //stop await
+            }
+
+            $queue->send('foo');
+            return true; //continue await
+        });
+
+
+        $this->assertInstanceOf(get_class($adapter),$return);
+        $this->assertSame(5, $receiveCount);
+        $this->assertInstanceOf($queue->getOptions()->getMessageSetClass(), $messages);
+        $this->assertCount(1, $messages);
+
+        $message = $messages->current();
+        $this->assertInstanceOf($queue->getOptions()->getMessageClass(), $message);
+        $this->assertSame('foo', $message->getContent());
     }
 }

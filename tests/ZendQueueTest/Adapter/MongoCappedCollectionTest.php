@@ -10,7 +10,7 @@
 
 namespace ZendQueueTest\Adapter;
 
-    use ZendQueue\Adapter\MongoCappedCollection;
+use ZendQueue\Adapter\MongoCappedCollection;
 use ZendQueue\Adapter\MongoCollection;
 /*
      * The adapter test class provides a universal test class for all of the
