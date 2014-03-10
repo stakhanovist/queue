@@ -71,14 +71,15 @@ class ArrayAdapter extends AbstractAdapter implements DeleteMessageCapableInterf
      *
      * @param string $name Queue name
      * @return string
+     * @throws Exception\QueueNotFoundException
      */
     public function getQueueId($name)
     {
         if ($this->queueExists($name)) {
             return $name;
         }
-        //else
-        return null;
+
+        throw new Exception\QueueNotFoundException('Queue does not exist: ' . $name);
     }
 
     /**

@@ -339,8 +339,10 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
         //test existing queue
         $this->assertNotEmpty($adapter->getQueueId($queue->getName()));
 
+        $this->setExpectedException('ZendQueue\Exception\QueueNotFoundException');
+
         //test non-existing queue
-        $this->assertNull($adapter->getQueueId('non-existing queue'));
+        $this->assertNull($adapter->getQueueId('non-existing-queue'));
 
         // delete the queue we created
         $adapter->deleteQueue($queue->getName());
