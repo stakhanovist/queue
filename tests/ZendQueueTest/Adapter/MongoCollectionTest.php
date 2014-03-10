@@ -27,6 +27,14 @@ namespace ZendQueueTest\Adapter;
  */
 class MongoCollectionTest extends AdapterTest
 {
+
+    public function setUp()
+    {
+        if (!extension_loaded('mongo')) {
+            $this->markTestSkipped('The mongo PHP extension is not available');
+        }
+    }
+
     /**
      * getAdapterName() is an method to help make AdapterTest work with any
      * new adapters

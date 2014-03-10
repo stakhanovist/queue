@@ -91,8 +91,7 @@ class Db extends AbstractAdapter implements
     {
         return array(
             SendParameters::SCHEDULE,
-            SendParameters::INTERVAL,
-            SendParameters::TIMEOUT
+            SendParameters::REPEATING_INTERVAL,
         );
     }
 
