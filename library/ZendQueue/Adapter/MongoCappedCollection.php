@@ -42,12 +42,16 @@ class MongoCappedCollection extends AbstractMongo implements AwaitMessagesCapabl
      */
     public function createQueue($name)
     {
+        if ($this->queueExists($name)) {
+            return false;
+        }
+
         $options = $this->getOptions();
 
         if (version_compare(phpversion('mongo'), '1.4.0') < 0) {
-            $queue = $this->mongoDb->createCollection($name, true, $options['size'], $options['maxMessages']);
+            $queue = $this->getMongoDb()->createCollection($name, true, $options['size'], $options['maxMessages']);
         } else {
-            $queue = $this->mongoDb->createCollection($name, array('capped' => true, 'size' => $options['size'], 'max' => $options['maxMessages']));
+            $queue = $this->getMongoDb()->createCollection($name, array('capped' => true, 'size' => $options['size'], 'max' => $options['maxMessages']));
         }
 
         if ($queue) {
@@ -68,9 +72,15 @@ class MongoCappedCollection extends AbstractMongo implements AwaitMessagesCapabl
      */
     public function queueExists($name)
     {
-        $collection = $this->mongoDb->selectCollection($name);
+        $collection = $this->getMongoDb()->selectCollection($name);
         $result = $collection->validate();
-        return (isset($result['capped']) && $collection->count() > 0) ? true : false;
+        if (isset($result['valid']) && $result['valid']) {
+            if (!isset($result['capped']) || !$result['capped']) {
+                throw new Exception\RuntimeException('Collection exists, but is not capped');
+            }
+            return (isset($result['capped']) && $collection->count() > 0);
+        } //else
+        return false;
     }
 
     /**
@@ -89,7 +99,7 @@ class MongoCappedCollection extends AbstractMongo implements AwaitMessagesCapabl
 
         $this->cleanMessageInfo($queue, $message);
 
-        $collection = $this->mongoDb->selectCollection($queue->getName());
+        $collection = $this->getMongoDb()->selectCollection($queue->getName());
 
         if ($options['threshold'] && $collection->count(array(self::KEY_HANDLE => true)) < $options['threshold']) {
             //FIXME: Exception should be explained in a better way
@@ -129,7 +139,7 @@ class MongoCappedCollection extends AbstractMongo implements AwaitMessagesCapabl
     public function awaitMessages(Queue $queue, $callback, ReceiveParameters $params = null)
     {
         $classname = $queue->getOptions()->getMessageSetClass();
-        $collection = $this->mongoDb->selectCollection($queue->getName());
+        $collection = $this->getMongoDb()->selectCollection($queue->getName());
 
 
 

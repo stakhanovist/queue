@@ -122,6 +122,18 @@ abstract class AbstractMongo extends AbstractAdapter implements CountMessagesCap
     }
 
     /**
+     * @throws Exception\ConnectionException
+     * @return MongoDB
+     */
+    public function getMongoDb()
+    {
+        if (!$this->mongoDb) {
+            throw new Exception\ConnectionException('Not yet connected to MongoDB');
+        }
+        return $this->mongoDb;
+    }
+
+    /**
      * Returns the ID of the queue
      *
      * Name is the only ID of the collection, so if the collection exists the name will be returned
@@ -149,7 +161,7 @@ abstract class AbstractMongo extends AbstractAdapter implements CountMessagesCap
         if ($this->queueExists($name)) {
             return false;
         }
-        return (bool) $this->mongoDb->createCollection($name);
+        return (bool) $this->getMongoDb()->createCollection($name);
     }
 
 
@@ -162,9 +174,12 @@ abstract class AbstractMongo extends AbstractAdapter implements CountMessagesCap
      */
     public function queueExists($name)
     {
-        $collection = $this->mongoDb->selectCollection($name);
+        $collection = $this->getMongoDb()->selectCollection($name);
         $result = $collection->validate();
-        return (isset($result['valid']) && $result['valid']) ? true : false;
+        if (isset($result['capped']) && $result['capped']) {
+            throw new Exception\RuntimeException('Collection exists, but is capped');
+        }
+        return (isset($result['valid']) && $result['valid']);
     }
 
     /**
@@ -181,7 +196,7 @@ abstract class AbstractMongo extends AbstractAdapter implements CountMessagesCap
             return false;
         }
 
-        $result = $this->mongoDb->selectCollection($name)->drop();
+        $result = $this->getMongoDb()->selectCollection($name)->drop();
         return (isset($result['ok']) && $result['ok']);
     }
 
@@ -199,7 +214,7 @@ abstract class AbstractMongo extends AbstractAdapter implements CountMessagesCap
     {
         $this->cleanMessageInfo($queue, $message);
 
-        $collection = $this->mongoDb->selectCollection($queue->getName());
+        $collection = $this->getMongoDb()->selectCollection($queue->getName());
 
         $id = new MongoId();
         $msg = array(
@@ -279,7 +294,7 @@ abstract class AbstractMongo extends AbstractAdapter implements CountMessagesCap
         $msgs = array();
 
         if ($maxMessages > 0) {
-            $collection = $this->mongoDb->selectCollection($queue->getName());
+            $collection = $this->getMongoDb()->selectCollection($queue->getName());
 
             $cursor = $this->setupCursor($collection, $params);
             $cursor->limit((int)$maxMessages);
@@ -303,7 +318,7 @@ abstract class AbstractMongo extends AbstractAdapter implements CountMessagesCap
      */
     public function countMessages(Queue $queue)
     {
-        $collection = $this->mongoDb->selectCollection($queue->getName());
+        $collection = $this->getMongoDb()->selectCollection($queue->getName());
         return $collection->count(array(self::KEY_HANDLE => false));
     }
 

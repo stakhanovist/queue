@@ -12,6 +12,7 @@ namespace ZendQueueTest\Adapter\Mongo;
 use ZendQueue\Adapter\Mongo\AbstractMongo;
 use ZendQueue\Queue;
 use ZendQueue\Adapter\Null;
+use ZendQueue\Adapter\MongoCappedCollection;
 /**
  * @category   Zend
  * @package    Zend_Queue
@@ -48,6 +49,7 @@ class AbstractMongoTest extends \PHPUnit_Framework_TestCase
 
         $this->mongo = new \MongoClient();
         $this->mongoDb = $this->mongo->selectDb($this->database);
+        $this->mongoDb->drop(); //cleanup
 
 
         $this->abstractMongo = new ConcreteMongo(array(
@@ -55,10 +57,7 @@ class AbstractMongoTest extends \PHPUnit_Framework_TestCase
         ));
     }
 
-    public function tearDown()
-    {
 
-    }
 
     public function testConnect()
     {
@@ -89,6 +88,30 @@ class AbstractMongoTest extends \PHPUnit_Framework_TestCase
         $abstractMongo = new ConcreteMongo();
         $abstractMongo->connect();
 
+    }
+
+    public function testGetMongoDb()
+    {
+        $this->abstractMongo->connect();
+        $this->assertSame($this->mongoDb, $this->abstractMongo->getMongoDb());
+    }
+
+    public function testShouldThrowExceptionOnGetMongoDbBeforeConnect()
+    {
+        $this->setExpectedException('ZendQueue\Exception\ConnectionException');
+        $this->abstractMongo->getMongoDb();
+    }
+
+    public function testShouldThrowExceptionOnExistingCappedCollection()
+    {
+        $mongoCappedAdapter = new MongoCappedCollection();
+        $mongoCappedAdapter->setOptions($this->abstractMongo->getOptions());
+        $mongoCappedAdapter->connect();
+        $mongoCappedAdapter->createQueue('testExistingCappedCollection');
+
+        $this->abstractMongo->connect();
+        $this->setExpectedException('ZendQueue\Exception\RuntimeException');
+        $this->abstractMongo->queueExists('testExistingCappedCollection');
     }
 
     public function testReceiveMessageAtomicWithNoMessage()

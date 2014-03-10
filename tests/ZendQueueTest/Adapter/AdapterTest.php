@@ -470,8 +470,6 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue($messages->valid());
 
         $message = $messages->current();
-        $adapter->deleteMessage($queue, $messages->current());
-
 
         $this->assertTrue($message instanceof Message);
         $this->assertEquals($message->getContent(), $body);
