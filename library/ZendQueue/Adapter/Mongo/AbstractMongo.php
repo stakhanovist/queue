@@ -99,9 +99,9 @@ abstract class AbstractMongo extends AbstractAdapter implements CountMessagesCap
             $db = $driverOptions['db'];
         } else {
             //Extract db name from dsn
-            $db = explode('/', $dsn);
-            if (!empty($db[3])) {
-                $db = $db[3];
+            $dsnParts = explode('/', $dsn);
+            if (!empty($dsnParts[3])) {
+                $db = $dsnParts[3];
             }
         }
 
@@ -146,11 +146,10 @@ abstract class AbstractMongo extends AbstractAdapter implements CountMessagesCap
      */
     public function createQueue($name)
     {
-        if ($this->mongoDb->createCollection($name)) {
-            return true;
+        if ($this->queueExists($name)) {
+            return false;
         }
-
-        return false;
+        return (bool) $this->mongoDb->createCollection($name);
     }
 
 
@@ -178,12 +177,12 @@ abstract class AbstractMongo extends AbstractAdapter implements CountMessagesCap
      */
     public function deleteQueue($name)
     {
-        $result = $this->mongoDb->selectCollection($name)->drop();
-        if (isset($result['ok']) && $result['ok']) {
-            return true;
+        if (!$this->queueExists($name)) {
+            return false;
         }
 
-        return false;
+        $result = $this->mongoDb->selectCollection($name)->drop();
+        return (isset($result['ok']) && $result['ok']);
     }
 
     /**
@@ -277,17 +276,19 @@ abstract class AbstractMongo extends AbstractAdapter implements CountMessagesCap
             $maxMessages = 1;
         }
 
-        $collection = $this->mongoDb->selectCollection($queue->getName());
-
-        $cursor = $this->setupCursor($collection, $params);
-        $cursor->limit((int)$maxMessages);
-
         $msgs = array();
 
-        foreach ($cursor as $msg) {
-            $msg = $this->receiveMessageAtomic($queue, $collection, $msg['_id']);
-            if ($msg) {
-                $msgs[] = $msg;
+        if ($maxMessages > 0) {
+            $collection = $this->mongoDb->selectCollection($queue->getName());
+
+            $cursor = $this->setupCursor($collection, $params);
+            $cursor->limit((int)$maxMessages);
+
+            foreach ($cursor as $msg) {
+                $msg = $this->receiveMessageAtomic($queue, $collection, $msg['_id']);
+                if ($msg) {
+                    $msgs[] = $msg;
+                }
             }
         }
 

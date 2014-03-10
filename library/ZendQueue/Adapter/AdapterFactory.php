@@ -27,41 +27,41 @@ abstract class AdapterFactory
     /**
      * Instantiate a queue adapter
      *
-     * @param  array|Traversable $cfg
+     * @param  array|Traversable $config
      * @return AdapterInterface
      * @throws Exception\InvalidArgumentException
      */
-    public static function factory($cfg)
+    public static function factory($config)
     {
-        if ($cfg instanceof Traversable) {
-            $cfg = ArrayUtils::iteratorToArray($cfg);
+        if ($config instanceof Traversable) {
+            $config = ArrayUtils::iteratorToArray($config);
         }
 
-        if (!is_array($cfg)) {
+        if (!is_array($config)) {
             throw new Exception\InvalidArgumentException(
                 'The factory needs an associative array '
                 . 'or a Traversable object as an argument'
             );
         }
 
-        if (!isset($cfg['adapter'])) {
+        if (!isset($config['adapter'])) {
             throw new Exception\InvalidArgumentException('Missing "adapter"');
         }
 
-        if ($cfg['adapter'] instanceof AdapterInterface) {
-            // $cfg['adapter'] is already an adapter object
-            $adapter = $cfg['adapter'];
+        if ($config['adapter'] instanceof AdapterInterface) {
+            // $config['adapter'] is already an adapter object
+            $adapter = $config['adapter'];
         } else {
-            $adapter = static::getAdapterPluginManager()->get($cfg['adapter']);
+            $adapter = static::getAdapterPluginManager()->get($config['adapter']);
         }
 
-        if (isset($cfg['options'])) {
-            if (!is_array($cfg['options'])) {
+        if (isset($config['options'])) {
+            if (!is_array($config['options'])) {
                 throw new Exception\InvalidArgumentException('
-                    "options" must be an array, ' . gettype($cfg['options']) . ' given.'
+                    "options" must be an array, ' . gettype($config['options']) . ' given.'
                 );
             }
-            $adapter->setOptions($cfg['options']);
+            $adapter->setOptions($config['options']);
         }
 
         return $adapter;

@@ -32,7 +32,7 @@ class ConcreteMongo extends AbstractMongo
         return parent::setupCursor($collection, $params, $criteria, $fields);
     }
 
-    protected function receiveMessageAtomic(Queue $queue, MongoCollection $collection, $id)
+    public function receiveMessageAtomic(Queue $queue, MongoCollection $collection, $id)
     {
         return parent::receiveMessageAtomic($queue, $collection, $id);
     }

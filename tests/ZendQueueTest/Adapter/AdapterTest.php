@@ -117,7 +117,7 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
     {
 
         $adapter = AdapterFactory::factory(array(
-            'adapter' => $this->getAdapterName(),
+            'adapter' => $this->getAdapterFullName(),
             'options' => $this->getTestOptions(),
         ));
 
@@ -373,6 +373,8 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
                 $this->fail('delete() failed to delete it\'s queue, but returned true: ' . $new);
             }
         }
+
+        $this->assertFalse($adapter->deleteQueue('non-existing-queue'));
 
         // delete the queue we created
         $adapter->deleteQueue($queue->getName());

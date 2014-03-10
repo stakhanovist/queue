@@ -25,7 +25,7 @@ namespace ZendQueueTest\Adapter;
  * @subpackage UnitTests
  * @group      Zend_Queue
  */
-class ArrayTest extends AdapterTest
+class MongoCollectionTest extends AdapterTest
 {
     /**
      * getAdapterName() is an method to help make AdapterTest work with any
@@ -37,7 +37,7 @@ class ArrayTest extends AdapterTest
      */
     public function getAdapterName()
     {
-        return 'ArrayAdapter';
+        return 'MongoCollection';
     }
 
     /**
@@ -54,26 +54,25 @@ class ArrayTest extends AdapterTest
         return '\ZendQueue\Adapter\\' . $this->getAdapterName();
     }
 
-    // extra non standard tests
-    public function test_magic()
+    public function getTestOptions()
     {
-        $queue = $this->createQueue(__FUNCTION__);
-        $adapter = $queue->getAdapter();
-
-        $this->assertTrue(is_array($adapter->__sleep()));
-        $data = serialize($adapter);
-        $new = unserialize($data);
-        $this->assertEquals($new->getData(), $adapter->getData());
+        return array('driverOptions' => array(
+            'db' => 'zendqueuetest'
+        ));
     }
 
-    public function test_get_setData()
+    public function testSendMessageShouldThrowExcepetionWhenQueueDoesntExist()
     {
-        $queue = $this->createQueue(__FUNCTION__);
-        $adapter = $queue->getAdapter();
+        $this->markTestSkipped('Mongo does not throw execption if collection does not exists');
+    }
 
-        $data = array('test' => 1);
-        $adapter->setData($data);
-        $got = $adapter->getData();
-        $this->assertEquals($data['test'], $got['test']);
+    public function testDeleteMessageShouldThrowExcepetionWhenQueueDoesntExist()
+    {
+        $this->markTestSkipped('Mongo does not throw execption if collection does not exists');
+    }
+
+    public function testCountMessageShouldThrowExcepetionWhenQueueDoesntExist()
+    {
+        $this->markTestSkipped('Mongo does not throw execption if collection does not exists');
     }
 }
