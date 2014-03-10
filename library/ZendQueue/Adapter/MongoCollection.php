@@ -11,7 +11,7 @@
 namespace ZendQueue\Adapter;
 
 use Zend\Stdlib\MessageInterface;
-use ZendQueue\SpecificationInterface as Queue;
+use ZendQueue\QueueInterface as Queue;
 use ZendQueue\Adapter\Capabilities\DeleteMessageCapableInterface;
 use ZendQueue\Adapter\Mongo\AbstractMongo;
 

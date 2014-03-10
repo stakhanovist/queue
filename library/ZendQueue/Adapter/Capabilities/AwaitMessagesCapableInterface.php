@@ -11,7 +11,7 @@
 namespace ZendQueue\Adapter\Capabilities;
 use ZendQueue\Adapter\AdapterInterface;
 use ZendQueue\Parameter\ReceiveParameters;
-use ZendQueue\SpecificationInterface as Queue;
+use ZendQueue\QueueInterface as Queue;
 use ZendQueue\Message\MessageIterator;
 
 interface AwaitMessagesCapableInterface extends AdapterInterface

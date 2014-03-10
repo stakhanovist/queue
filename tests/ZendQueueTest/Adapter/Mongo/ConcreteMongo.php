@@ -14,7 +14,7 @@ use ZendQueue\Adapter\Mongo\AbstractMongo;
 use ZendQueue\Parameter\ReceiveParameters;
 use MongoCollection;
 use ZendQueue\Adapter\AbstractAdapter;
-use ZendQueue\SpecificationInterface as Queue;
+use ZendQueue\QueueInterface as Queue;
 
 class ConcreteMongo extends AbstractMongo
 {

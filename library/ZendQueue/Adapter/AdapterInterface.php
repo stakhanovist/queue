@@ -15,7 +15,7 @@ use Zend\Stdlib\MessageInterface;
 use ZendQueue\Message\MessageIterator;
 use ZendQueue\Parameter\SendParameters;
 use ZendQueue\Parameter\ReceiveParameters;
-use ZendQueue\SpecificationInterface as Queue;
+use ZendQueue\QueueInterface as Queue;
 
 /**
  * Interface for common queue operations

@@ -13,7 +13,7 @@ namespace ZendQueue;
 /**
  *
  */
-interface SpecificationInterface
+interface QueueInterface
 {
     /**
      * Get the queue name

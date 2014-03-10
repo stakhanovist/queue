@@ -13,7 +13,7 @@ namespace ZendQueue\Adapter;
 use Zend\Db as ZendDb;
 use Zend\Stdlib\MessageInterface;
 use ZendQueue\Exception;
-use ZendQueue\SpecificationInterface as Queue;
+use ZendQueue\QueueInterface as Queue;
 use ZendQueue\Adapter\Capabilities\CountMessagesCapableInterface;
 use ZendQueue\Adapter\Capabilities\DeleteMessageCapableInterface;
 use ZendQueue\Adapter\Capabilities\ListQueuesCapableInterface;

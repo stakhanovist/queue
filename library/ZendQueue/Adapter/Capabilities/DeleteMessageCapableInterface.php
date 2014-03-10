@@ -13,7 +13,7 @@ namespace ZendQueue\Adapter\Capabilities;
 use Zend\Stdlib\MessageInterface;
 use ZendQueue\Adapter\AdapterInterface;
 use ZendQueue\Exception;
-use ZendQueue\SpecificationInterface as Queue;
+use ZendQueue\QueueInterface as Queue;
 
 interface DeleteMessageCapableInterface extends AdapterInterface
 {

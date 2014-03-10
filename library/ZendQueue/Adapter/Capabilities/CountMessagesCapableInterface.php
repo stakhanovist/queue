@@ -11,7 +11,7 @@
 namespace ZendQueue\Adapter\Capabilities;
 
 use ZendQueue\Adapter\AdapterInterface;
-use ZendQueue\SpecificationInterface as Queue;
+use ZendQueue\QueueInterface as Queue;
 
 interface CountMessagesCapableInterface extends AdapterInterface
 {

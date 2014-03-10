@@ -17,7 +17,7 @@ use Zend\Stdlib\MessageInterface;
 use ZendQueue\Adapter\AbstractAdapter;
 use ZendQueue\Adapter\Capabilities\CountMessagesCapableInterface;
 use ZendQueue\Exception;
-use ZendQueue\SpecificationInterface as Queue;
+use ZendQueue\QueueInterface as Queue;
 use ZendQueue\Parameter\SendParameters;
 use ZendQueue\Parameter\ReceiveParameters;
 use ZendQueue\Message\MessageIterator;

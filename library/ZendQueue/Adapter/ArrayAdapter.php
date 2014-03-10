@@ -19,7 +19,7 @@ use Zend\Stdlib\MessageInterface;
 use ZendQueue\Parameter\ReceiveParameters;
 use Zend\Math\Rand;
 use ZendQueue\Message\MessageIterator;
-use ZendQueue\SpecificationInterface as Queue;
+use ZendQueue\QueueInterface as Queue;
 
 /**
  * Class for using a standard PHP array as a queue

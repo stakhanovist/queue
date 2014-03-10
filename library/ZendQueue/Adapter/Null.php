@@ -11,7 +11,7 @@
 namespace ZendQueue\Adapter;
 
 use Zend\Stdlib\MessageInterface;
-use ZendQueue\SpecificationInterface as Queue;
+use ZendQueue\QueueInterface as Queue;
 use ZendQueue\Exception;
 use ZendQueue\Parameter\SendParameters;
 use ZendQueue\Parameter\ReceiveParameters;
