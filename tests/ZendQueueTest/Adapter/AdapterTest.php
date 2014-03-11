@@ -749,9 +749,10 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
         $body = 'hello world';
 
         $queue->send($body);
-        $reciveParams = new ReceiveParameters();
-        $reciveParams->setVisibilityTimeout($default_timeout);
-        $messages = $queue->receive(1, $reciveParams); // messages are deleted at the bottom.
+
+        $receiveParams = new ReceiveParameters();
+        $receiveParams->setVisibilityTimeout($default_timeout);
+        $messages = $queue->receive(1, $receiveParams); // messages are deleted at the bottom.
 
         if ($adapter instanceof CountMessagesCapableInterface) {
             $this->assertEquals(1, $queue->count());
@@ -768,7 +769,7 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
 
         $end = false;
         do {
-            $search = $queue->receive(1);
+            $search = $queue->receive(1, $receiveParams);
             if ((microtime(true) - $check) > 0.1) {
                 $check = microtime(true);
                 if ($debug) echo "Checking - found ", count($search), " messages at : ", $check, "\n";

@@ -49,7 +49,7 @@ class DbTest extends AdapterTest
     public function testGetQueueTable()
     {
         $queue = $this->createQueue(__FUNCTION__);
-        $this->assertInstanceOf($queue->getAdapter()->getQueueTable(), 'ZendDb\TableGateway\TableGateway');
+        $this->assertInstanceOf('Zend\Db\TableGateway\TableGateway', $queue->getAdapter()->getQueueTable());
     }
 
 }

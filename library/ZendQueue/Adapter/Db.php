@@ -235,7 +235,11 @@ class Db extends AbstractAdapter implements
      */
     public function deleteQueue($name)
     {
-        $id = $this->getQueueId($name); // get primary key
+        try {
+            $id = $this->getQueueId($name); // get primary key
+        } catch(Exception\QueueNotFoundException $e){
+            return false;
+        }
 
         // if the queue does not exist then it must already be deleted.
         $list = $this->queueTable->select(array('queue_id' => $id));
@@ -362,7 +366,6 @@ class Db extends AbstractAdapter implements
         $microtime = (int)microtime(true); // cache microtime
         $connection = $this->adapter->getDriver()->getConnection();
 
-
         // start transaction handling
         try {
             if ($maxMessages > 0) {
@@ -455,9 +458,10 @@ class Db extends AbstractAdapter implements
     public function deleteMessage(Queue $queue, MessageInterface $message)
     {
         $info = $this->getMessageInfo($queue, $message);
+        $queueId = $this->getQueueId($queue->getName());
 
         if (isset($info['messageId']) && isset($info['handle'])) {
-            $where = array('message_id' => $info['messageId'], 'queue_id' => $this->getQueueId($queue->getName()));
+            $where = array('message_id' => $info['messageId'], 'queue_id' => $queueId);
 
             if ($info['handle']) {
                 $where['handle'] = $info['handle'];
