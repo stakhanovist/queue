@@ -1,0 +1,5 @@
+<?php
+defined('ZEND_DB_ADAPTER_DRIVER_MYSQL_USERNAME') || define('ZEND_DB_ADAPTER_DRIVER_MYSQL_USERNAME', 'travis');
+defined('ZEND_DB_ADAPTER_DRIVER_MYSQL_PASSWORD') ||define('ZEND_DB_ADAPTER_DRIVER_MYSQL_PASSWORD', '');
+
+require_once "./TestConfiguration.php.dist";

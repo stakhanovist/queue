@@ -8,9 +8,13 @@ php:
 
 services:
     - mongodb
+    - mysql
 
 before_script:
     - echo "extension = mongo.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
+    - mysql -e "create database zfqueue;"
+    - mysql -d zfqueue < library/ZendQueue/Adapter/Db/mysql.sql
+    - cp tests/TestConfiguration.php.travis tests/TestConfiguration.php
     - composer selfupdate
     - composer install --dev --prefer-source
     - cd tests

@@ -36,9 +36,9 @@ class DbTest extends AdapterTest
         return array('driverOptions' =>
             array(
                 'driver' => 'Pdo',
-                'dsn' => 'mysql:dbname=zfqueue;host=127.0.0.1',
-                'username' => 'root',
-                'password' => 'root',
+                'dsn' => "mysql:dbname=".ZEND_DB_ADAPTER_DRIVER_MYSQL_DATABASE.";host=".ZEND_DB_ADAPTER_DRIVER_MYSQL_HOSTNAME,
+                'username' => ZEND_DB_ADAPTER_DRIVER_MYSQL_USERNAME,
+                'password' => ZEND_DB_ADAPTER_DRIVER_MYSQL_PASSWORD,
                 'driver_options' => array(
                     \PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES \'UTF8\''
                 ),
