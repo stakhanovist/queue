@@ -378,7 +378,7 @@ class Db extends AbstractAdapter implements
                 $where = array(
                     'queue_id' => $this->getQueueId($queue->getName()),
                     '(schedule IS NULL or schedule < ?)' => $microtime,
-                    $timeout ? '(handle IS NULL OR timeout+' . $timeout . ' < ' . $microtime . ')' : 'handle IS NULL',
+                    '(handle IS NULL OR timeout < ' . $microtime . ')',
                 );
 
                 if ($filter) {
@@ -400,7 +400,7 @@ class Db extends AbstractAdapter implements
 
                     if (!$peek) {
                         $update = $sql->update($name);
-                        $update->set(array('handle' => $message['handle'], 'timeout' => $microtime));
+                        $update->set(array('handle' => $message['handle'], 'timeout' => $timeout ? $timeout + $microtime : null));
                         $update->where(array('message_id' => $message['message_id']));
                         $update->where($where);
 
@@ -470,7 +470,10 @@ class Db extends AbstractAdapter implements
             }
 
             if (!empty($info['options'][SendParameters::REPEATING_INTERVAL])) {
-                $result = $this->messageTable->update(array('schedule' => time() + $info['options'][SendParameters::REPEATING_INTERVAL], 'handle' => null), $where);
+                $microtime = (int) microtime(true);
+                $result = $this->messageTable->update(array(
+                    'schedule' => $microtime + $info['options'][SendParameters::REPEATING_INTERVAL], 'handle' => null, 'timeout' => null
+                ), $where);
             } else {
                 $result = $this->messageTable->delete($where);
             }
