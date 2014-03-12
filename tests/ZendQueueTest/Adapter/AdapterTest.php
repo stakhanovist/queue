@@ -769,7 +769,7 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
 
         $end = false;
         do {
-            $search = $queue->receive(1, $receiveParams);
+            $search = $queue->receive(1);
             if ((microtime(true) - $check) > 0.1) {
                 $check = microtime(true);
                 if ($debug) echo "Checking - found ", count($search), " messages at : ", $check, "\n";

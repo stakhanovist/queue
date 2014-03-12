@@ -1,6 +1,7 @@
 <?php
 namespace ZendQueueTest\Adapter;
 
+use ZendQueue\Adapter\Db;
 class DbTest extends AdapterTest
 {
 
@@ -58,6 +59,33 @@ class DbTest extends AdapterTest
     {
         $queue = $this->createQueue(__FUNCTION__);
         $this->assertInstanceOf('Zend\Db\TableGateway\TableGateway', $queue->getAdapter()->getQueueTable());
+    }
+
+    public function testGetMessageTable()
+    {
+        $queue = $this->createQueue(__FUNCTION__);
+        $this->assertInstanceOf('Zend\Db\TableGateway\TableGateway', $queue->getAdapter()->getMessageTable());
+    }
+
+    public function testConnectWithInjectedAdapterAndGateway()
+    {
+        $testOptions = $this->getTestOptions();
+        $driverOptions = $testOptions['driverOptions'];
+        $dbAdapter = new \Zend\Db\Adapter\Adapter($driverOptions);
+
+        $queueTableGateway = new \Zend\Db\TableGateway\TableGateway('queues', $dbAdapter);
+        $msgTableGateway = new \Zend\Db\TableGateway\TableGateway('messages', $dbAdapter);
+
+        $adapter = new Db();
+        $adapter->setOptions(array(
+            'dbAdapter'     => $dbAdapter,
+            'queueTable'    => $queueTableGateway,
+            'messageTable'  => $msgTableGateway,
+        ));
+
+        $this->assertTrue($adapter->connect());
+        $this->assertSame($queueTableGateway, $adapter->getQueueTable());
+        $this->assertSame($msgTableGateway, $adapter->getMessageTable());
     }
 
 }
