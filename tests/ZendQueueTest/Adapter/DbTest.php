@@ -51,6 +51,11 @@ class DbTest extends AdapterTest
                 'username' => ZEND_DB_ADAPTER_DRIVER_PGSQL_USERNAME,
                 'password' => ZEND_DB_ADAPTER_DRIVER_PGSQL_PASSWORD,
             );
+        } elseif(ZEND_DB_ADAPTER_PDO_DRIVER == "sqlite"){
+            $conf = array(
+                'driver' => 'Pdo_Sqlite',
+                'database' => ZEND_DB_ADAPTER_DRIVER_SQLITE_DBPATH,
+            );
         }
         return array('driverOptions' => $conf);
     }

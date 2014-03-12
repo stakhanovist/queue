@@ -8,14 +8,22 @@ CREATE ROLE queue LOGIN
 */
 
 --
--- Table structure for table `queue`
+-- Table structure for table queue
 --
 
-CREATE TABLE queue
+CREATE TABLE message
 (
-  queue_id INTEGER PRIMARY KEY AUTOINCREMENT,
-  queue_name VARCHAR(100) NOT NULL,
-  timeout INTEGER NOT NULL DEFAULT 30
+  message_id integer PRIMARY KEY AUTOINCREMENT,
+  queue_id integer NOT NULL,
+  handle char(32) default NULL,
+  class varchar(255) NOT NULL,
+  content varchar(8192) NOT NULL,
+  metadata text default NULL,
+  md5 char(32) NOT NULL,
+  timeout bigint(20) default NULL,
+  schedule bigint(20) default NULL,
+  interval bigint(20) default NULL,
+  created bigint(20) NOT NULL
 );
 
 
@@ -23,18 +31,13 @@ CREATE TABLE queue
 
 -- --------------------------------------------------------
 --
--- Table structure for table `message`
+-- Table structure for table message
 --
 
-CREATE TABLE message
+CREATE TABLE queue
 (
-  message_id INTEGER PRIMARY KEY AUTOINCREMENT,
-  queue_id INTEGER PRIMARY KEY,
-  handle CHAR(32),
-  body VARCHAR(8192) NOT NULL,
-  md5 CHAR(32) NOT NULL,
-  timeout REAL,
-  created INTEGER,
+  queue_id integer PRIMARY KEY AUTOINCREMENT,
+  queue_name varchar(100) NOT NULL,
   FOREIGN KEY (queue_id) REFERENCES queue(queue_id)
 );
 
