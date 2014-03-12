@@ -5,9 +5,9 @@ use ZendQueue\Parameter\ReceiveParameters;
 
 class ReceiveParameterTest extends \PHPUnit_Framework_TestCase
 {
-    
+
     protected $receiveParameter;
-    
+
     public function setUp()
     {
         $this->receiveParameter = new ReceiveParameters();

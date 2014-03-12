@@ -10,7 +10,6 @@ tools:
         timeout: 1800
     php_code_sniffer:
         enabled: true
-        command: vendor/bin/phpcs
         config:
             standard: PSR2
         filter:

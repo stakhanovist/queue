@@ -262,7 +262,7 @@ class QueueTest extends \PHPUnit_Framework_TestCase
         $eventReceiveTriggered = false;
         $eventIdleTriggered = false;
 
-        $receiveHandler = $this->queue->getEventManager()->attach(QueueEvent::EVENT_RECEIVE, function(QueueEvent $e) use ($queueTest, &$eventReceiveTriggered) {
+        $receiveHandler = $this->queue->getEventManager()->attach(QueueEvent::EVENT_RECEIVE, function (QueueEvent $e) use ($queueTest, &$eventReceiveTriggered) {
 
             $eventReceiveTriggered = true;
             $queueTest->assertInstanceOf('ZendQueue\Message\MessageIterator', $e->getMessages());
@@ -272,7 +272,7 @@ class QueueTest extends \PHPUnit_Framework_TestCase
         });
 
 
-        $idleHandler = $this->queue->getEventManager()->attach(QueueEvent::EVENT_IDLE, function(QueueEvent $e) use ($queueTest, &$eventIdleTriggered) {
+        $idleHandler = $this->queue->getEventManager()->attach(QueueEvent::EVENT_IDLE, function (QueueEvent $e) use ($queueTest, &$eventIdleTriggered) {
 
             $eventIdleTriggered = true;
             $queueTest->assertInstanceOf('ZendQueue\Message\MessageIterator', $e->getMessages());
@@ -302,7 +302,7 @@ class QueueTest extends \PHPUnit_Framework_TestCase
         $queueTest = $this;
         $eventReceiveTriggered = false;
 
-        $receiveHandler= $this->queue->getEventManager()->attach(QueueEvent::EVENT_RECEIVE, function(QueueEvent $e) use ($queueTest, &$eventReceiveTriggered) {
+        $receiveHandler= $this->queue->getEventManager()->attach(QueueEvent::EVENT_RECEIVE, function (QueueEvent $e) use ($queueTest, &$eventReceiveTriggered) {
             $eventReceiveTriggered = true;
             $e->stopAwait(true);
         });
@@ -327,7 +327,7 @@ class QueueTest extends \PHPUnit_Framework_TestCase
         $queueTest = $this;
         $triggerCount = 0;
 
-        $idleHandler= $this->queue->getEventManager()->attach(QueueEvent::EVENT_IDLE, function(QueueEvent $e) use ($queueTest, &$triggerCount) {
+        $idleHandler= $this->queue->getEventManager()->attach(QueueEvent::EVENT_IDLE, function (QueueEvent $e) use ($queueTest, &$triggerCount) {
             $triggerCount++;
             if ($triggerCount == 2) {
                 $e->stopAwait(true);
@@ -361,7 +361,7 @@ class QueueTest extends \PHPUnit_Framework_TestCase
         $q = new Queue('test', $mockAdapter);
 
         $mockAdapter->expects($this->any())->method('awaitMessages')->with(
-            $this->equalTo($q), $this->equalTo(function(){}), $this->equalTo($receiveParams)
+            $this->equalTo($q), $this->equalTo(function () {}), $this->equalTo($receiveParams)
         );
 
         $this->assertSame($q, $q->await($receiveParams));

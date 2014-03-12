@@ -244,7 +244,7 @@ class Queue implements QueueInterface, Countable, EventManagerAwareInterface
             if (is_string($data)) {
                 $message = new $messageClass;
                 $message->setContent($data);
-            } else if (is_array($data) && isset($data['content'])) {
+            } elseif (is_array($data) && isset($data['content'])) {
                 $message = new $messageClass;
                 $message->setContent((string)$data['content']);
                 if (isset($data['metadata'])) {

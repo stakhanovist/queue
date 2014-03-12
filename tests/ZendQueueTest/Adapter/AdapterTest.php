@@ -915,7 +915,7 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
 
         $queue->send('foo');
 
-        $return = $adapter->awaitMessages($queue, function($msgs) use (&$receiveCount, &$messages, $queue) {
+        $return = $adapter->awaitMessages($queue, function ($msgs) use (&$receiveCount, &$messages, $queue) {
             $receiveCount++;
             $messages = $msgs;
 

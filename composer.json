@@ -18,7 +18,7 @@
         "satooshi/php-coveralls": "dev-master",
         "phpmd/phpmd": "1.4.*",
         "pdepend/pdepend": "1.1.*",
-        "squizlabs/php_codesniffer": "1.5.2",
+        "fabpot/php-cs-fixer": "*@dev",
     	"zendframework/zendframework" : "2.2.*"
     },
     "require": {
