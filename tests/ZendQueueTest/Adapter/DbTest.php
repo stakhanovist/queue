@@ -36,8 +36,8 @@ class DbTest extends AdapterTest
     {
         if (ZEND_DB_ADAPTER_PDO_DRIVER == 'mysql') {
             $conf = array(
-                'driver' => 'Pdo',
-                'dsn' => "mysql:dbname=" . ZEND_DB_ADAPTER_DRIVER_MYSQL_DATABASE . ";host=" . ZEND_DB_ADAPTER_DRIVER_MYSQL_HOSTNAME,
+                'driver' => 'Pdo_mysql',
+                'dsn' => 'mysql:dbname=' . ZEND_DB_ADAPTER_DRIVER_MYSQL_DATABASE . ';host=' . ZEND_DB_ADAPTER_DRIVER_MYSQL_HOSTNAME,
                 'username' => ZEND_DB_ADAPTER_DRIVER_MYSQL_USERNAME,
                 'password' => ZEND_DB_ADAPTER_DRIVER_MYSQL_PASSWORD,
                 'driver_options' => array(
@@ -47,14 +47,21 @@ class DbTest extends AdapterTest
         } elseif (ZEND_DB_ADAPTER_PDO_DRIVER == 'pgsql') {
             $conf = array(
                 'driver' => 'pdo_pgsql',
-                'dsn' => "pgsql:dbname=" . ZEND_DB_ADAPTER_DRIVER_PGSQL_DATABASE . ";host=" . ZEND_DB_ADAPTER_DRIVER_PGSQL_HOSTNAME,
+                'dsn' => 'pgsql:dbname=' . ZEND_DB_ADAPTER_DRIVER_PGSQL_DATABASE . ';host=' . ZEND_DB_ADAPTER_DRIVER_PGSQL_HOSTNAME,
                 'username' => ZEND_DB_ADAPTER_DRIVER_PGSQL_USERNAME,
                 'password' => ZEND_DB_ADAPTER_DRIVER_PGSQL_PASSWORD,
             );
-        } elseif(ZEND_DB_ADAPTER_PDO_DRIVER == "sqlite"){
+        } elseif(ZEND_DB_ADAPTER_PDO_DRIVER == 'sqlite') {
             $conf = array(
-                'driver' => 'Pdo_Sqlite',
+                'driver' => 'Pdo_sqlite',
                 'database' => ZEND_DB_ADAPTER_DRIVER_SQLITE_DBPATH,
+            );
+        } elseif(ZEND_DB_ADAPTER_PDO_DRIVER == 'sqlsrv') {
+            $conf = array(
+                'driver' => 'Pdo_sqlsrv',
+                'dsn' => 'sqlsrv:Server=' . ZEND_DB_ADAPTER_DRIVER_SQLSRV_SERVER . ',' . ZEND_DB_ADAPTER_DRIVER_SQLSRV_PORT . ';Database=' . ZEND_DB_ADAPTER_DRIVER_SQLSRV_DATABASE,
+                'username' => ZEND_DB_ADAPTER_DRIVER_SQLSRV_USERNAME,
+                'password' => ZEND_DB_ADAPTER_DRIVER_SQLSRV_PASSWORD
             );
         }
         return array('driverOptions' => $conf);
