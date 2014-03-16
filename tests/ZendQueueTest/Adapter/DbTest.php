@@ -2,21 +2,9 @@
 namespace ZendQueueTest\Adapter;
 
 use ZendQueue\Adapter\Db;
+
 class DbTest extends AdapterTest
 {
-
-    /**
-     * getAdapterName() is an method to help make AdapterTest work with any
-     * new adapters
-     *
-     * You must overload this method
-     *
-     * @return string
-     */
-    public function getAdapterName()
-    {
-        return 'Db';
-    }
 
     /**
      * getAdapterName() is an method to help make AdapterTest work with any
@@ -32,39 +20,17 @@ class DbTest extends AdapterTest
         return '\ZendQueue\Adapter\\' . $this->getAdapterName();
     }
 
-    public function getTestOptions()
+    /**
+     * getAdapterName() is an method to help make AdapterTest work with any
+     * new adapters
+     *
+     * You must overload this method
+     *
+     * @return string
+     */
+    public function getAdapterName()
     {
-        if (ZEND_DB_ADAPTER_PDO_DRIVER == 'mysql') {
-            $conf = array(
-                'driver' => 'Pdo_mysql',
-                'dsn' => 'mysql:dbname=' . ZEND_DB_ADAPTER_DRIVER_MYSQL_DATABASE . ';host=' . ZEND_DB_ADAPTER_DRIVER_MYSQL_HOSTNAME,
-                'username' => ZEND_DB_ADAPTER_DRIVER_MYSQL_USERNAME,
-                'password' => ZEND_DB_ADAPTER_DRIVER_MYSQL_PASSWORD,
-                'driver_options' => array(
-                    \PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES \'UTF8\''
-                ),
-            );
-        } elseif (ZEND_DB_ADAPTER_PDO_DRIVER == 'pgsql') {
-            $conf = array(
-                'driver' => 'pdo_pgsql',
-                'dsn' => 'pgsql:dbname=' . ZEND_DB_ADAPTER_DRIVER_PGSQL_DATABASE . ';host=' . ZEND_DB_ADAPTER_DRIVER_PGSQL_HOSTNAME,
-                'username' => ZEND_DB_ADAPTER_DRIVER_PGSQL_USERNAME,
-                'password' => ZEND_DB_ADAPTER_DRIVER_PGSQL_PASSWORD,
-            );
-        } elseif(ZEND_DB_ADAPTER_PDO_DRIVER == 'sqlite') {
-            $conf = array(
-                'driver' => 'Pdo_sqlite',
-                'database' => ZEND_DB_ADAPTER_DRIVER_SQLITE_DBPATH,
-            );
-        } elseif(ZEND_DB_ADAPTER_PDO_DRIVER == 'sqlsrv') {
-            $conf = array(
-                'driver' => 'Pdo_sqlsrv',
-                'dsn' => 'sqlsrv:Server=' . ZEND_DB_ADAPTER_DRIVER_SQLSRV_SERVER . ',' . ZEND_DB_ADAPTER_DRIVER_SQLSRV_PORT . ';Database=' . ZEND_DB_ADAPTER_DRIVER_SQLSRV_DATABASE,
-                'username' => ZEND_DB_ADAPTER_DRIVER_SQLSRV_USERNAME,
-                'password' => ZEND_DB_ADAPTER_DRIVER_SQLSRV_PASSWORD
-            );
-        }
-        return array('driverOptions' => $conf);
+        return 'Db';
     }
 
     public function testGetQueueTable()
@@ -89,15 +55,52 @@ class DbTest extends AdapterTest
         $msgTableGateway = new \Zend\Db\TableGateway\TableGateway('messages', $dbAdapter);
 
         $adapter = new Db();
-        $adapter->setOptions(array(
-            'dbAdapter'     => $dbAdapter,
-            'queueTable'    => $queueTableGateway,
-            'messageTable'  => $msgTableGateway,
-        ));
+        $adapter->setOptions(
+            array(
+                'dbAdapter' => $dbAdapter,
+                'queueTable' => $queueTableGateway,
+                'messageTable' => $msgTableGateway,
+            )
+        );
 
         $this->assertTrue($adapter->connect());
         $this->assertSame($queueTableGateway, $adapter->getQueueTable());
         $this->assertSame($msgTableGateway, $adapter->getMessageTable());
+    }
+
+    public function getTestOptions()
+    {
+        if (ZEND_DB_ADAPTER_PDO_DRIVER == 'mysql') {
+            $conf = array(
+                'driver' => 'Pdo_mysql',
+                'dsn' => 'mysql:dbname=' . ZEND_DB_ADAPTER_DRIVER_MYSQL_DATABASE . ';host=' . ZEND_DB_ADAPTER_DRIVER_MYSQL_HOSTNAME,
+                'username' => ZEND_DB_ADAPTER_DRIVER_MYSQL_USERNAME,
+                'password' => ZEND_DB_ADAPTER_DRIVER_MYSQL_PASSWORD,
+                'driver_options' => array(
+                    \PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES \'UTF8\''
+                ),
+            );
+        } elseif (ZEND_DB_ADAPTER_PDO_DRIVER == 'pgsql') {
+            $conf = array(
+                'driver' => 'pdo_pgsql',
+                'dsn' => 'pgsql:dbname=' . ZEND_DB_ADAPTER_DRIVER_PGSQL_DATABASE . ';host=' . ZEND_DB_ADAPTER_DRIVER_PGSQL_HOSTNAME,
+                'username' => ZEND_DB_ADAPTER_DRIVER_PGSQL_USERNAME,
+                'password' => ZEND_DB_ADAPTER_DRIVER_PGSQL_PASSWORD,
+            );
+        } elseif (ZEND_DB_ADAPTER_PDO_DRIVER == 'sqlite') {
+            $conf = array(
+                'driver' => 'Pdo_sqlite',
+                'database' => ZEND_DB_ADAPTER_DRIVER_SQLITE_DBPATH,
+            );
+        } elseif (ZEND_DB_ADAPTER_PDO_DRIVER == 'sqlsrv') {
+            $conf = array(
+                'driver' => 'Pdo_sqlsrv',
+                'dsn' => 'sqlsrv:Server=' . ZEND_DB_ADAPTER_DRIVER_SQLSRV_SERVER . ',' . ZEND_DB_ADAPTER_DRIVER_SQLSRV_PORT . ';Database=' . ZEND_DB_ADAPTER_DRIVER_SQLSRV_DATABASE,
+                'username' => ZEND_DB_ADAPTER_DRIVER_SQLSRV_USERNAME,
+                'password' => ZEND_DB_ADAPTER_DRIVER_SQLSRV_PASSWORD
+            );
+        }
+        return array('driverOptions' => $conf);
     }
 
 }
