@@ -391,6 +391,8 @@ class Db extends AbstractAdapter implements
                 $select->where($where);
                 $select->limit($maxMessages);
 
+                $select->getSqlString($this->adapter->getPlatform());
+
                 $results = $this->getMessageTable()->selectWith($select)->toArray();
 
                 foreach ($results as $message) {
