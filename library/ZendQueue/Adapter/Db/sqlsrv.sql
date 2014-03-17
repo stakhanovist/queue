@@ -1,44 +1,37 @@
+SET DATEFORMAT ymd
 
-CREATE TABLE [dbo].[queue](
-	[queue_id] [int] IDENTITY(1,1) NOT NULL,
-	[queue_name] [varchar](100) NOT NULL,
-	[timeout] [int] NOT NULL,
- CONSTRAINT [PK_queue] PRIMARY KEY CLUSTERED 
-(
-	[queue_id] ASC
-)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
-) ON [PRIMARY]
+--- DROP DATABASE [queue]
+--- GO
 
+CREATE DATABASE [queue]
 GO
 
-ALTER TABLE [dbo].[queue] ADD  DEFAULT ((30)) FOR [timeout]
+USE [queue]
 GO
 
+---- Table structure for table `queue`
 
-CREATE TABLE [dbo].[message](
-	[message_id] [bigint] IDENTITY(1,1) NOT NULL,
-	[queue_id] [int] NOT NULL,
-	[handle] [char](32) NULL,
-	[body] [varchar](max) NOT NULL,
-	[md5] [char](32) NOT NULL,
-	[timeout] [decimal](14, 4) NULL,
-	[created] [int] NOT NULL,
- CONSTRAINT [PK_message] PRIMARY KEY CLUSTERED 
-(
-	[message_id] ASC
-)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
-) ON [PRIMARY]
+CREATE TABLE [queue] (
+  [queue_id]   BIGINT IDENTITY (1, 1),
+  [queue_name] VARCHAR(100) NOT NULL,
+  CONSTRAINT [queue_primary_queue] PRIMARY KEY NONCLUSTERED ([queue_id])
+);
 
-GO
+---- Table structure for table `message`
 
-ALTER TABLE [dbo].[message]  WITH CHECK ADD  CONSTRAINT [fk_message_queue_id] FOREIGN KEY([queue_id])
-REFERENCES [dbo].[queue] ([queue_id])
-GO
-
-ALTER TABLE [dbo].[message] CHECK CONSTRAINT [fk_message_queue_id]
-GO
-
-
-
-
-
+CREATE TABLE [message] (
+  [message_id] BIGINT IDENTITY (1, 1),
+  [queue_id]   BIGINT       NOT NULL, [handle] NVARCHAR(32) NULL,
+  [class]      VARCHAR(255) NOT NULL,
+  [content]    VARCHAR(MAX) NOT NULL,
+  [metadata]   NTEXT        NULL, [md5] NVARCHAR(32) NOT NULL,
+  [timeout]    BIGINT       NULL, [schedule] BIGINT NULL,
+  [interval]   BIGINT       NULL, [created] BIGINT NOT NULL,
+  CONSTRAINT [message_primary_message] PRIMARY KEY NONCLUSTERED ([message_id]),
+  CONSTRAINT [message_message_ibfk_1] FOREIGN KEY ("queue_id") REFERENCES "queue" ("queue_id")
+    ON UPDATE CASCADE
+    ON DELETE CASCADE
+);
+CREATE UNIQUE NONCLUSTERED INDEX [message_message_handle] ON [message] ([handle]);
+CREATE NONCLUSTERED INDEX [message_message_queueid] ON [message] ([queue_id]);
+ALTER TABLE [message] CHECK CONSTRAINT [message_message_ibfk_1];
