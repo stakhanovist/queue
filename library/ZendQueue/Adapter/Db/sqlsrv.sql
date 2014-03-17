@@ -22,11 +22,11 @@ CREATE TABLE [queue] (
 CREATE TABLE [message] (
   [message_id] BIGINT IDENTITY (1, 1),
   [queue_id]   BIGINT NOT NULL,
-  [handle]     NVARCHAR(32) NULL,
+  [handle]     CHAR(32) NULL,
   [class]      VARCHAR(255) NOT NULL,
   [content]    VARCHAR(MAX) NOT NULL,
   [metadata]   NTEXT NULL,
-  [md5]        NVARCHAR(32) NOT NULL,
+  [md5]        CHAR(32) NOT NULL,
   [timeout]    BIGINT NULL,
   [schedule]   BIGINT NULL,
   [interval]   BIGINT NULL,
