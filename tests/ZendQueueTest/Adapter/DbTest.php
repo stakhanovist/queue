@@ -95,7 +95,7 @@ class DbTest extends AdapterTest
         } elseif (ZEND_DB_ADAPTER_PDO_DRIVER == 'sqlsrv') {
             $conf = array(
                 'driver' => 'Pdo_sqlsrv',
-                'dsn' => 'sqlsrv:Server=' . ZEND_DB_ADAPTER_DRIVER_SQLSRV_SERVER . ',' . ZEND_DB_ADAPTER_DRIVER_SQLSRV_PORT . ';Database=' . ZEND_DB_ADAPTER_DRIVER_SQLSRV_DATABASE,
+                'dsn' => 'sqlsrv:Server=' . ZEND_DB_ADAPTER_DRIVER_SQLSRV_SERVER . ';Database=' . ZEND_DB_ADAPTER_DRIVER_SQLSRV_DATABASE,
                 'username' => ZEND_DB_ADAPTER_DRIVER_SQLSRV_USERNAME,
                 'password' => ZEND_DB_ADAPTER_DRIVER_SQLSRV_PASSWORD
             );

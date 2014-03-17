@@ -1,12 +1,12 @@
 SET DATEFORMAT ymd
 
---- DROP DATABASE [queue]
+--- DROP DATABASE [zfqueue]
 --- GO
 
-CREATE DATABASE [queue]
+CREATE DATABASE [zfqueue]
 GO
 
-USE [queue]
+USE [zfqueue]
 GO
 
 ---- Table structure for table `queue`
