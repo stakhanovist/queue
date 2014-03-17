@@ -36,6 +36,6 @@ CREATE TABLE [message] (
     ON UPDATE CASCADE
     ON DELETE CASCADE
 );
-CREATE UNIQUE NONCLUSTERED INDEX [message_message_handle] ON [message] ([handle]);
+--- CREATE UNIQUE NONCLUSTERED INDEX [message_message_handle] ON [message] ([handle]);
 CREATE NONCLUSTERED INDEX [message_message_queueid] ON [message] ([queue_id]);
 ALTER TABLE [message] CHECK CONSTRAINT [message_message_ibfk_1];
