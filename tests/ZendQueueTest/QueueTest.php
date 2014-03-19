@@ -560,5 +560,54 @@ class QueueTest extends \PHPUnit_Framework_TestCase
 
     }
 
+    public function testUsageExample()
+    {
+        // Create an array queue adapter
+        $adapter = new ArrayAdapter();
+
+
+        // Create a queue object
+        $queue = new Queue('queue1', $adapter);
+
+        // Ensure queue1 exists in the backend
+        $queue->ensureQueue();
+
+
+        // Create a new queue object
+        $queue2 = new Queue('queue2', $adapter);
+
+        // Ensure queue2 exists in the backend
+        $queue2->ensureQueue();
+
+
+        // Get list of queues
+        foreach ($adapter->listQueues() as $name) {
+            $this->assertStringStartsWith('queue', $name); //echo $name, "\n";
+        }
+
+
+        // Send a message to queue1
+        $queue->send('My Test Message');
+
+
+        // Get number of messages in a queue1 (supports Countable interface from SPL)
+        $this->assertCount(1, $queue);//echo count($queue);
+
+        // Get up to 5 messages from a queue1
+        $messages = $queue->receive(5);
+
+        foreach ($messages as $i => $message) {
+            $this->assertSame('My Test Message', $message->getContent()); //echo $message->getContent(), "\n";
+
+            // We have processed the message; now we remove it from the queue.
+            $queue->delete($message);
+        }
+
+
+        // Delete a queue we created and all of it's messages
+        $queue->deleteQueue();
+
+    }
+
 
 }
