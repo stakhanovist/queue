@@ -24,6 +24,7 @@ use ZendQueue\Adapter\Capabilities\ListQueuesCapableInterface;
 use ZendQueue\Adapter\Capabilities\CountMessagesCapableInterface;
 use ZendQueue\Adapter\Null;
 use ZendQueue\Adapter\Capabilities\AwaitMessagesCapableInterface;
+use ZendQueue\Parameter\SendParameters;
 
 /*
  * The adapter test class provides a universal test class for all of the
@@ -905,6 +906,7 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
     {
         $queue = $this->createQueue(__FUNCTION__);
         $adapter = $queue->getAdapter();
+        $this->checkAdapterSupport($adapter, array('sendMessage', 'deleteQueue'));
 
         if (!$adapter instanceof AwaitMessagesCapableInterface) {
             $this->markTestSkipped($this->getAdapterName() . ' does not support await');
@@ -936,5 +938,36 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
         $message = $messages->current();
         $this->assertInstanceOf($queue->getOptions()->getMessageClass(), $message);
         $this->assertSame('foo', $message->getContent());
+
+        // delete the queue we created
+        $adapter->deleteQueue($queue->getName());
+    }
+
+    public function testSchedule()
+    {
+        $queue = $this->createQueue(__FUNCTION__);
+        $adapter = $queue->getAdapter();
+        $this->checkAdapterSupport($adapter, array('sendMessage', 'deleteQueue'));
+
+        if (!$queue->isSendParamSupported(SendParameters::SCHEDULE)) {
+            $this->markTestSkipped($this->getAdapterName() . ' does not support scheduling');
+        }
+
+        $scheduleTime = (int)microtime(true);
+        $scheduleTime += 1;
+        $queue->schedule('test', $scheduleTime);
+
+        $messages = $queue->receive();
+
+        $this->assertCount(0, $messages);
+
+        sleep(2);
+
+        $messages = $queue->receive();
+
+        $this->assertCount(1, $messages);
+
+        // delete the queue we created
+        $adapter->deleteQueue($queue->getName());
     }
 }

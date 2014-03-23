@@ -37,6 +37,19 @@ class ArrayAdapter extends AbstractAdapter implements DeleteMessageCapableInterf
 
 
     /**
+     * List avaliable params for sendMessage()
+     *
+     * @return array
+     */
+    public function getAvailableSendParams()
+    {
+        return array(
+            SendParameters::SCHEDULE,
+            SendParameters::REPEATING_INTERVAL,
+        );
+    }
+
+    /**
      * List avaliable params for receiveMessages()
      *
      * @return array
@@ -184,6 +197,16 @@ class ArrayAdapter extends AbstractAdapter implements DeleteMessageCapableInterf
             'handle' => null,
         );
 
+        if ($params) {
+            if ($params->getSchedule()) {
+                $msg['schedule'] = $params->getSchedule();
+            }
+
+            if ($params->getRepeatingInterval()) {
+                $msg['interval'] = $params->getRepeatingInterval();
+            }
+        }
+
         $_queue = & $this->data[$queue->getName()];
 
         $messageId = md5(Rand::getString(10) . count($_queue));
@@ -211,6 +234,7 @@ class ArrayAdapter extends AbstractAdapter implements DeleteMessageCapableInterf
 
         $timeout = $params ? $params->getVisibilityTimeout() : null;
         $filter = $params ? $params->getClassFilter() : null;
+        $microtime = (int)microtime(true);
 
         $data = array();
         if ($maxMessages > 0) {
@@ -222,10 +246,14 @@ class ArrayAdapter extends AbstractAdapter implements DeleteMessageCapableInterf
                     continue;
                 }
 
+                if (isset($msg['schedule']) && $microtime < $msg['schedule']) {
+                    continue;
+                }
+
                 if ($msg['handle'] === null || ($msg['timeout'] !== null && $msg['timeout'] < microtime(true))) {
 
                     $msg['handle'] = md5(uniqid(rand(), true));
-                    $msg['timeout'] = $params ? microtime(true) + $timeout : null;
+                    $msg['timeout'] = $params ? $microtime + $timeout : null;
                     $msg['metadata'][$queue->getOptions()->getMessageMetadatumKey()] = $this->buildMessageInfo(
                         $msg['handle'],
                         $messageId,

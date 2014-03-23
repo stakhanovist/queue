@@ -380,7 +380,7 @@ class Db extends AbstractAdapter implements
 
                 $where = array(
                     'queue_id' => $this->getQueueId($queue->getName()),
-                    '(schedule IS NULL or schedule < ?)' => $microtime,
+                    '(schedule IS NULL OR schedule <= ?)' => $microtime,
                     '(handle IS NULL OR timeout < ' . $microtime . ')',
                 );
 
