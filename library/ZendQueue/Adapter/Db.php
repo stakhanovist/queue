@@ -336,11 +336,16 @@ class Db extends AbstractAdapter implements
         }
 
         try {
-            $id = $this->getMessageTable()->insert($msg);
+            $affectedRows = $this->getMessageTable()->insert($msg);
         } catch (\Exception $e) {
             throw new Exception\RuntimeException($e->getMessage(), $e->getCode(), $e);
         }
 
+        if (!$affectedRows) {
+            throw new Exception\RuntimeException('Cannot insert row');
+        }
+
+        $id = $this->getMessageTable()->getLastInsertValue();
         $this->embedMessageInfo($queue, $message, $id, $params);
 
         return $message;
@@ -466,7 +471,7 @@ class Db extends AbstractAdapter implements
         $info = $this->getMessageInfo($queue, $message);
         $queueId = $this->getQueueId($queue->getName());
 
-        if (isset($info['messageId']) && isset($info['handle'])) {
+        if (isset($info['messageId'])) {
             $where = array('message_id' => $info['messageId'], 'queue_id' => $queueId);
 
             if ($info['handle']) {
