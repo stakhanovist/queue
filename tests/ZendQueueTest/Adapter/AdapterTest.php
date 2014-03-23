@@ -955,17 +955,14 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
 
         $scheduleTime = (int)microtime(true);
         $scheduleTime += 1;
-        $queue->schedule('test', $scheduleTime);
+        $queue->schedule('test schedule', $scheduleTime);
 
         $messages = $queue->receive();
+        $this->assertCount(0, $messages, 'Message is visibile before scheduling time');
 
-        $this->assertCount(0, $messages);
-
-        sleep(2);
-
+        sleep(1);
         $messages = $queue->receive();
-
-        $this->assertCount(1, $messages);
+        $this->assertCount(1, $messages, 'Message is not visibile after scheduling time');
 
         // delete the queue we created
         $adapter->deleteQueue($queue->getName());
@@ -982,15 +979,49 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
         }
 
         $scheduleTime = (int)microtime(true) + 1;
-        $message = $queue->schedule('test', $scheduleTime);
+        $message = $queue->schedule('test unschedule', $scheduleTime);
 
+        sleep(1);
         $this->assertTrue($queue->unschedule($message));
 
-        sleep(2);
+        $messages = $queue->receive();
+        $this->assertCount(0, $messages, 'Message has been not unscheduled');
+
+        // delete the queue we created
+        $adapter->deleteQueue($queue->getName());
+    }
+
+    public function testRepeatingInterval()
+    {
+        $queue = $this->createQueue(__FUNCTION__);
+        $adapter = $queue->getAdapter();
+        $this->checkAdapterSupport($adapter, array('sendMessage', 'deleteQueue'));
+
+        if (!$queue->isSendParamSupported(SendParameters::REPEATING_INTERVAL) || !$adapter instanceof DeleteMessageCapableInterface) {
+            $this->markTestSkipped($this->getAdapterName() . ' does not support repeating interval');
+        }
+
+        $scheduleTime = (int)microtime(true);
+        $scheduleTime += 1;
+        $queue->schedule('test repeating', $scheduleTime, 1); //repeat every second
+
+        for($i=0; $i<3; $i++) {
+            sleep(1);
+
+            $messages = $queue->receive();
+            if ($messages->count() == 0 && $i > 0) {
+                $this->fail('Message has been not re-scheduled, repeating interval is not working');
+            }
+
+            $this->assertCount(1, $messages);
+            $message = $messages->current();
+            $queue->delete($message);
+        }
+
+        $queue->unschedule($message);
 
         $messages = $queue->receive();
-
-        $this->assertCount(0, $messages);
+        $this->assertCount(0, $messages, 'Message has been not unscheduled');
 
         // delete the queue we created
         $adapter->deleteQueue($queue->getName());

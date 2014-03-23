@@ -250,14 +250,18 @@ class ArrayAdapter extends AbstractAdapter implements DeleteMessageCapableInterf
                     continue;
                 }
 
-                if ($msg['handle'] === null || ($msg['timeout'] !== null && $msg['timeout'] < microtime(true))) {
+                if ($msg['handle'] === null || ($msg['timeout'] !== null && $msg['timeout'] < $microtime)) {
 
                     $msg['handle'] = md5(uniqid(rand(), true));
                     $msg['timeout'] = $params ? $microtime + $timeout : null;
                     $msg['metadata'][$queue->getOptions()->getMessageMetadatumKey()] = $this->buildMessageInfo(
                         $msg['handle'],
                         $messageId,
-                        $queue
+                        $queue,
+                        array(
+                            SendParameters::SCHEDULE => isset($msg['schedule']) ? $msg['schedule'] : null,
+                            SendParameters::REPEATING_INTERVAL => isset($msg['interval']) ? $msg['interval'] : null,
+                        )
                     );
 
                     $data[] = $msg;
@@ -301,7 +305,14 @@ class ArrayAdapter extends AbstractAdapter implements DeleteMessageCapableInterf
             return false;
         }
 
-        unset($queue[$messageId]);
+        if (!empty($info['options'][SendParameters::REPEATING_INTERVAL])) {
+            $microtime = (int) microtime(true);
+            $queue[$messageId]['schedule'] = $microtime + $info['options'][SendParameters::REPEATING_INTERVAL];
+            $queue[$messageId]['handle']   = null;
+            $queue[$messageId]['timeout']  = null;
+        } else {
+            unset($queue[$messageId]);
+        }
 
         return true;
     }
