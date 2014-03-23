@@ -970,4 +970,29 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
         // delete the queue we created
         $adapter->deleteQueue($queue->getName());
     }
+
+    public function testUnschedule()
+    {
+        $queue = $this->createQueue(__FUNCTION__);
+        $adapter = $queue->getAdapter();
+        $this->checkAdapterSupport($adapter, array('sendMessage', 'deleteQueue'));
+
+        if (!$queue->isSendParamSupported(SendParameters::SCHEDULE) || !$adapter instanceof DeleteMessageCapableInterface) {
+            $this->markTestSkipped($this->getAdapterName() . ' does not support unscheduling');
+        }
+
+        $scheduleTime = (int)microtime(true) + 1;
+        $message = $queue->schedule('test', $scheduleTime);
+
+        $this->assertTrue($queue->unschedule($message));
+
+        sleep(2);
+
+        $messages = $queue->receive();
+
+        $this->assertCount(0, $messages);
+
+        // delete the queue we created
+        $adapter->deleteQueue($queue->getName());
+    }
 }
