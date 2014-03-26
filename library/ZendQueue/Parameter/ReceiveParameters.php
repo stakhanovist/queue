@@ -57,7 +57,7 @@ class ReceiveParameters extends Parameters
      * Set the visibility timeout
      *
      * Visibility timeout is how long a message is left in the queue
-     * "invisible" to other readers.  If the message is acknowleged (deleted)
+     * "invisible" to other readers.  If the message is acknowledged (deleted)
      * before the timeout, then the message is deleted.  However, if the
      * timeout expires then the message will be made available to other queue
      * readers.

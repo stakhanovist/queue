@@ -56,7 +56,7 @@ class SendParameters extends Parameters
      * Set message repeating interval
      *
      * $repeatingInterval must be an int (seconds) or null (to disable this feature)
-     * If $repeatingInterval is setted, each time the message is acknowleged by a reader
+     * If $repeatingInterval is setted, each time the message is acknowledged by a reader
      * the message will be auto scheduled at current time plus interval seconds
      *
      * @param int $repeatingInterval
