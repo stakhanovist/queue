@@ -548,18 +548,9 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
 
         $this->assertTrue($adapter->deleteMessage($queue, $message));
 
-
-
         //Test delete non-existing message
         $newMessage = new Message();
         $this->assertFalse($adapter->deleteMessage($queue, $newMessage));
-
-//         // no more messages, should return false
-//         // stomp and amazon always return true.
-//         $falsePositive = array('Activemq', 'Amazon');
-//         if (!in_array($this->getAdapterName(), $falsePositive)) {
-//             $this->assertFalse($adapter->deleteMessage($queue, $message));
-//         }
 
         // delete the queue we created
         $adapter->deleteQueue($queue->getName());
@@ -947,7 +938,7 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
     {
         $queue = $this->createQueue(__FUNCTION__);
         $adapter = $queue->getAdapter();
-        $this->checkAdapterSupport($adapter, array('sendMessage', 'deleteQueue'));
+        $this->checkAdapterSupport($adapter, array('sendMessage', 'receiveMessages', 'deleteQueue'));
 
         if (!$queue->isSendParamSupported(SendParameters::SCHEDULE)) {
             $this->markTestSkipped($this->getAdapterName() . ' does not support scheduling');
@@ -972,7 +963,7 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
     {
         $queue = $this->createQueue(__FUNCTION__);
         $adapter = $queue->getAdapter();
-        $this->checkAdapterSupport($adapter, array('sendMessage', 'deleteQueue'));
+        $this->checkAdapterSupport($adapter, array('sendMessage', 'receiveMessages',  'deleteQueue'));
 
         if (!$queue->isSendParamSupported(SendParameters::SCHEDULE) || !$adapter instanceof DeleteMessageCapableInterface) {
             $this->markTestSkipped($this->getAdapterName() . ' does not support unscheduling');
@@ -995,7 +986,7 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
     {
         $queue = $this->createQueue(__FUNCTION__);
         $adapter = $queue->getAdapter();
-        $this->checkAdapterSupport($adapter, array('sendMessage', 'deleteQueue'));
+        $this->checkAdapterSupport($adapter, array('sendMessage', 'receiveMessages',  'deleteQueue'));
 
         if (!$queue->isSendParamSupported(SendParameters::REPEATING_INTERVAL) || !$adapter instanceof DeleteMessageCapableInterface) {
             $this->markTestSkipped($this->getAdapterName() . ' does not support repeating interval');
@@ -1026,4 +1017,9 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
         // delete the queue we created
         $adapter->deleteQueue($queue->getName());
     }
+
+//     public function testPeekMode()
+//     {
+
+//     }
 }
