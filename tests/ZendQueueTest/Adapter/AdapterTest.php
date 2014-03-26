@@ -861,6 +861,44 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
         $adapter->deleteQueue($queue->getName());
     }
 
+    public function testPeekMode()
+    {
+        $queue = $this->createQueue(__FUNCTION__);
+        $adapter = $queue->getAdapter();
+        $this->checkAdapterSupport($adapter, array('sendMessage', 'receiveMessages',  'deleteQueue'));
+
+        if (!$queue->isReceiveParamSupported(ReceiveParameters::PEEK_MODE)) {
+            $this->markTestSkipped($this->getAdapterName() . ' does not support peek mode');
+        }
+
+        $body = 'test peek mode';
+
+        $queue->send($body);
+
+        $params = new ReceiveParameters();
+        $params->setPeekMode(true);
+
+        $messages = $queue->receive(1, $params);
+
+        $this->assertCount(1, $messages);
+        $message = $messages->current();
+        $this->assertInstanceOf($queue->getOptions()->getMessageClass(), $message);
+        $this->assertSame($body, $message->getContent());
+
+
+        //Test message is still visibile
+        $messages = $queue->receive(1, $params);
+
+        $this->assertCount(1, $messages);
+        $message = $messages->current();
+        $this->assertInstanceOf($queue->getOptions()->getMessageClass(), $message);
+        $this->assertSame($body, $message->getContent());
+
+
+        // delete the queue we created
+        $adapter->deleteQueue($queue->getName());
+    }
+
     public function testAdapterShouldReturnNoMessagesWhenZeroCountRequested()
     {
         $queue = $this->createQueue(__FUNCTION__);
@@ -1017,9 +1055,4 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
         // delete the queue we created
         $adapter->deleteQueue($queue->getName());
     }
-
-//     public function testPeekMode()
-//     {
-
-//     }
 }

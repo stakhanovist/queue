@@ -59,6 +59,7 @@ class ArrayAdapter extends AbstractAdapter implements DeleteMessageCapableInterf
         return array(
             ReceiveParameters::VISIBILITY_TIMEOUT,
             ReceiveParameters::CLASS_FILTER,
+            ReceiveParameters::PEEK_MODE,
         );
     }
 
@@ -233,7 +234,8 @@ class ArrayAdapter extends AbstractAdapter implements DeleteMessageCapableInterf
         }
 
         $timeout = $params ? $params->getVisibilityTimeout() : null;
-        $filter = $params ? $params->getClassFilter() : null;
+        $filter  = $params ? $params->getClassFilter() : null;
+        $peek    = $params ? $params->getPeekMode() : false;
         $microtime = (int)microtime(true);
 
         $data = array();
@@ -252,8 +254,14 @@ class ArrayAdapter extends AbstractAdapter implements DeleteMessageCapableInterf
 
                 if ($msg['handle'] === null || ($msg['timeout'] !== null && $msg['timeout'] < $microtime)) {
 
-                    $msg['handle'] = md5(uniqid(rand(), true));
-                    $msg['timeout'] = $params ? $microtime + $timeout : null;
+                    if ($peek) {
+                        $msg['handle'] = null;
+                        $msg['timeout'] = null;
+                    } else {
+                        $msg['handle'] = md5(uniqid(rand(), true));
+                        $msg['timeout'] = $timeout ? $microtime + $timeout : null;
+                    }
+
                     $msg['metadata'][$queue->getOptions()->getMessageMetadatumKey()] = $this->buildMessageInfo(
                         $msg['handle'],
                         $messageId,

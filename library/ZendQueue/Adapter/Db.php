@@ -402,12 +402,15 @@ class Db extends AbstractAdapter implements
 
                 foreach ($results as $message) {
 
-                    $message['handle'] = md5(uniqid(rand(), true));
-                    $message['timeout'] = $microtime;
-
                     $keepMessage = true;
 
-                    if (!$peek) {
+                    if ($peek) {
+                        $message['handle'] = null;
+                        $message['timeout'] = null;
+                    } else {
+                        $message['handle'] = md5(uniqid(rand(), true));
+                        $message['timeout'] = $microtime;
+
                         $update = $sql->update();
                         $update->set(array('handle' => $message['handle'], 'timeout' => $timeout ? $timeout + $microtime : null));
                         $update->where(array('message_id' => $message['message_id']));
