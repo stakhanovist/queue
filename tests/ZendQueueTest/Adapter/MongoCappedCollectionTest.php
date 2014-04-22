@@ -12,6 +12,8 @@ namespace ZendQueueTest\Adapter;
 
 use ZendQueue\Adapter\MongoCappedCollection;
 use ZendQueue\Adapter\MongoCollection;
+use ZendQueue\Message\Message;
+
 /*
      * The adapter test class provides a universal test class for all of the
      * abstract methods.
@@ -96,5 +98,20 @@ class MongoCappedCollectionTest extends AdapterTest
     public function testCountMessageShouldThrowExcepetionWhenQueueDoesntExist()
     {
         $this->markTestSkipped('Mongo does not throw execption if collection does not exists');
+    }
+
+
+    /**
+     * @expectedException \ZendQueue\Exception\RuntimeException
+     */
+    public function testSendMessageWithFullCappedCollection()
+    {
+        $queue = $this->createQueue(__FUNCTION__);
+        $adapter = $queue->getAdapter();
+        $options = $adapter->getOptions();
+        $options['threshold'] = 10000;
+        $adapter->setOptions($options);
+        $this->checkAdapterSupport($adapter, 'sendMessage');
+        $adapter->sendMessage($queue, new Message());
     }
 }
