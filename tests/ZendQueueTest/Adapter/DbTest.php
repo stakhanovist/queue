@@ -68,6 +68,30 @@ class DbTest extends AdapterTest
         $this->assertSame($msgTableGateway, $adapter->getMessageTable());
     }
 
+
+    /**
+     * @expectedException \Exception
+     */
+    public function testConnectWithConnectionException()
+    {
+        $testOptions = $this->getTestOptions();
+        $driverOptions = $testOptions['driverOptions'];
+        $dbAdapter = new \Zend\Db\Adapter\Adapter($driverOptions);
+
+        $queueTableGateway = new \Zend\Db\TableGateway\TableGateway('queues', $dbAdapter);
+        $msgTableGateway = new \Zend\Db\TableGateway\TableGateway('messages', $dbAdapter);
+
+        $adapter = new Db();
+        $adapter->setOptions(
+            array(
+                'queueTable' => $queueTableGateway,
+                'messageTable' => $msgTableGateway,
+            )
+        );
+
+        $adapter->connect();
+    }
+
     public function getTestOptions()
     {
         if (ZEND_DB_ADAPTER_PDO_DRIVER == 'mysql') {
