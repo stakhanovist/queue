@@ -1,7 +1,10 @@
 <?php
 namespace ZendQueueTest\Adapter;
 
+use ZendQueue\Adapter\AdapterFactory;
 use ZendQueue\Adapter\Db;
+use ZendQueue\Queue;
+use ZendQueue\Adapter;
 
 class DbTest extends AdapterTest
 {
@@ -66,6 +69,45 @@ class DbTest extends AdapterTest
         $this->assertTrue($adapter->connect());
         $this->assertSame($queueTableGateway, $adapter->getQueueTable());
         $this->assertSame($msgTableGateway, $adapter->getMessageTable());
+    }
+
+
+    /**
+     * @expectedException \Exception
+     */
+    public function testConnectWithConnectionException()
+    {
+        $testOptions = $this->getTestOptions();
+        $driverOptions = $testOptions['driverOptions'];
+        $dbAdapter = new \Zend\Db\Adapter\Adapter($driverOptions);
+
+        $queueTableGateway = new \Zend\Db\TableGateway\TableGateway('queues', $dbAdapter);
+        $msgTableGateway = new \Zend\Db\TableGateway\TableGateway('messages', $dbAdapter);
+
+        $adapter = new Db();
+        $adapter->setOptions(
+            array(
+                'queueTable' => $queueTableGateway,
+                'messageTable' => $msgTableGateway,
+            )
+        );
+
+        $adapter->connect();
+    }
+
+
+    public function testDeleteQueueWithoutQueue()
+    {
+        $queue = $this->createQueue(__FUNCTION__);
+
+        $adapter = $queue->getAdapter();
+        $this->checkAdapterSupport($adapter, array('createQueue', 'deleteQueue'));
+
+        /** @var \Zend\Db\TableGateway\TableGateway $queueTable */
+        $queueTable = $adapter->getQueueTable();
+
+        $queueTable->delete(array('queue_id' => $adapter->getQueueId($queue->getName())));
+        $this->assertFalse($adapter->deleteQueue($queue->getName()));
     }
 
     public function getTestOptions()

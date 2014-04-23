@@ -10,15 +10,16 @@
 
 namespace ZendQueueTest\Adapter;
 
-use ZendQueue\Adapter\MongoCappedCollection;
 use ZendQueue\Adapter\MongoCollection;
+use ZendQueue\Message\Message;
+
 /*
-     * The adapter test class provides a universal test class for all of the
-     * abstract methods.
-     *
-     * All methods marked not supported are explictly checked for for throwing
-     * an exception.
-     */
+ * The adapter test class provides a universal test class for all of the
+ * abstract methods.
+ *
+ * All methods marked not supported are explictly checked for for throwing
+ * an exception.
+ */
 
 
 /**
@@ -80,7 +81,7 @@ class MongoCappedCollectionTest extends AdapterTest
         $mongoNonCappedAdapter->createQueue(__FUNCTION__);
 
         $this->setExpectedException('ZendQueue\Exception\RuntimeException');
-        $queue = $this->createQueue(__FUNCTION__);
+        $this->createQueue(__FUNCTION__);
     }
 
     public function testSendMessageShouldThrowExcepetionWhenQueueDoesntExist()
@@ -96,5 +97,43 @@ class MongoCappedCollectionTest extends AdapterTest
     public function testCountMessageShouldThrowExcepetionWhenQueueDoesntExist()
     {
         $this->markTestSkipped('Mongo does not throw execption if collection does not exists');
+    }
+
+    /**
+     * @expectedException \ZendQueue\Exception\RuntimeException
+     */
+    public function testSendMessageWithFullCappedCollection()
+    {
+        $queue = $this->createQueue(__FUNCTION__);
+        $adapter = $queue->getAdapter();
+        $options = $adapter->getOptions();
+        $options['threshold'] = 10000;
+        $adapter->setOptions($options);
+        $this->checkAdapterSupport($adapter, 'sendMessage');
+        $adapter->sendMessage($queue, new Message());
+    }
+
+    /**
+     * @expectedException \ZendQueue\Exception\RuntimeException
+     */
+    public function testAwaitMessagesWithoutSecondLast()
+    {
+        $queue = $this->createQueue(__FUNCTION__);
+        /** @var \ZendQueue\Adapter\MongoCappedCollection $adapter */
+        $adapter = $queue->getAdapter();
+        $this->checkAdapterSupport($adapter, array('sendMessage', 'deleteQueue'));
+
+        $receiveCount = 0;
+        $messages = null;
+
+        $queue->send('foo');
+
+        /** @var MongoCollection $collection */
+        $collection = $adapter->getMongoDb()->selectCollection($queue->getName());
+        $collection->drop();
+
+        $adapter->awaitMessages($queue, function () use (&$receiveCount, &$messages, $queue) {
+            return false;
+        });
     }
 }
