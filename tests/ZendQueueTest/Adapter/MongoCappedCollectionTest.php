@@ -10,17 +10,16 @@
 
 namespace ZendQueueTest\Adapter;
 
-use ZendQueue\Adapter\Capabilities\AwaitMessagesCapableInterface;
 use ZendQueue\Adapter\MongoCollection;
 use ZendQueue\Message\Message;
 
 /*
-     * The adapter test class provides a universal test class for all of the
-     * abstract methods.
-     *
-     * All methods marked not supported are explictly checked for for throwing
-     * an exception.
-     */
+ * The adapter test class provides a universal test class for all of the
+ * abstract methods.
+ *
+ * All methods marked not supported are explictly checked for for throwing
+ * an exception.
+ */
 
 
 /**
@@ -133,9 +132,8 @@ class MongoCappedCollectionTest extends AdapterTest
         $collection = $adapter->getMongoDb()->selectCollection($queue->getName());
         $collection->drop();
 
-        $adapter->awaitMessages($queue, function ($msgs) use (&$receiveCount, &$messages, $queue) {
+        $adapter->awaitMessages($queue, function () use (&$receiveCount, &$messages, $queue) {
             return false;
         });
-
     }
 }

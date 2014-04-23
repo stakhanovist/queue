@@ -10,7 +10,6 @@
 
 namespace ZendQueue\Adapter;
 
-
 use MongoId;
 use Zend\Stdlib\MessageInterface;
 use ZendQueue\Exception;
@@ -20,6 +19,9 @@ use ZendQueue\Parameter\ReceiveParameters;
 use ZendQueue\Adapter\Mongo\AbstractMongo;
 use ZendQueue\Adapter\Capabilities\AwaitMessagesCapableInterface;
 
+/**
+ * Class MongoCappedCollection
+ */
 class MongoCappedCollection extends AbstractMongo implements AwaitMessagesCapableInterface
 {
 
@@ -51,7 +53,15 @@ class MongoCappedCollection extends AbstractMongo implements AwaitMessagesCapabl
         if (version_compare(phpversion('mongo'), '1.4.0') < 0) {
             $queue = $this->getMongoDb()->createCollection($name, true, $options['size'], $options['maxMessages']);
         } else {
-            $queue = $this->getMongoDb()->createCollection($name, array('capped' => true, 'size' => $options['size'], 'max' => $options['maxMessages']));
+            $queue = $this->getMongoDb()
+                ->createCollection(
+                    $name,
+                    array(
+                        'capped' => true,
+                        'size' => $options['size'],
+                        'max' => $options['maxMessages']
+                    )
+                );
         }
 
         if ($queue) {
@@ -65,10 +75,11 @@ class MongoCappedCollection extends AbstractMongo implements AwaitMessagesCapabl
     }
 
     /**
-     * Check if a queue exists
+     * Check if  a queue exists
      *
-     * @param  string $name Queue name
-     * @return boolean
+     * @param string $name
+     * @return bool
+     * @throws \ZendQueue\Exception\RuntimeException
      */
     public function queueExists($name)
     {
@@ -140,7 +151,6 @@ class MongoCappedCollection extends AbstractMongo implements AwaitMessagesCapabl
     {
         $classname = $queue->getOptions()->getMessageSetClass();
         $collection = $this->getMongoDb()->selectCollection($queue->getName());
-
 
 
         /**
@@ -224,7 +234,7 @@ class MongoCappedCollection extends AbstractMongo implements AwaitMessagesCapabl
 
                 }
 
-            } while(true); //inner loop
+            } while (true); //inner loop
 
             //No message, timeout occured
             $iterator = new $classname(array(), $queue);
@@ -234,5 +244,4 @@ class MongoCappedCollection extends AbstractMongo implements AwaitMessagesCapabl
 
         } while (true);
     }
-
 }
