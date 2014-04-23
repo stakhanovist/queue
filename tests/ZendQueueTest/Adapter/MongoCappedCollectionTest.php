@@ -10,7 +10,7 @@
 
 namespace ZendQueueTest\Adapter;
 
-use ZendQueue\Adapter\MongoCappedCollection;
+use ZendQueue\Adapter\Capabilities\AwaitMessagesCapableInterface;
 use ZendQueue\Adapter\MongoCollection;
 use ZendQueue\Message\Message;
 
@@ -82,7 +82,7 @@ class MongoCappedCollectionTest extends AdapterTest
         $mongoNonCappedAdapter->createQueue(__FUNCTION__);
 
         $this->setExpectedException('ZendQueue\Exception\RuntimeException');
-        $queue = $this->createQueue(__FUNCTION__);
+        $this->createQueue(__FUNCTION__);
     }
 
     public function testSendMessageShouldThrowExcepetionWhenQueueDoesntExist()
@@ -100,7 +100,6 @@ class MongoCappedCollectionTest extends AdapterTest
         $this->markTestSkipped('Mongo does not throw execption if collection does not exists');
     }
 
-
     /**
      * @expectedException \ZendQueue\Exception\RuntimeException
      */
@@ -113,5 +112,30 @@ class MongoCappedCollectionTest extends AdapterTest
         $adapter->setOptions($options);
         $this->checkAdapterSupport($adapter, 'sendMessage');
         $adapter->sendMessage($queue, new Message());
+    }
+
+    /**
+     * @expectedException \ZendQueue\Exception\RuntimeException
+     */
+    public function testAwaitMessagesWithoutSecondLast()
+    {
+        $queue = $this->createQueue(__FUNCTION__);
+        /** @var \ZendQueue\Adapter\MongoCappedCollection $adapter */
+        $adapter = $queue->getAdapter();
+        $this->checkAdapterSupport($adapter, array('sendMessage', 'deleteQueue'));
+
+        $receiveCount = 0;
+        $messages = null;
+
+        $queue->send('foo');
+
+        /** @var MongoCollection $collection */
+        $collection = $adapter->getMongoDb()->selectCollection($queue->getName());
+        $collection->drop();
+
+        $adapter->awaitMessages($queue, function ($msgs) use (&$receiveCount, &$messages, $queue) {
+            return false;
+        });
+
     }
 }
