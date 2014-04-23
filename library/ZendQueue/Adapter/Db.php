@@ -19,8 +19,6 @@ use ZendQueue\Adapter\Capabilities\DeleteMessageCapableInterface;
 use ZendQueue\Adapter\Capabilities\ListQueuesCapableInterface;
 use ZendQueue\Parameter\SendParameters;
 use ZendQueue\Parameter\ReceiveParameters;
-use ZendQueue\Adapter\AbstractAdapter;
-use Zend\Db\Sql\Sql;
 use ZendQueue\Message\MessageIterator;
 
 /**
@@ -115,6 +113,16 @@ class Db extends AbstractAdapter implements
      * @return bool
      * @throws Exception\ConnectionException
      */
+
+
+    /**
+     * Connect (or refresh connection) to the db adapter
+     * Throws an exception if the adapter can't connect to DB.
+     *
+     * @return bool
+     * @throws \ZendQueue\Exception\ConnectionException
+     * @throws \Exception
+     */
     public function connect()
     {
         $options = $this->getOptions();
@@ -126,7 +134,14 @@ class Db extends AbstractAdapter implements
                 $this->adapter = new ZendDb\Adapter\Adapter($options['driverOptions']);
             } catch (\Exception $e) {
                 if ($e instanceof ZendDb\Exception\ExceptionInterface) {
-                    throw new Exception\ConnectionException('Error connecting to database: ' . $e->getMessage(), $e->getCode(), $e);
+                    throw new Exception\ConnectionException(
+                        sprintf(
+                            "Error connecting to database: %s",
+                            $e->getMessage()
+                        ),
+                        $e->getCode(),
+                        $e
+                    );
                 }
                 throw $e;
             }
@@ -201,7 +216,7 @@ class Db extends AbstractAdapter implements
     /**
      * Create a new queue
      *
-     * @param  string $name    queue name
+     * @param  string $name queue name
      * @return boolean
      * @throws Exception\RuntimeException - database error
      */
@@ -233,7 +248,7 @@ class Db extends AbstractAdapter implements
     {
         try {
             $id = $this->getQueueId($name); // get primary key
-        } catch(Exception\QueueNotFoundException $e){
+        } catch (Exception\QueueNotFoundException $e) {
             return false;
         }
 
@@ -287,12 +302,12 @@ class Db extends AbstractAdapter implements
 
         $countSelect = new ZendDb\Sql\Select();
         $countSelect->columns(array('c' => new ZendDb\Sql\Expression('COUNT(1)')))
-                    ->from(array('original_select' => $sql->select()))
-                    ->where(array('queue_id' => $this->getQueueId($queue->getName())));
+            ->from(array('original_select' => $sql->select()))
+            ->where(array('queue_id' => $this->getQueueId($queue->getName())));
 
         $statement = $sql->prepareStatementForSqlObject($countSelect);
-        $result    = $statement->execute();
-        $row       = $result->current();
+        $result = $statement->execute();
+        $row = $result->current();
 
         return $row['c'];
     }
@@ -351,15 +366,15 @@ class Db extends AbstractAdapter implements
         return $message;
     }
 
+
     /**
-     * Get messages from the queue
+     * Get Messages from the Queue
      *
-     * @param  Queue $queue
-     * @param  integer|null $maxMessages Maximum number of messages to return
-     * @param  ReceiveParameters $params
+     * @param Queue $queue
+     * @param int|null $maxMessages Max number of messages to return
+     * @param ReceiveParameters $params
      * @return MessageIterator
-     * @throws Exception\QueueNotFoundException
-     * @throws Exception\RuntimeException - database error
+     * @throws \Exception
      */
     public function receiveMessages(Queue $queue, $maxMessages = null, ReceiveParameters $params = null)
     {
@@ -412,7 +427,12 @@ class Db extends AbstractAdapter implements
                         $message['timeout'] = $microtime;
 
                         $update = $sql->update();
-                        $update->set(array('handle' => $message['handle'], 'timeout' => $timeout ? $timeout + $microtime : null));
+                        $update->set(
+                            array(
+                                'handle' => $message['handle'],
+                                'timeout' => $timeout ? $timeout + $microtime : null
+                            )
+                        );
                         $update->where(array('message_id' => $message['message_id']));
                         $update->where($where);
 
@@ -426,7 +446,9 @@ class Db extends AbstractAdapter implements
                     }
 
                     if ($keepMessage) {
-                        $message['metadata'] = isset($message['metadata']) ? unserialize($message['metadata']) : array();
+                        $message['metadata'] = isset($message['metadata']) ?
+                            unserialize($message['metadata']) :
+                            array();
                         $message['metadata'][$queue->getOptions()->getMessageMetadatumKey()] = $this->buildMessageInfo(
                             $message['handle'],
                             (int)$message['message_id'],
@@ -438,9 +460,9 @@ class Db extends AbstractAdapter implements
                         );
 
                         $msgs[] = array(
-                            'class'     => $message['class'],
-                            'content'   => $message['content'],
-                            'metadata'    => $message['metadata'],
+                            'class' => $message['class'],
+                            'content' => $message['content'],
+                            'metadata' => $message['metadata'],
                         );
                     }
 
@@ -484,9 +506,11 @@ class Db extends AbstractAdapter implements
             }
 
             if (!empty($info['options'][SendParameters::REPEATING_INTERVAL])) {
-                $microtime = (int) microtime(true);
+                $microtime = (int)microtime(true);
                 $result = $this->getMessageTable()->update(array(
-                    'schedule' => $microtime + $info['options'][SendParameters::REPEATING_INTERVAL], 'handle' => null, 'timeout' => null
+                    'schedule' => $microtime + $info['options'][SendParameters::REPEATING_INTERVAL],
+                    'handle' => null,
+                    'timeout' => null
                 ), $where);
             } else {
                 $result = $this->getMessageTable()->delete($where);
@@ -499,5 +523,4 @@ class Db extends AbstractAdapter implements
         }
         return false;
     }
-
 }
