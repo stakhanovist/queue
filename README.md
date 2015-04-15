@@ -1,6 +1,9 @@
-### ZendQueue component
+### Stakhanovist Queue
 
-Master: [![Build Status](https://secure.travis-ci.org/zendframework/ZendQueue.png?branch=master)](http://travis-ci.org/zendframework/ZendQueue)
+Master: [![Build Status](https://travis-ci.org/ripaclub/ZendQueue.png?branch=master)](https://travis-ci.org/ripaclub/ZendQueue)
+
+Develop: [![Build Status](https://travis-ci.org/ripaclub/ZendQueue.png?branch=develop)](https://travis-ci.org/ripaclub/ZendQueue)
+
 
 You can install using:
 
