@@ -1,0 +1,39 @@
+<?php
+/**
+ * Stakhanovist
+ *
+ * @link        https://github.com/stakhanovist/queue
+ * @copyright   Copyright (c) 2015, Stakhanovist
+ * @license     http://opensource.org/licenses/BSD-2-Clause Simplified BSD License
+ */
+
+namespace StakhanovistQueueTest\Adapter\Mongo;
+
+use Stakhanovist\Queue\Adapter\Mongo\AbstractMongo;
+use Stakhanovist\Queue\Parameter\ReceiveParameters;
+use MongoCollection;
+use Stakhanovist\Queue\Adapter\AbstractAdapter;
+use Stakhanovist\Queue\QueueInterface as Queue;
+
+class ConcreteMongo extends AbstractMongo
+{
+    public function __construct($options = array())
+    {
+        //Bypass Mongo extension check
+        AbstractAdapter::__construct($options);
+    }
+
+    public function setupCursor(MongoCollection $collection, ReceiveParameters $params = null,
+        $criteria = array(self::KEY_HANDLE => false),
+        array $fields = array('_id', self::KEY_HANDLE)
+    )
+    {
+        return parent::setupCursor($collection, $params, $criteria, $fields);
+    }
+
+    public function receiveMessageAtomic(Queue $queue, MongoCollection $collection, $id)
+    {
+        return parent::receiveMessageAtomic($queue, $collection, $id);
+    }
+
+}

@@ -1,5 +1,5 @@
 {
-    "name": "ripaclub/zend-queue",
+    "name": "stakhanovist/queue",
     "description": "Provides a factory function to create specific queue client objects",
     "type": "library",
     "license": "BSD-3-Clause",
@@ -7,10 +7,11 @@
         "zf2",
         "queue"
     ],
-    "homepage": "https://github.com/ripaclub/ZendQueue",
+    "homepage": "https://github.com/stakhanovist/queue",
     "autoload": {
-        "psr-0": {
-            "ZendQueue": "library/"
+        "psr-4": {
+            "Stakhanovist\\Queue\\": "library",
+            "StakhanovistQueueTest\\": "tests"
         }
     },
     "require-dev": {
