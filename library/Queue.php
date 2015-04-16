@@ -54,7 +54,7 @@ class Queue implements QueueInterface, Countable, EventManagerAwareInterface
     /**
      * User-provided configuration
      *
-     * @var QueueOptions
+     * @var QueueOptionsInterface
      */
     protected $options;
 
@@ -73,10 +73,10 @@ class Queue implements QueueInterface, Countable, EventManagerAwareInterface
      *
      * @param  string $name
      * @param  AdapterInterface $adapter
-     * @param  QueueOptions $options
+     * @param  QueueOptionsInterface $options
      * @throws Exception\InvalidArgumentException
      */
-    public function __construct($name, AdapterInterface $adapter, QueueOptions $options = null)
+    public function __construct($name, AdapterInterface $adapter, QueueOptionsInterface $options = null)
     {
         if (empty($name)) {
             throw new Exception\InvalidArgumentException('No valid param $name passed to constructor: cannot be empty');
@@ -137,10 +137,10 @@ class Queue implements QueueInterface, Countable, EventManagerAwareInterface
     /**
      * Set options
      *
-     * @param  QueueOptions $options
+     * @param  QueueOptionsInterface $options
      * @return Queue
      */
-    public function setOptions(QueueOptions $options)
+    public function setOptions(QueueOptionsInterface $options)
     {
         $this->options = $options;
         return $this;
@@ -149,7 +149,7 @@ class Queue implements QueueInterface, Countable, EventManagerAwareInterface
     /**
      * Get options
      *
-     * @return QueueOptions
+     * @return QueueOptionsInterface
      */
     public function getOptions()
     {

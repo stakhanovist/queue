@@ -11,7 +11,7 @@ namespace Stakhanovist\Queue;
 
 use Zend\Stdlib\AbstractOptions;
 
-class QueueOptions extends AbstractOptions
+class QueueOptions extends AbstractOptions implements QueueOptionsInterface
 {
 
     /**
