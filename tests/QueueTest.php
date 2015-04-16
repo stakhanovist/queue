@@ -83,6 +83,17 @@ class QueueTest extends \PHPUnit_Framework_TestCase
         $q = new Queue($this->name, $this->adapter);
         $this->assertInstanceOf('Stakhanovist\Queue\QueueOptions', $q->getOptions());
 
+        //Test with three arguments
+        $options = new QueueOptions();
+        $q = new Queue($this->name, $this->adapter, $options);
+        $this->assertSame($options, $q->getOptions());
+
+        //Test implents interfaces
+        $this->assertInstanceOf('Stakhanovist\Queue\QueueInterface', $q);
+        $this->assertInstanceOf('Stakhanovist\Queue\QueueClientInterface', $q);
+        $this->assertInstanceOf('Countable', $q);
+        $this->assertInstanceOf('Zend\EventManager\EventManagerAwareInterface', $q);
+
         //Test empty queue name exception
         $this->setExpectedException('Stakhanovist\Queue\Exception\InvalidArgumentException');
         $q = new Queue('', $this->adapter);

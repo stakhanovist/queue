@@ -31,7 +31,7 @@ use Stakhanovist\Queue\Parameter\SendParameters;
 /**
  *
  */
-class Queue implements QueueInterface, Countable, EventManagerAwareInterface
+class Queue implements QueueClientInterface, EventManagerAwareInterface
 {
 
     /**
