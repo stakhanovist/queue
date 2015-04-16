@@ -12,13 +12,8 @@ namespace Stakhanovist\Queue\Parameter;
 use Zend\Stdlib\Parameters;
 use Stakhanovist\Queue\Exception;
 
-class SendParameters extends Parameters
+class SendParameters extends Parameters implements SendParametersInterface
 {
-
-    const SCHEDULE = 'schedule';
-    const REPEATING_INTERVAL = 'repeatingInterval';
-
-
     /**
      * Set message schedule time
      *
