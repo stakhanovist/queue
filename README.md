@@ -9,8 +9,6 @@ Provides a factory function to create specific queue client objects.
 | develop | [![Pre Release](https://img.shields.io/packagist/vpre/stakhanovist/queue.svg?style=flat-square)](https://packagist.org/packages/stakhanovist/queue) | [![Build Status](https://img.shields.io/travis/stakhanovist/queue/develop.svg?style=flat-square)](https://travis-ci.org/stakhanovist/queue) |
 
 
-[![Packagist Pre Release](https://img.shields.io/packagist/vpre/stakhanovist/queue.svg?style=flat-square)]()
-
 ## Install
 
 **TODO**

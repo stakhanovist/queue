@@ -20,7 +20,7 @@ before_script:
     - cd tests
 
 script:
-    - ../vendor/bin/phpunit --coverage-clover=../build/coverage.clover
+    - ../vendor/bin/phpunit --coverage-clover=build/clover.xml
 
 after_script:
     - cd ..
