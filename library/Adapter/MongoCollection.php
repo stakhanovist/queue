@@ -10,9 +10,9 @@
 namespace Stakhanovist\Queue\Adapter;
 
 use Zend\Stdlib\MessageInterface;
-use Stakhanovist\Queue\QueueInterface as Queue;
 use Stakhanovist\Queue\Adapter\Capabilities\DeleteMessageCapableInterface;
 use Stakhanovist\Queue\Adapter\Mongo\AbstractMongo;
+use Stakhanovist\Queue\QueueInterface;
 
 class MongoCollection extends AbstractMongo implements DeleteMessageCapableInterface
 {
@@ -22,12 +22,12 @@ class MongoCollection extends AbstractMongo implements DeleteMessageCapableInter
      * Return true if the message is deleted, false if the deletion is
      * unsuccessful.
      *
-     * @param  Queue $queue
+     * @param  QueueInterface $queue
      * @param  MessageInterface $message
      * @return boolean
      * @throws Exception\QueueNotFoundException
      */
-    public function deleteMessage(Queue $queue, MessageInterface $message)
+    public function deleteMessage(QueueInterface $queue, MessageInterface $message)
     {
         $info = $this->getMessageInfo($queue, $message);
         if (!isset($info['messageId']) || !isset($info['handle'])) {

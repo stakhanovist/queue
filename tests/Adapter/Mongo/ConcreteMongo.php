@@ -13,7 +13,8 @@ use Stakhanovist\Queue\Adapter\Mongo\AbstractMongo;
 use Stakhanovist\Queue\Parameter\ReceiveParameters;
 use MongoCollection;
 use Stakhanovist\Queue\Adapter\AbstractAdapter;
-use Stakhanovist\Queue\QueueInterface as Queue;
+use Stakhanovist\Queue\Parameter\ReceiveParametersInterface;
+use Stakhanovist\Queue\QueueInterface;
 
 class ConcreteMongo extends AbstractMongo
 {
@@ -23,7 +24,7 @@ class ConcreteMongo extends AbstractMongo
         AbstractAdapter::__construct($options);
     }
 
-    public function setupCursor(MongoCollection $collection, ReceiveParameters $params = null,
+    public function setupCursor(MongoCollection $collection, ReceiveParametersInterface $params = null,
         $criteria = array(self::KEY_HANDLE => false),
         array $fields = array('_id', self::KEY_HANDLE)
     )
@@ -31,7 +32,7 @@ class ConcreteMongo extends AbstractMongo
         return parent::setupCursor($collection, $params, $criteria, $fields);
     }
 
-    public function receiveMessageAtomic(Queue $queue, MongoCollection $collection, $id)
+    public function receiveMessageAtomic(QueueInterface $queue, MongoCollection $collection, $id)
     {
         return parent::receiveMessageAtomic($queue, $collection, $id);
     }

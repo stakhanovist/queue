@@ -10,10 +10,10 @@
 namespace Stakhanovist\Queue\Adapter;
 
 use Zend\Stdlib\MessageInterface;
-use Stakhanovist\Queue\QueueInterface as Queue;
 use Stakhanovist\Queue\Exception;
-use Stakhanovist\Queue\Parameter\SendParameters;
-use Stakhanovist\Queue\Parameter\ReceiveParameters;
+use Stakhanovist\Queue\QueueInterface;
+use Stakhanovist\Queue\Parameter\SendParametersInterface;
+use Stakhanovist\Queue\Parameter\ReceiveParametersInterface;
 
 /**
  * Class testing.  No supported functions.  Also used to disable a queue.
@@ -85,12 +85,12 @@ class Null extends AbstractAdapter
     /**
      * Send a message to the queue
      *
-     * @param  Queue $queue
+     * @param  QueueInterface $queue
      * @param  MessageInterface $message Message
-     * @param  SendParameters $params
+     * @param  SendParametersInterface $params
      * @throws Exception\UnsupportedMethodCallException - queue disabled
      */
-    public function sendMessage(Queue $queue, MessageInterface $message, SendParameters $params = null)
+    public function sendMessage(QueueInterface $queue, MessageInterface $message, SendParametersInterface $params = null)
     {
         throw new Exception\UnsupportedMethodCallException(__FUNCTION__ . '() is not supported by ' . get_called_class());
     }
@@ -98,12 +98,12 @@ class Null extends AbstractAdapter
     /**
      * Get messages from the queue
      *
-     * @param  Queue $queue
+     * @param  QueueInterface $queue
      * @param  integer|null $maxMessages Maximum number of messages to return
-     * @param  ReceiveParameters $params
+     * @param  ReceiveParametersInterface $params
      * @throws Exception\UnsupportedMethodCallException - queue disabled
      */
-    public function receiveMessages(Queue $queue, $maxMessages = null, ReceiveParameters $params = null)
+    public function receiveMessages(QueueInterface $queue, $maxMessages = null, ReceiveParametersInterface $params = null)
     {
         throw new Exception\UnsupportedMethodCallException(__FUNCTION__ . '() is not supported by ' . get_called_class());
     }

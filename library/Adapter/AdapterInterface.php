@@ -12,9 +12,9 @@ namespace Stakhanovist\Queue\Adapter;
 use Traversable;
 use Zend\Stdlib\MessageInterface;
 use Stakhanovist\Queue\Message\MessageIterator;
-use Stakhanovist\Queue\Parameter\SendParameters;
-use Stakhanovist\Queue\Parameter\ReceiveParameters;
-use Stakhanovist\Queue\QueueInterface as Queue;
+use Stakhanovist\Queue\QueueInterface;
+use Stakhanovist\Queue\Parameter\SendParametersInterface;
+use Stakhanovist\Queue\Parameter\ReceiveParametersInterface;
 
 /**
  * Interface for common queue operations
@@ -120,36 +120,36 @@ interface AdapterInterface
     /**
      * Send a message to the queue
      *
-     * @param  Queue $queue
+     * @param  QueueInterface $queue
      * @param  MessageInterface $message Message to send to the active queue
-     * @param  SendParameters $params
+     * @param  SendParametersInterface $params
      * @return MessageInterface
      * @throws Exception\QueueNotFoundException
      * @throws Exception\RuntimeException
      */
-    public function sendMessage(Queue $queue, MessageInterface $message, SendParameters $params = null);
+    public function sendMessage(QueueInterface $queue, MessageInterface $message, SendParametersInterface $params = null);
 
     /**
      * Get messages from the queue
      *
-     * @param  Queue $queue
+     * @param  QueueInterface $queue
      * @param  integer|null $maxMessages Maximum number of messages to return
-     * @param  ReceiveParameters $params
+     * @param  ReceiveParametersInterface $params
      * @return MessageIterator
      * @throws Exception\QueueNotFoundException
      * @throws Exception\RuntimeException
      */
-    public function receiveMessages(Queue $queue, $maxMessages = null, ReceiveParameters $params = null);
+    public function receiveMessages(QueueInterface $queue, $maxMessages = null, ReceiveParametersInterface $params = null);
 
     /**
      * Get message info
      *
      * Only received messages have embedded infos.
      *
-     * @param Queue $queue
+     * @param QueueInterface $queue
      * @param MessageInterface $message
      * @return array
      */
-    public function getMessageInfo(Queue $queue, MessageInterface $message);
+    public function getMessageInfo(QueueInterface $queue, MessageInterface $message);
 
 }

@@ -1,16 +1,18 @@
-### Stakhanovist Queue
+Stakhanovist Queue
+------------------
 
-Master: [![Build Status](https://travis-ci.org/ripaclub/ZendQueue.png?branch=master)](https://travis-ci.org/ripaclub/ZendQueue)
+Provides a factory function to create specific queue client objects.
 
-Develop: [![Build Status](https://travis-ci.org/ripaclub/ZendQueue.png?branch=develop)](https://travis-ci.org/ripaclub/ZendQueue)
+|         | Release | Build Status |
+|---------|:-------:|:------------:|
+| master  | [![Last Release](https://img.shields.io/packagist/v/stakhanovist/queue.svg?style=flat-square)](https://packagist.org/packages/stakhanovist/queue)   | [![BuildStatus](https://img.shields.io/travis/stakhanovist/queue/master.svg?style=flat-square)](https://travis-ci.org/stakhanovist/queue)  |
+| develop | [![Pre Release](https://img.shields.io/packagist/vpre/stakhanovist/queue.svg?style=flat-square)](https://packagist.org/packages/stakhanovist/queue) | [![Build Status](https://img.shields.io/travis/stakhanovist/queue/develop.svg?style=flat-square)](https://travis-ci.org/stakhanovist/queue) |
 
 
-You can install using:
+## Install
 
-```
-curl -s https://getcomposer.org/installer | php
-php composer.phar install
-```
+**TODO**
 
-At that point, follow the instructions in the documentation folder for actual
-usage of the component. (Documentation is forthcoming.)
+---
+
+[![Analytics](https://ga-beacon.appspot.com/UA-49655829-1/stakhanovist/queue)](https://github.com/igrigorik/ga-beacon)

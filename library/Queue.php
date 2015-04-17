@@ -18,19 +18,20 @@ use Stakhanovist\Queue\Adapter\AdapterInterface;
 use Stakhanovist\Queue\Adapter\Capabilities\AwaitMessagesCapableInterface;
 use Stakhanovist\Queue\Adapter\Capabilities\CountMessagesCapableInterface;
 use Stakhanovist\Queue\Adapter\Capabilities\DeleteMessageCapableInterface;
-use Stakhanovist\Queue\Parameter\SendParameters;
-use Stakhanovist\Queue\Parameter\ReceiveParameters;
+use Stakhanovist\Queue\Parameter\SendParametersInterface;
+use Stakhanovist\Queue\Parameter\ReceiveParametersInterface;
 use Zend\EventManager\EventManagerInterface;
 use Zend\EventManager\Event;
 use Stakhanovist\Queue\Adapter\AdapterFactory;
 use Zend\EventManager\EventManager;
 use Stakhanovist\Queue\Message\MessageIterator;
 use Zend\EventManager\EventManagerAwareInterface;
+use Stakhanovist\Queue\Parameter\SendParameters;
 
 /**
  *
  */
-class Queue implements QueueInterface, Countable, EventManagerAwareInterface
+class Queue implements QueueClientInterface, EventManagerAwareInterface
 {
 
     /**
@@ -53,7 +54,7 @@ class Queue implements QueueInterface, Countable, EventManagerAwareInterface
     /**
      * User-provided configuration
      *
-     * @var QueueOptions
+     * @var QueueOptionsInterface
      */
     protected $options;
 
@@ -72,10 +73,10 @@ class Queue implements QueueInterface, Countable, EventManagerAwareInterface
      *
      * @param  string $name
      * @param  AdapterInterface $adapter
-     * @param  QueueOptions $options
+     * @param  QueueOptionsInterface $options
      * @throws Exception\InvalidArgumentException
      */
-    public function __construct($name, AdapterInterface $adapter, QueueOptions $options = null)
+    public function __construct($name, AdapterInterface $adapter, QueueOptionsInterface $options = null)
     {
         if (empty($name)) {
             throw new Exception\InvalidArgumentException('No valid param $name passed to constructor: cannot be empty');
@@ -136,10 +137,10 @@ class Queue implements QueueInterface, Countable, EventManagerAwareInterface
     /**
      * Set options
      *
-     * @param  QueueOptions $options
+     * @param  QueueOptionsInterface $options
      * @return Queue
      */
-    public function setOptions(QueueOptions $options)
+    public function setOptions(QueueOptionsInterface $options)
     {
         $this->options = $options;
         return $this;
@@ -148,7 +149,7 @@ class Queue implements QueueInterface, Countable, EventManagerAwareInterface
     /**
      * Get options
      *
-     * @return QueueOptions
+     * @return QueueOptionsInterface
      */
     public function getOptions()
     {
@@ -231,11 +232,11 @@ class Queue implements QueueInterface, Countable, EventManagerAwareInterface
      * Send a message to the queue
      *
      * @param  mixed $message message
-     * @param  SendParameters $params
+     * @param  SendParametersInterface $params
      * @return MessageInterface
      * @throws Exception\ExceptionInterface
      */
-    public function send($message, SendParameters $params = null)
+    public function send($message, SendParametersInterface $params = null)
     {
         if (!($message instanceof MessageInterface)) {
             $data = $message;
@@ -261,11 +262,11 @@ class Queue implements QueueInterface, Countable, EventManagerAwareInterface
      * Return the first element in the queue
      *
      * @param  integer $maxMessages
-     * @param  ReceiveParameters $params
+     * @param  ReceiveParametersInterface $params
      * @return Message\MessageIterator
      * @throws Exception\InvalidArgumentException
      */
-    public function receive($maxMessages = 1, ReceiveParameters $params = null)
+    public function receive($maxMessages = 1, ReceiveParametersInterface $params = null)
     {
         if (($maxMessages !== null) && (!is_integer($maxMessages) || $maxMessages < 1)) {
             throw new Exception\InvalidArgumentException('$maxMessages must be an integer greater than 0 or null');
@@ -277,11 +278,11 @@ class Queue implements QueueInterface, Countable, EventManagerAwareInterface
     /**
      * Await messages
      *
-     * @param  ReceiveParameters $params
+     * @param  ReceiveParametersInterface $params
      * @return Queue
      * @throws Exception\InvalidArgumentException
      */
-    public function await(ReceiveParameters $params = null)
+    public function await(ReceiveParametersInterface $params = null)
     {
         $adapter  = $this->getAdapter();
         $adapterCanAwait = $adapter instanceof AwaitMessagesCapableInterface;
@@ -373,18 +374,18 @@ class Queue implements QueueInterface, Countable, EventManagerAwareInterface
      * @param  mixed $message message
      * @param  int $scheduleTime
      * @param  int $repeatingInterval
-     * @param  SendParameters $params
+     * @param  SendParametersInterface $params
      * @return MessageInterface
      * @throws Exception\UnsupportedMethodCallException
      */
-    public function schedule($message, $scheduleTime = null, $repeatingInterval = null, SendParameters $params = null)
+    public function schedule($message, $scheduleTime = null, $repeatingInterval = null, SendParametersInterface $params = null)
     {
-        if (!$this->isSendParamSupported(SendParameters::SCHEDULE)) {
-            throw new Exception\UnsupportedMethodCallException('\'' . SendParameters::SCHEDULE . '\' param is not supported by ' . get_class($this->getAdapter()));
+        if (!$this->isSendParamSupported(SendParametersInterface::SCHEDULE)) {
+            throw new Exception\UnsupportedMethodCallException('\'' . SendParametersInterface::SCHEDULE . '\' param is not supported by ' . get_class($this->getAdapter()));
         }
 
-        if ($repeatingInterval !== null && !$this->isSendParamSupported(SendParameters::REPEATING_INTERVAL)) {
-            throw new Exception\InvalidArgumentException('\'' . SendParameters::REPEATING_INTERVAL . '\' param is not supported by ' . get_class($this->getAdapter()));
+        if ($repeatingInterval !== null && !$this->isSendParamSupported(SendParametersInterface::REPEATING_INTERVAL)) {
+            throw new Exception\InvalidArgumentException('\'' . SendParametersInterface::REPEATING_INTERVAL . '\' param is not supported by ' . get_class($this->getAdapter()));
         }
 
         if ($params === null) {
@@ -406,21 +407,21 @@ class Queue implements QueueInterface, Countable, EventManagerAwareInterface
      */
     public function unschedule(MessageInterface $message)
     {
-        if (!$this->isSendParamSupported(SendParameters::SCHEDULE) || !$this->canDeleteMessage()) {
+        if (!$this->isSendParamSupported(SendParametersInterface::SCHEDULE) || !$this->canDeleteMessage()) {
             throw new Exception\UnsupportedMethodCallException(
-                '\'' . SendParameters::SCHEDULE . '\' param or delete message capabilities are not supported by ' . get_class($this->getAdapter())
+                '\'' . SendParametersInterface::SCHEDULE . '\' param or delete message capabilities are not supported by ' . get_class($this->getAdapter())
             );
         }
 
         $info = $this->getAdapter()->getMessageInfo($this, $message);
         $options = &$info['options'];
 
-        if (isset($options[SendParameters::SCHEDULE])) {
-            unset($options[SendParameters::SCHEDULE]);
+        if (isset($options[SendParametersInterface::SCHEDULE])) {
+            unset($options[SendParametersInterface::SCHEDULE]);
         }
 
-        if (isset($options[SendParameters::REPEATING_INTERVAL])) {
-            unset($options[SendParameters::REPEATING_INTERVAL]);
+        if (isset($options[SendParametersInterface::REPEATING_INTERVAL])) {
+            unset($options[SendParametersInterface::REPEATING_INTERVAL]);
         }
 
         $message->setMetadata($this->getOptions()->getMessageMetadatumKey(), $info);

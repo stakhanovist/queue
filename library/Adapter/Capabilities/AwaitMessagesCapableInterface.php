@@ -9,9 +9,9 @@
 
 namespace Stakhanovist\Queue\Adapter\Capabilities;
 use Stakhanovist\Queue\Adapter\AdapterInterface;
-use Stakhanovist\Queue\Parameter\ReceiveParameters;
-use Stakhanovist\Queue\QueueInterface as Queue;
 use Stakhanovist\Queue\Message\MessageIterator;
+use Stakhanovist\Queue\Parameter\ReceiveParametersInterface;
+use Stakhanovist\Queue\QueueInterface;
 
 interface AwaitMessagesCapableInterface extends AdapterInterface
 {
@@ -19,11 +19,11 @@ interface AwaitMessagesCapableInterface extends AdapterInterface
      * Await for a message in the queue and receive it
      * If no message arrives until timeout, an empty MessageSet will be returned.
      *
-     * @param  Queue $queue
+     * @param  QueueInterface $queue
      * @param  callable $callback
-     * @param  ReceiveParameters $params
+     * @param  ReceiveParametersInterface $params
      * @return MessageIterator
      * @throws Exception\RuntimeException
      */
-    public function awaitMessages(Queue $queue, $callback, ReceiveParameters $params = null);
+    public function awaitMessages(QueueInterface $queue, $callback, ReceiveParametersInterface $params = null);
 }

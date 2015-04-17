@@ -12,7 +12,7 @@ namespace Stakhanovist\Queue\Adapter\Capabilities;
 use Zend\Stdlib\MessageInterface;
 use Stakhanovist\Queue\Adapter\AdapterInterface;
 use Stakhanovist\Queue\Exception;
-use Stakhanovist\Queue\QueueInterface as Queue;
+use Stakhanovist\Queue\QueueInterface;
 
 interface DeleteMessageCapableInterface extends AdapterInterface
 {
@@ -22,10 +22,10 @@ interface DeleteMessageCapableInterface extends AdapterInterface
      * Return true if the message is deleted, false if the deletion is
      * unsuccessful.
      *
-     * @param  Queue $queue
+     * @param  QueueInterface $queue
      * @param  MessageInterface $message
      * @return boolean
      * @throws Exception\QueueNotFoundException
      */
-    public function deleteMessage(Queue $queue, MessageInterface $message);
+    public function deleteMessage(QueueInterface $queue, MessageInterface $message);
 }

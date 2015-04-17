@@ -12,12 +12,8 @@ namespace Stakhanovist\Queue\Parameter;
 use Stakhanovist\Queue\Exception;
 use Zend\Stdlib\Parameters;
 
-class ReceiveParameters extends Parameters
+class ReceiveParameters extends Parameters implements ReceiveParametersInterface
 {
-
-    const CLASS_FILTER = 'classFilter';
-    const VISIBILITY_TIMEOUT = 'visibilityTimeout';
-    const PEEK_MODE = 'peekMode';
 
     /**
      * Set the class filter
@@ -25,7 +21,7 @@ class ReceiveParameters extends Parameters
      * Filter (receive) only message of the given class name.
      *
      * @param string $classname
-     * @return \Stakhanovist\Queue\Parameter\ReceiveParameters
+     * @return $this
      */
     public function setClassFilter($classname = null)
     {
@@ -63,7 +59,7 @@ class ReceiveParameters extends Parameters
      *
      * @param int $timeout
      * @throws Exception\InvalidArgumentException
-     * @return \Stakhanovist\Queue\Parameter\ReceiveParameters
+     * @return $this
      */
     public function setVisibilityTimeout($timeout = null)
     {
@@ -94,7 +90,7 @@ class ReceiveParameters extends Parameters
      *
      * @param bool $peek
      * @throws Exception\InvalidArgumentException
-     * @return \Stakhanovist\Queue\Parameter\ReceiveParameters
+     * @return $this
      */
     public function setPeekMode($peek = true)
     {

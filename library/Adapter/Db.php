@@ -12,13 +12,13 @@ namespace Stakhanovist\Queue\Adapter;
 use Zend\Db as ZendDb;
 use Zend\Stdlib\MessageInterface;
 use Stakhanovist\Queue\Exception;
-use Stakhanovist\Queue\QueueInterface as Queue;
 use Stakhanovist\Queue\Adapter\Capabilities\CountMessagesCapableInterface;
 use Stakhanovist\Queue\Adapter\Capabilities\DeleteMessageCapableInterface;
 use Stakhanovist\Queue\Adapter\Capabilities\ListQueuesCapableInterface;
-use Stakhanovist\Queue\Parameter\SendParameters;
-use Stakhanovist\Queue\Parameter\ReceiveParameters;
 use Stakhanovist\Queue\Message\MessageIterator;
+use Stakhanovist\Queue\Parameter\SendParametersInterface;
+use Stakhanovist\Queue\Parameter\ReceiveParametersInterface;
+use Stakhanovist\Queue\QueueInterface;
 
 /**
  * Class for using connecting to a Zend_DB-based queuing system
@@ -87,8 +87,8 @@ class Db extends AbstractAdapter implements
     public function getAvailableSendParams()
     {
         return array(
-            SendParameters::SCHEDULE,
-            SendParameters::REPEATING_INTERVAL,
+            SendParametersInterface::SCHEDULE,
+            SendParametersInterface::REPEATING_INTERVAL,
         );
     }
 
@@ -98,20 +98,11 @@ class Db extends AbstractAdapter implements
     public function getAvailableReceiveParams()
     {
         return array(
-            ReceiveParameters::CLASS_FILTER,
-            ReceiveParameters::VISIBILITY_TIMEOUT,
-            ReceiveParameters::PEEK_MODE,
+            ReceiveParametersInterface::CLASS_FILTER,
+            ReceiveParametersInterface::VISIBILITY_TIMEOUT,
+            ReceiveParametersInterface::PEEK_MODE,
         );
     }
-
-    /**
-     * Connect (or refresh connection) to the db adapter
-     *
-     * Throws an exception if the adapter cannot connect to DB.
-     *
-     * @return bool
-     * @throws Exception\ConnectionException
-     */
 
 
     /**
@@ -291,11 +282,11 @@ class Db extends AbstractAdapter implements
     /**
      * Return the approximate number of messages in the queue
      *
-     * @param  Queue $queue
+     * @param  QueueInterface $queue
      * @return integer
      * @throws Exception\ExceptionInterface
      */
-    public function countMessages(Queue $queue)
+    public function countMessages(QueueInterface $queue)
     {
         $sql = $this->getMessageTable()->getSql();
 
@@ -318,14 +309,14 @@ class Db extends AbstractAdapter implements
     /**
      * Send a message to the queue
      *
-     * @param  Queue $queue
+     * @param  QueueInterface $queue
      * @param  MessageInterface $message Message to send to the active queue
-     * @param  SendParameters $params
+     * @param  SendParametersInterface $params
      * @return MessageInterface
      * @throws Exception\QueueNotFoundException
      * @throws Exception\RuntimeException - database error
      */
-    public function sendMessage(Queue $queue, MessageInterface $message, SendParameters $params = null)
+    public function sendMessage(QueueInterface $queue, MessageInterface $message, SendParametersInterface $params = null)
     {
 
         $this->cleanMessageInfo($queue, $message);
@@ -369,13 +360,13 @@ class Db extends AbstractAdapter implements
     /**
      * Get Messages from the Queue
      *
-     * @param Queue $queue
+     * @param QueueInterface $queue
      * @param int|null $maxMessages Max number of messages to return
-     * @param ReceiveParameters $params
+     * @param ReceiveParametersInterface $params
      * @return MessageIterator
      * @throws \Exception
      */
-    public function receiveMessages(Queue $queue, $maxMessages = null, ReceiveParameters $params = null)
+    public function receiveMessages(QueueInterface $queue, $maxMessages = null, ReceiveParametersInterface $params = null)
     {
         if ($maxMessages === null) {
             $maxMessages = 1;
@@ -453,8 +444,8 @@ class Db extends AbstractAdapter implements
                             (int)$message['message_id'],
                             $queue,
                             array(
-                                SendParameters::SCHEDULE => $message['schedule'],
-                                SendParameters::REPEATING_INTERVAL => $message['interval'],
+                                SendParametersInterface::SCHEDULE => $message['schedule'],
+                                SendParametersInterface::REPEATING_INTERVAL => $message['interval'],
                             )
                         );
 
@@ -484,13 +475,13 @@ class Db extends AbstractAdapter implements
      * Return true if the message is deleted, false if the deletion is
      * unsuccessful.
      *
-     * @param  Queue $queue
+     * @param  QueueInterface $queue
      * @param  MessageInterface $message
      * @return boolean
      * @throws Exception\QueueNotFoundException
      * @throws Exception\RuntimeException - database error
      */
-    public function deleteMessage(Queue $queue, MessageInterface $message)
+    public function deleteMessage(QueueInterface $queue, MessageInterface $message)
     {
         $info = $this->getMessageInfo($queue, $message);
         $queueId = $this->getQueueId($queue->getName());
@@ -504,10 +495,10 @@ class Db extends AbstractAdapter implements
                 $where[] = 'handle IS NULL';
             }
 
-            if (!empty($info['options'][SendParameters::REPEATING_INTERVAL])) {
+            if (!empty($info['options'][SendParametersInterface::REPEATING_INTERVAL])) {
                 $microtime = (int)microtime(true);
                 $result = $this->getMessageTable()->update(array(
-                    'schedule' => $microtime + $info['options'][SendParameters::REPEATING_INTERVAL],
+                    'schedule' => $microtime + $info['options'][SendParametersInterface::REPEATING_INTERVAL],
                     'handle' => null,
                     'timeout' => null
                 ), $where);

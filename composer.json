@@ -17,9 +17,6 @@
     "require-dev": {
         "phpunit/phpunit": "3.7.*",
         "satooshi/php-coveralls": "dev-master",
-        "phpmd/phpmd": "1.4.*",
-        "pdepend/pdepend": "1.1.*",
-        "fabpot/php-cs-fixer": "*@dev",
     	"zendframework/zendframework" : "~2"
     },
     "require": {
@@ -28,6 +25,12 @@
         "zendframework/zend-servicemanager": "~2",
         "zendframework/zend-math": "~2",
         "zendframework/zend-eventmanager": "~2"
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "0.1.x-dev",
+            "dev-develop": "0.2.x-dev"
+        }
     },
     "suggest": {
         "zendframework/zend-db": "Zend\\Db required if you are using the DB queue adapter",

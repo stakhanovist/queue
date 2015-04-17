@@ -11,16 +11,16 @@ services:
     - mysql
 
 before_script:
+    - composer self-update
     - echo "extension = mongo.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
     - mysql -e "create database squeue;"
     - mysql --database=squeue < library/Adapter/Db/mysql.sql
     - cp tests/TestConfiguration.php.travis tests/TestConfiguration.php
-    - composer selfupdate
-    - composer install --dev --prefer-source
+    - composer install --prefer-source
     - cd tests
 
 script:
-    - ../vendor/bin/phpunit --coverage-clover=../build/coverage.clover
+    - ../vendor/bin/phpunit --coverage-clover=build/clover.xml
 
 after_script:
     - cd ..

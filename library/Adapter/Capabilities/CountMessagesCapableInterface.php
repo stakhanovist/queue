@@ -10,14 +10,15 @@
 namespace Stakhanovist\Queue\Adapter\Capabilities;
 
 use Stakhanovist\Queue\Adapter\AdapterInterface;
-use Stakhanovist\Queue\QueueInterface as Queue;
+use Stakhanovist\Queue\QueueInterface;
 
 interface CountMessagesCapableInterface extends AdapterInterface
 {
     /**
      * Returns the approximate number of messages in the queue
      *
+     * @param QueueInterface $queue
      * @return integer|null
      */
-    public function countMessages(Queue $queue);
+    public function countMessages(QueueInterface $queue);
 }
