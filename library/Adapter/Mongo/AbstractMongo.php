@@ -16,10 +16,10 @@ use Zend\Stdlib\MessageInterface;
 use Stakhanovist\Queue\Adapter\AbstractAdapter;
 use Stakhanovist\Queue\Adapter\Capabilities\CountMessagesCapableInterface;
 use Stakhanovist\Queue\Exception;
-use Stakhanovist\Queue\QueueInterface as Queue;
-use Stakhanovist\Queue\Parameter\SendParameters;
-use Stakhanovist\Queue\Parameter\ReceiveParameters;
 use Stakhanovist\Queue\Message\MessageIterator;
+use Stakhanovist\Queue\QueueInterface;
+use Stakhanovist\Queue\Parameter\SendParametersInterface;
+use Stakhanovist\Queue\Parameter\ReceiveParametersInterface;
 
 
 abstract class AbstractMongo extends AbstractAdapter implements CountMessagesCapableInterface
@@ -69,7 +69,7 @@ abstract class AbstractMongo extends AbstractAdapter implements CountMessagesCap
     public function getAvailableReceiveParams()
     {
         return array(
-            ReceiveParameters::CLASS_FILTER,
+            ReceiveParametersInterface::CLASS_FILTER,
         );
     }
 
@@ -203,14 +203,14 @@ abstract class AbstractMongo extends AbstractAdapter implements CountMessagesCap
     /**
      * Send a message to the queue
      *
-     * @param  Queue $queue
+     * @param  QueueInterface $queue
      * @param  MessageInterface $message Message to send to the active queue
-     * @param  SendParameters $params
+     * @param  SendParametersInterface $params
      * @return MessageInterface
      * @throws Exception\QueueNotFoundException
      * @throws Exception\RuntimeException
      */
-    public function sendMessage(Queue $queue, MessageInterface $message, SendParameters $params = null)
+    public function sendMessage(QueueInterface $queue, MessageInterface $message, SendParametersInterface $params = null)
     {
         $this->cleanMessageInfo($queue, $message);
 
@@ -236,7 +236,13 @@ abstract class AbstractMongo extends AbstractAdapter implements CountMessagesCap
         return $message;
     }
 
-    protected function setupCursor(MongoCollection $collection, ReceiveParameters $params = null,
+    /**
+     * @param MongoCollection $collection
+     * @param ReceiveParametersInterface $params
+     * @param array $criteria
+     * @param array $fields
+     */
+    protected function setupCursor(MongoCollection $collection, ReceiveParametersInterface $params = null,
                                     $criteria = array(self::KEY_HANDLE => false),
                                     array $fields = array('_id', self::KEY_HANDLE)
     )
@@ -250,7 +256,13 @@ abstract class AbstractMongo extends AbstractAdapter implements CountMessagesCap
         return $collection->find($criteria, $fields);
     }
 
-    protected function receiveMessageAtomic(Queue $queue, MongoCollection $collection, $id)
+    /**
+     * @param QueueInterface $queue
+     * @param MongoCollection $collection
+     * @param mixed $id
+     * @return array|null
+     */
+    protected function receiveMessageAtomic(QueueInterface $queue, MongoCollection $collection, $id)
     {
         $msg = $collection->findAndModify(
             array('_id' => $id),
@@ -280,12 +292,12 @@ abstract class AbstractMongo extends AbstractAdapter implements CountMessagesCap
     /**
      * Get messages from the queue
      *
-     * @param  Queue $queue
+     * @param  QueueInterface $queue
      * @param  integer|null $maxMessages Maximum number of messages to return
-     * @param  ReceiveParameters $params
+     * @param  ReceiveParametersInterface $params
      * @return MessageIterator
      */
-    public function receiveMessages(Queue $queue, $maxMessages = null, ReceiveParameters $params = null)
+    public function receiveMessages(QueueInterface $queue, $maxMessages = null, ReceiveParametersInterface $params = null)
     {
         if ($maxMessages === null) {
             $maxMessages = 1;
@@ -314,9 +326,10 @@ abstract class AbstractMongo extends AbstractAdapter implements CountMessagesCap
     /**
      * Returns the approximate number of messages in the queue
      *
+     * @param  QueueInterface $queue
      * @return integer
      */
-    public function countMessages(Queue $queue)
+    public function countMessages(QueueInterface $queue)
     {
         $collection = $this->getMongoDb()->selectCollection($queue->getName());
         return $collection->count(array(self::KEY_HANDLE => false));

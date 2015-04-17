@@ -26,7 +26,6 @@ use Stakhanovist\Queue\Adapter\AdapterFactory;
 use Zend\EventManager\EventManager;
 use Stakhanovist\Queue\Message\MessageIterator;
 use Zend\EventManager\EventManagerAwareInterface;
-use Stakhanovist\Queue\Parameter\SendParameters;
 
 /**
  *

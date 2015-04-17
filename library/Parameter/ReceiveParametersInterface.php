@@ -10,7 +10,6 @@
 namespace Stakhanovist\Queue\Parameter;
 
 use Stakhanovist\Queue\Exception;
-use Zend\Stdlib\Parameters;
 
 interface ReceiveParametersInterface
 {
@@ -50,5 +49,10 @@ interface ReceiveParametersInterface
      * @return boolean
      */
     public function getPeekMode();
+
+    /**
+     * @return array
+     */
+    public function toArray();
 
 }

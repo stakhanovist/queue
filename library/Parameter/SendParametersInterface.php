@@ -9,7 +9,6 @@
 
 namespace Stakhanovist\Queue\Parameter;
 
-use Zend\Stdlib\Parameters;
 use Stakhanovist\Queue\Exception;
 
 interface SendParametersInterface
@@ -37,5 +36,10 @@ interface SendParametersInterface
      * @return int|boolean
      */
     public function getRepeatingInterval();
+
+    /**
+     * @return array
+     */
+    public function toArray();
 
 }

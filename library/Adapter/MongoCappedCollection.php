@@ -12,11 +12,11 @@ namespace Stakhanovist\Queue\Adapter;
 use MongoId;
 use Zend\Stdlib\MessageInterface;
 use Stakhanovist\Queue\Exception;
-use Stakhanovist\Queue\QueueInterface as Queue;
-use Stakhanovist\Queue\Parameter\SendParameters;
-use Stakhanovist\Queue\Parameter\ReceiveParameters;
 use Stakhanovist\Queue\Adapter\Mongo\AbstractMongo;
 use Stakhanovist\Queue\Adapter\Capabilities\AwaitMessagesCapableInterface;
+use Stakhanovist\Queue\QueueInterface;
+use Stakhanovist\Queue\Parameter\SendParametersInterface;
+use Stakhanovist\Queue\Parameter\ReceiveParametersInterface;
 
 /**
  * Class MongoCappedCollection
@@ -96,14 +96,14 @@ class MongoCappedCollection extends AbstractMongo implements AwaitMessagesCapabl
     /**
      * Send a message to the queue
      *
-     * @param  Queue $queue
+     * @param  QueueInterface $queue
      * @param  MessageInterface $message Message to send to the active queue
-     * @param  SendParameters $params
+     * @param  SendParametersInterface $params
      * @return MessageInterface
      * @throws Exception\QueueNotFoundException
      * @throws Exception\RuntimeException
      */
-    public function sendMessage(Queue $queue, MessageInterface $message, SendParameters $params = null)
+    public function sendMessage(QueueInterface $queue, MessageInterface $message, SendParametersInterface $params = null)
     {
         $options = $this->getOptions();
 
@@ -140,13 +140,13 @@ class MongoCappedCollection extends AbstractMongo implements AwaitMessagesCapabl
      * Await for a message in the queue and receive it
      * If no message arrives until timeout, an empty MessageSet will be returned.
      *
-     * @param  Queue $queue
+     * @param  QueueInterface $queue
      * @param  callable $callback
-     * @param  ReceiveParameters $params
+     * @param  ReceiveParametersInterface $params
      * @return MongoCappedCollection|null
      * @throws Exception\RuntimeException
      */
-    public function awaitMessages(Queue $queue, $callback, ReceiveParameters $params = null)
+    public function awaitMessages(QueueInterface $queue, $callback, ReceiveParametersInterface $params = null)
     {
         $classname = $queue->getOptions()->getMessageSetClass();
         $collection = $this->getMongoDb()->selectCollection($queue->getName());

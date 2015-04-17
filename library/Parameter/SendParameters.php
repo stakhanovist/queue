@@ -23,7 +23,7 @@ class SendParameters extends Parameters implements SendParametersInterface
      *
      * @param int $scheduleTime
      * @throws Exception\InvalidArgumentException
-     * @return \Stakhanovist\Queue\Parameter\SendParameters
+     * @return $this
      */
     public function setSchedule($scheduleTime = null)
     {
@@ -55,7 +55,7 @@ class SendParameters extends Parameters implements SendParametersInterface
      *
      * @param int $repeatingInterval
      * @throws Exception\InvalidArgumentException
-     * @return \Stakhanovist\Queue\Parameter\SendParameters
+     * @return $this
      */
     public function setRepeatingInterval($repeatingInterval = null)
     {

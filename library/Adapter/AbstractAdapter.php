@@ -135,7 +135,7 @@ abstract class AbstractAdapter implements AdapterInterface
             'queueId' => $this->getQueueId($name),
             'queueName' => $name,
             'adapter' => get_called_class(),
-            'options' => $options instanceof ParametersInterface ? $options->toArray() : (array)$options,
+            'options' => $options instanceof ParametersInterface ? $options->toArray() : (array) $options,
         );
     }
 
