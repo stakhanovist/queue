@@ -11,7 +11,7 @@ services:
     - mysql
 
 before_script:
-    - composer sel-fupdate
+    - composer self-update
     - echo "extension = mongo.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
     - mysql -e "create database squeue;"
     - mysql --database=squeue < library/Adapter/Db/mysql.sql

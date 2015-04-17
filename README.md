@@ -3,11 +3,13 @@ Stakhanovist Queue
 
 Provides a factory function to create specific queue client objects.
 
-|         | Build Status |
-|---------|:------------:|
-| master  | [![Travis branch](https://img.shields.io/travis/stakhanovist/queue/master.svg?style=flat-square)](https://travis-ci.org/stakhanovist/queue)  |
-| develop | [![Travis branch](https://img.shields.io/travis/stakhanovist/queue/develop.svg?style=flat-square)](https://travis-ci.org/stakhanovist/queue) |
+|         | Release | Build Status |
+|---------|:-------:|:------------:|
+| master  | [![Last Release](https://img.shields.io/packagist/v/stakhanovist/queue.svg?style=flat-square)](https://packagist.org/packages/stakhanovist/queue)   | [![BuildStatus](https://img.shields.io/travis/stakhanovist/queue/master.svg?style=flat-square)](https://travis-ci.org/stakhanovist/queue)  |
+| develop | [![Pre Release](https://img.shields.io/packagist/vpre/stakhanovist/queue.svg?style=flat-square)](https://packagist.org/packages/stakhanovist/queue) | [![Build Status](https://img.shields.io/travis/stakhanovist/queue/develop.svg?style=flat-square)](https://travis-ci.org/stakhanovist/queue) |
 
+
+[![Packagist Pre Release](https://img.shields.io/packagist/vpre/stakhanovist/queue.svg?style=flat-square)]()
 
 ## Install
 
