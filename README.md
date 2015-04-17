@@ -1,16 +1,18 @@
-### Stakhanovist Queue
-
-Master: [![Build Status](https://travis-ci.org/ripaclub/ZendQueue.png?branch=master)](https://travis-ci.org/ripaclub/ZendQueue)
-
-Develop: [![Build Status](https://travis-ci.org/ripaclub/ZendQueue.png?branch=develop)](https://travis-ci.org/ripaclub/ZendQueue)
+Stakhanovist Queue
+------------------
 
 
-You can install using:
 
-```
-curl -s https://getcomposer.org/installer | php
-php composer.phar install
-```
+|         | Build Status |
+|---------|:------------:|
+| master  | [![Travis branch](https://img.shields.io/travis/stakhanovist/queue/master.svg?style=flat-square)](https://travis-ci.org/stakhanovist/queue)  |
+| develop | [![Travis branch](https://img.shields.io/travis/stakhanovist/queue/develop.svg?style=flat-square)](https://travis-ci.org/stakhanovist/queue) |
 
-At that point, follow the instructions in the documentation folder for actual
-usage of the component. (Documentation is forthcoming.)
+
+## Install
+
+**TODO**
+
+---
+
+[![Analytics](https://ga-beacon.appspot.com/UA-49655829-1/stakhanovist/queue)](https://github.com/igrigorik/ga-beacon)
