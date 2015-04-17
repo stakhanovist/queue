@@ -29,6 +29,12 @@
         "zendframework/zend-math": "~2",
         "zendframework/zend-eventmanager": "~2"
     },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "0.1.x-dev",
+            "dev-develop": "0.2.x-dev"
+        }
+    },
     "suggest": {
         "zendframework/zend-db": "Zend\\Db required if you are using the DB queue adapter",
         "ext-mongo": "Mongo required if you are using the Mondo queue adapter"
