@@ -1,7 +1,7 @@
 Stakhanovist Queue
 ------------------
 
-
+Provides a factory function to create specific queue client objects.
 
 |         | Build Status |
 |---------|:------------:|

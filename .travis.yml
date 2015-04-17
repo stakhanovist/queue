@@ -11,12 +11,12 @@ services:
     - mysql
 
 before_script:
+    - composer sel-fupdate
     - echo "extension = mongo.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
     - mysql -e "create database squeue;"
     - mysql --database=squeue < library/Adapter/Db/mysql.sql
     - cp tests/TestConfiguration.php.travis tests/TestConfiguration.php
-    - composer selfupdate
-    - composer install --dev --prefer-source
+    - composer install --prefer-source
     - cd tests
 
 script:
