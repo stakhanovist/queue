@@ -25,16 +25,18 @@ class QueueAdapterAbstractServiceFactoryTest extends \PHPUnit_Framework_TestCase
         Adapter\AdapterFactory::resetAdapterPluginManager();
 
         $this->sm = new ServiceManager();
-        $this->sm->setService('Config', array('queue_adapters' => array(
-            'ArrayAdapter' => array(
-                'adapter' => 'ArrayAdapter',
-                'options' => array('dummyOption' => 'dummyValue'),
-            ),
-            'Foo' => array(
-                'adapter' => 'ArrayAdapter',
-                'options' => array('dummyOption' => 'dummyValue'),
-            ),
-        )));
+        $this->sm->setService('Config',
+            array('stakhanovist' =>
+                array('queue_adapters' => array(
+                    'ArrayAdapter' => array(
+                        'adapter' => 'ArrayAdapter',
+                        'options' => array('dummyOption' => 'dummyValue'),
+                    ),
+                    'Foo' => array(
+                        'adapter' => 'ArrayAdapter',
+                        'options' => array('dummyOption' => 'dummyValue'),
+                    ),
+        ))));
         $this->sm->addAbstractFactory('Stakhanovist\Queue\Service\QueueAdapterAbstractServiceFactory');
     }
 

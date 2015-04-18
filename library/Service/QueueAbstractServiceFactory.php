@@ -25,6 +25,13 @@ class QueueAbstractServiceFactory implements AbstractFactoryInterface
     protected $config;
 
     /**
+     * Configuration key root node
+     *
+     * @var string
+     */
+    protected $configKeyRoot = 'stakhanovist';
+
+    /**
      * Configuration key for queues objects
      *
      * @var string
@@ -94,11 +101,21 @@ class QueueAbstractServiceFactory implements AbstractFactoryInterface
         }
 
         if (!$services->has('Config')) {
-            $this->config = array();
+            $this->config = [];
             return $this->config;
         }
 
         $config = $services->get('Config');
+
+        if (!isset($config[$this->configKeyRoot])
+            || !is_array($config[$this->configKeyRoot])
+        ) {
+            $this->config = [];
+            return $this->config;
+        }
+
+        $config = $config[$this->configKeyRoot];
+
         if (!isset($config[$this->configKey])
             || !is_array($config[$this->configKey])
         ) {
