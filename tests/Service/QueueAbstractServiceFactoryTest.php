@@ -32,31 +32,30 @@ class QueueAbstractServiceFactoryTest extends \PHPUnit_Framework_TestCase
         $this->sm = new ServiceManager();
         $this->sm->setInvokableClass('custom', 'Stakhanovist\Queue\Adapter\Null');
         $this->sm->setService('Config', array(
-            'queues' => array(
-
-                'queueA' => array(
-                    'name' => 'A',
-                    'adapter' => array( //Adapter as config
-                        'adapter' => 'ArrayAdapter',
-                        'options' => array('dummyOption' => 'dummyValue'),
+            'stakhanovist' => array(
+                'queues' => array(
+                    'queueA' => array(
+                        'name' => 'A',
+                        'adapter' => array( //Adapter as config
+                            'adapter' => 'ArrayAdapter',
+                            'options' => array('dummyOption' => 'dummyValue'),
+                        ),
+                        'options' => array('messageClass' => 'Zend\Stdlib\Message'),
                     ),
-                    'options' => array('messageClass' => 'Zend\Stdlib\Message'),
-                ),
 
 
-                'queueB' => array(
-                    'name' => 'B',
-                    'adapter' => $adapter, //Adapter as instance
-                    'options' => array('messageClass' => 'Zend\Stdlib\Message'),
-                ),
+                    'queueB' => array(
+                        'name' => 'B',
+                        'adapter' => $adapter, //Adapter as instance
+                        'options' => array('messageClass' => 'Zend\Stdlib\Message'),
+                    ),
 
-                'queueC' => array(
-                    'name' => 'C',
-                    'adapter' => 'custom',
-                    'options' => array('messageClass' => 'Zend\Stdlib\Message'),
-                ),
-
-            )));
+                    'queueC' => array(
+                        'name' => 'C',
+                        'adapter' => 'custom',
+                        'options' => array('messageClass' => 'Zend\Stdlib\Message'),
+                    ),
+            ))));
         $this->sm->addAbstractFactory('Stakhanovist\Queue\Service\QueueAbstractServiceFactory');
     }
 
