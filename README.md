@@ -8,10 +8,19 @@ Provides a factory function to create specific queue client objects.
 | master  | [![Last Release](https://img.shields.io/packagist/v/stakhanovist/queue.svg?style=flat-square)](https://packagist.org/packages/stakhanovist/queue)   | [![BuildStatus](https://img.shields.io/travis/stakhanovist/queue/master.svg?style=flat-square)](https://travis-ci.org/stakhanovist/queue)  |
 | develop | [![Pre Release](https://img.shields.io/packagist/vpre/stakhanovist/queue.svg?style=flat-square)](https://packagist.org/packages/stakhanovist/queue) | [![Build Status](https://img.shields.io/travis/stakhanovist/queue/develop.svg?style=flat-square)](https://travis-ci.org/stakhanovist/queue) |
 
+## Installation
 
-## Install
+Install it using [composer](http://getcomposer.org).
 
-**TODO**
+Add the following to your `composer.json` file:
+
+```
+"require": {
+    "stakhanovist/queue": "~0.1",
+}
+```
+
+---
 
 ---
 
