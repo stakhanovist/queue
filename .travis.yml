@@ -16,14 +16,13 @@ before_script:
     - mysql -e "create database squeue;"
     - mysql --database=squeue < library/Adapter/Db/mysql.sql
     - cp tests/TestConfiguration.php.travis tests/TestConfiguration.php
-    - composer install --prefer-source
-    - cd tests
+    - composer install --dev --prefer-source
+    - mkdir -p build/coverage
 
 script:
-    - ../vendor/bin/phpunit --coverage-clover=build/clover.xml
+    - vendor/bin/phpunit
 
 after_script:
-    - cd ..
     - php vendor/bin/coveralls -v
 
 notifications:
