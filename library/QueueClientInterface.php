@@ -26,11 +26,12 @@ use Stakhanovist\Queue\Adapter\AdapterFactory;
 use Zend\EventManager\EventManager;
 use Stakhanovist\Queue\Message\MessageIterator;
 use Zend\EventManager\EventManagerAwareInterface;
+use Zend\EventManager\EventsCapableInterface;
 
 /**
  *
  */
-interface QueueClientInterface extends QueueInterface, Countable
+interface QueueClientInterface extends QueueInterface, Countable, EventsCapableInterface
 {
     /**
      * Set options
