@@ -34,4 +34,4 @@ As this library started as a refactoring of the [`Zend\Queue` library](https://g
 
 ---
 
-[![Analytics](https://ga-beacon.appspot.com/UA-49655829-1/stakhanovist/queue)](https://github.com/igrigorik/ga-beacon)
+[![Analytics](https://ga-beacon.appspot.com/UA-49657176-4/queue?flat)](https://github.com/igrigorik/ga-beacon)
