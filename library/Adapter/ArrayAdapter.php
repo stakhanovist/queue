@@ -62,7 +62,6 @@ class ArrayAdapter extends AbstractAdapter implements
         ];
     }
 
-
     /********************************************************************
      * Queue management functions
      *********************************************************************/

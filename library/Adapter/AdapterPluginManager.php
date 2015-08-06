@@ -27,10 +27,10 @@ class AdapterPluginManager extends AbstractPluginManager
      * @var array
      */
     protected $invokableClasses = [
-        'arrayadapter' => 'Stakhanovist\Queue\Adapter\ArrayAdapter',
+        'array' => 'Stakhanovist\Queue\Adapter\ArrayAdapter',
         'db' => 'Stakhanovist\Queue\Adapter\Db',
-        'mongocapped' => 'Stakhanovist\Queue\Adapter\MongoCappedCollection',
-        'mongo' => 'Stakhanovist\Queue\Adapter\MongoCollection',
+        'mongodb-capped' => 'Stakhanovist\Queue\Adapter\MongoCappedCollection',
+        'mongodb' => 'Stakhanovist\Queue\Adapter\MongoCollection',
         'null' => 'Stakhanovist\Queue\Adapter\Null',
     ];
 

@@ -9,7 +9,7 @@
 
 namespace StakhanovistQueueTest\Adapter;
 
-use Stakhanovist\Queue\Adapter\Null;
+use Stakhanovist\Queue\Adapter\NullAdapter;
 
 /*
  * The adapter test class provides a universal test class for all of the
@@ -20,12 +20,12 @@ use Stakhanovist\Queue\Adapter\Null;
  */
 
 /**
+ * Class NullAdapterTest
  *
- * @group      Stakhanovist_Queue
+ * @group Stakhanovist_Queue
  */
-class NullTest extends AdapterTest
+class NullAdapterTest extends AdapterTest
 {
-
     /**
      * return the list of base test supported.
      * If some special adapter doesnt' support one of these, this method should be ovveriden

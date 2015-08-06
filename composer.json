@@ -2,7 +2,7 @@
   "name": "stakhanovist/queue",
   "description": "Provides a factory function to create specific queue client objects",
   "type": "library",
-  "license": "BSD-3-Clause",
+  "license": "BSD-2-Clause",
   "authors": [
     {
       "name": "Leonardo Grasso",
@@ -16,7 +16,6 @@
     }
   ],
   "keywords": [
-    "zf2",
     "queue"
   ],
   "homepage": "https://github.com/stakhanovist/queue",

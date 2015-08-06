@@ -19,9 +19,8 @@ use Zend\Stdlib\MessageInterface;
  * Class NullAdapter
  *
  * Class for testing. No supported functions. Also used to disable a queue.
- * // FIXME: rename, reserved word from PHP7
  */
-class Null extends AbstractAdapter
+class NullAdapter extends AbstractAdapter
 {
     /**
      * Ensure connection
