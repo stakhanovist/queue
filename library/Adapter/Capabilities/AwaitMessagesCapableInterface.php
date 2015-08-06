@@ -8,11 +8,16 @@
  */
 
 namespace Stakhanovist\Queue\Adapter\Capabilities;
+
 use Stakhanovist\Queue\Adapter\AdapterInterface;
+use Stakhanovist\Queue\Exception;
 use Stakhanovist\Queue\Message\MessageIterator;
 use Stakhanovist\Queue\Parameter\ReceiveParametersInterface;
 use Stakhanovist\Queue\QueueInterface;
 
+/**
+ * Interface AwaitMessagesCapableInterface
+ */
 interface AwaitMessagesCapableInterface extends AdapterInterface
 {
      /**

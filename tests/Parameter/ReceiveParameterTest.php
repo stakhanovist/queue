@@ -23,13 +23,13 @@ class ReceiveParameterTest extends \PHPUnit_Framework_TestCase
     public function testSetClassFilterInvalidArgument()
     {
         $this->setExpectedException('Stakhanovist\Queue\Exception\InvalidArgumentException');
-        $this->receiveParameter->setClassFilter(array());
+        $this->receiveParameter->setClassFilter([]);
     }
 
     public function testsetVisibilityTimeoutInvalidArgument()
     {
         $this->setExpectedException('Stakhanovist\Queue\Exception\InvalidArgumentException');
-        $this->receiveParameter->setVisibilityTimeout(array());
+        $this->receiveParameter->setVisibilityTimeout([]);
     }
 
     public function testSetGetPeekMode()
@@ -42,6 +42,6 @@ class ReceiveParameterTest extends \PHPUnit_Framework_TestCase
     public function testSetPeekInvalidArgument()
     {
         $this->setExpectedException('Stakhanovist\Queue\Exception\InvalidArgumentException');
-        $this->receiveParameter->setPeekMode(array());
+        $this->receiveParameter->setPeekMode([]);
     }
 }

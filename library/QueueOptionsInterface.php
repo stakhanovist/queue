@@ -9,8 +9,9 @@
 
 namespace Stakhanovist\Queue;
 
-use Zend\Stdlib\AbstractOptions;
-
+/**
+ * Interface QueueOptionsInterface
+ */
 interface QueueOptionsInterface
 {
     /**
@@ -39,5 +40,4 @@ interface QueueOptionsInterface
      * @return int
      */
     public function getPollingInterval();
-
 }

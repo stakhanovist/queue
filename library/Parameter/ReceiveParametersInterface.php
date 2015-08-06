@@ -11,6 +11,9 @@ namespace Stakhanovist\Queue\Parameter;
 
 use Stakhanovist\Queue\Exception;
 
+/**
+ * Interface ReceiveParametersInterface
+ */
 interface ReceiveParametersInterface
 {
 
@@ -54,5 +57,4 @@ interface ReceiveParametersInterface
      * @return array
      */
     public function toArray();
-
 }

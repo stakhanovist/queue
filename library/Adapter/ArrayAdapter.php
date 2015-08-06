@@ -9,27 +9,30 @@
 
 namespace Stakhanovist\Queue\Adapter;
 
-use Stakhanovist\Queue\Exception;
+use Stakhanovist\Queue\Adapter\Capabilities\CountMessagesCapableInterface;
 use Stakhanovist\Queue\Adapter\Capabilities\DeleteMessageCapableInterface;
 use Stakhanovist\Queue\Adapter\Capabilities\ListQueuesCapableInterface;
-use Stakhanovist\Queue\Adapter\Capabilities\CountMessagesCapableInterface;
-use Zend\Stdlib\MessageInterface;
-use Zend\Math\Rand;
+use Stakhanovist\Queue\Exception;
 use Stakhanovist\Queue\Message\MessageIterator;
-use Stakhanovist\Queue\Parameter\SendParametersInterface;
 use Stakhanovist\Queue\Parameter\ReceiveParametersInterface;
+use Stakhanovist\Queue\Parameter\SendParametersInterface;
 use Stakhanovist\Queue\QueueInterface;
+use Zend\Math\Rand;
+use Zend\Stdlib\MessageInterface;
 
 /**
  * Class for using a standard PHP array as a queue
  *
  */
-class ArrayAdapter extends AbstractAdapter implements DeleteMessageCapableInterface, ListQueuesCapableInterface, CountMessagesCapableInterface
+class ArrayAdapter extends AbstractAdapter implements
+    DeleteMessageCapableInterface,
+    ListQueuesCapableInterface,
+    CountMessagesCapableInterface
 {
     /**
      * @var array
      */
-    protected $data = array();
+    protected $data = [];
 
 
     /**
@@ -39,10 +42,10 @@ class ArrayAdapter extends AbstractAdapter implements DeleteMessageCapableInterf
      */
     public function getAvailableSendParams()
     {
-        return array(
+        return [
             SendParametersInterface::SCHEDULE,
             SendParametersInterface::REPEATING_INTERVAL,
-        );
+        ];
     }
 
     /**
@@ -52,11 +55,11 @@ class ArrayAdapter extends AbstractAdapter implements DeleteMessageCapableInterf
      */
     public function getAvailableReceiveParams()
     {
-        return array(
+        return [
             ReceiveParametersInterface::VISIBILITY_TIMEOUT,
             ReceiveParametersInterface::CLASS_FILTER,
             ReceiveParametersInterface::PEEK_MODE,
-        );
+        ];
     }
 
 
@@ -115,7 +118,7 @@ class ArrayAdapter extends AbstractAdapter implements DeleteMessageCapableInterf
             return false;
         }
 
-        $this->data[$name] = array();
+        $this->data[$name] = [];
 
         return true;
     }
@@ -178,21 +181,24 @@ class ArrayAdapter extends AbstractAdapter implements DeleteMessageCapableInterf
      * @return MessageInterface
      * @throws Exception\QueueNotFoundException
      */
-    public function sendMessage(QueueInterface $queue, MessageInterface $message, SendParametersInterface $params = null)
-    {
+    public function sendMessage(
+        QueueInterface $queue,
+        MessageInterface $message,
+        SendParametersInterface $params = null
+    ) {
         if (!$this->queueExists($queue->getName())) {
             throw new Exception\QueueNotFoundException('Queue does not exist: ' . $queue->getName());
         }
 
         $this->cleanMessageInfo($queue, $message);
 
-        $msg = array(
+        $msg = [
             'created' => time(),
             'class' => get_class($message),
             'content' => (string)$message->getContent(),
             'metadata' => $message->getMetadata(),
             'handle' => null,
-        );
+        ];
 
         if ($params) {
             if ($params->getSchedule()) {
@@ -204,7 +210,7 @@ class ArrayAdapter extends AbstractAdapter implements DeleteMessageCapableInterf
             }
         }
 
-        $_queue = & $this->data[$queue->getName()];
+        $_queue = &$this->data[$queue->getName()];
 
         $messageId = md5(Rand::getString(10) . count($_queue));
 
@@ -223,23 +229,25 @@ class ArrayAdapter extends AbstractAdapter implements DeleteMessageCapableInterf
      * @param ReceiveParametersInterface $params
      * @return MessageIterator
      */
-    public function receiveMessages(QueueInterface $queue, $maxMessages = null, ReceiveParametersInterface $params = null)
-    {
+    public function receiveMessages(
+        QueueInterface $queue,
+        $maxMessages = null,
+        ReceiveParametersInterface $params = null
+    ) {
         if ($maxMessages === null) {
             $maxMessages = 1;
         }
 
         $timeout = $params ? $params->getVisibilityTimeout() : null;
-        $filter  = $params ? $params->getClassFilter() : null;
-        $peek    = $params ? $params->getPeekMode() : false;
+        $filter = $params ? $params->getClassFilter() : null;
+        $peek = $params ? $params->getPeekMode() : false;
         $microtime = (int)microtime(true);
 
-        $data = array();
+        $data = [];
         if ($maxMessages > 0) {
             $count = 0;
-            $temp = & $this->data[$queue->getName()];
+            $temp = &$this->data[$queue->getName()];
             foreach ($temp as $messageId => &$msg) {
-
                 if (null !== $filter && $msg['class'] != $filter) {
                     continue;
                 }
@@ -249,7 +257,6 @@ class ArrayAdapter extends AbstractAdapter implements DeleteMessageCapableInterf
                 }
 
                 if ($msg['handle'] === null || ($msg['timeout'] !== null && $msg['timeout'] < $microtime)) {
-
                     if ($peek) {
                         $msg['handle'] = null;
                         $msg['timeout'] = null;
@@ -262,11 +269,14 @@ class ArrayAdapter extends AbstractAdapter implements DeleteMessageCapableInterf
                         $msg['handle'],
                         $messageId,
                         $queue,
-                        array(
+                        [
                             SendParametersInterface::SCHEDULE => isset($msg['schedule']) ? $msg['schedule'] : null,
-                            SendParametersInterface::REPEATING_INTERVAL => isset($msg['interval']) ? $msg['interval'] : null,
-                        )
+                            SendParametersInterface::REPEATING_INTERVAL => isset($msg['interval']) ?
+                                $msg['interval'] :
+                                null,
+                        ]
                     );
+
 
                     $data[] = $msg;
                     ++$count;
@@ -303,17 +313,17 @@ class ArrayAdapter extends AbstractAdapter implements DeleteMessageCapableInterf
         $messageId = $info['messageId'];
 
         // load the queue
-        $queue = & $this->data[$queue->getName()];
+        $queue = &$this->data[$queue->getName()];
 
         if (!array_key_exists($messageId, $queue)) {
             return false;
         }
 
         if (!empty($info['options'][SendParametersInterface::REPEATING_INTERVAL])) {
-            $microtime = (int) microtime(true);
+            $microtime = (int)microtime(true);
             $queue[$messageId]['schedule'] = $microtime + $info['options'][SendParametersInterface::REPEATING_INTERVAL];
-            $queue[$messageId]['handle']   = null;
-            $queue[$messageId]['timeout']  = null;
+            $queue[$messageId]['handle'] = null;
+            $queue[$messageId]['timeout'] = null;
         } else {
             unset($queue[$messageId]);
         }
@@ -330,7 +340,7 @@ class ArrayAdapter extends AbstractAdapter implements DeleteMessageCapableInterf
      */
     public function __sleep()
     {
-        return array('data');
+        return ['data'];
     }
 
     /*

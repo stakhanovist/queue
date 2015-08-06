@@ -10,30 +10,29 @@
 namespace Stakhanovist\Queue\Adapter;
 
 use MongoId;
-use Zend\Stdlib\MessageInterface;
-use Stakhanovist\Queue\Exception;
-use Stakhanovist\Queue\Adapter\Mongo\AbstractMongo;
 use Stakhanovist\Queue\Adapter\Capabilities\AwaitMessagesCapableInterface;
-use Stakhanovist\Queue\QueueInterface;
-use Stakhanovist\Queue\Parameter\SendParametersInterface;
+use Stakhanovist\Queue\Adapter\Mongo\AbstractMongo;
+use Stakhanovist\Queue\Exception;
 use Stakhanovist\Queue\Parameter\ReceiveParametersInterface;
+use Stakhanovist\Queue\Parameter\SendParametersInterface;
+use Stakhanovist\Queue\QueueInterface;
+use Zend\Stdlib\MessageInterface;
 
 /**
  * Class MongoCappedCollection
  */
 class MongoCappedCollection extends AbstractMongo implements AwaitMessagesCapableInterface
 {
-
     /**
      * Default options
      *
      * @var array
      */
-    protected $defaultOptions = array(
+    protected $defaultOptions = [
         'size' => 1000000,
         'maxMessages' => 100,
         'threshold' => 10,
-    );
+    ];
 
     /**
      * Create a new queue
@@ -55,17 +54,17 @@ class MongoCappedCollection extends AbstractMongo implements AwaitMessagesCapabl
             $queue = $this->getMongoDb()
                 ->createCollection(
                     $name,
-                    array(
+                    [
                         'capped' => true,
                         'size' => $options['size'],
                         'max' => $options['maxMessages']
-                    )
+                    ]
                 );
         }
 
         if ($queue) {
             for ($i = 0; $i < $options['maxMessages']; $i++) {
-                $queue->insert(array(self::KEY_HANDLE => true));
+                $queue->insert([self::KEY_HANDLE => true]);
             }
             return true;
         } //else
@@ -103,27 +102,30 @@ class MongoCappedCollection extends AbstractMongo implements AwaitMessagesCapabl
      * @throws Exception\QueueNotFoundException
      * @throws Exception\RuntimeException
      */
-    public function sendMessage(QueueInterface $queue, MessageInterface $message, SendParametersInterface $params = null)
-    {
+    public function sendMessage(
+        QueueInterface $queue,
+        MessageInterface $message,
+        SendParametersInterface $params = null
+    ) {
         $options = $this->getOptions();
 
         $this->cleanMessageInfo($queue, $message);
 
         $collection = $this->getMongoDb()->selectCollection($queue->getName());
 
-        if ($options['threshold'] && $collection->count(array(self::KEY_HANDLE => true)) < $options['threshold']) {
-            //FIXME: Exception should be explained in a better way
+        if ($options['threshold'] && $collection->count([self::KEY_HANDLE => true]) < $options['threshold']) {
+            // FIXME: Exception should be explained in a better way
             throw new Exception\RuntimeException('Cannot send message: capped collection is full.');
         }
 
         $id = new MongoId();
-        $msg = array(
+        $msg = [
             '_id' => $id,
             self::KEY_CLASS => get_class($message),
             self::KEY_CONTENT => (string)$message->getContent(),
             self::KEY_METADATA => $message->getMetadata(),
             self::KEY_HANDLE => false,
-        );
+        ];
 
         try {
             $collection->insert($msg);
@@ -131,7 +133,7 @@ class MongoCappedCollection extends AbstractMongo implements AwaitMessagesCapabl
             throw new Exception\RuntimeException($e->getMessage(), $e->getCode(), $e);
         }
 
-        $this->embedMessageInfo($queue, $message, $id, $params ? $params->toArray() : array());
+        $this->embedMessageInfo($queue, $message, $id, $params ? $params->toArray() : []);
 
         return $message;
     }
@@ -171,6 +173,7 @@ class MongoCappedCollection extends AbstractMongo implements AwaitMessagesCapabl
          * Therefore tailable cursor will start from the last document always.
          *
          * Inspired by
+         *
          * @link http://shtylman.com/post/the-tail-of-mongodb/
          *
          * @FIXME: classFilter isn't yet supported here
@@ -180,16 +183,23 @@ class MongoCappedCollection extends AbstractMongo implements AwaitMessagesCapabl
         do {
 
             //Obtain the second last position
-            $cursor = $collection->find()->sort(array('_id' => -1));
+            $cursor = $collection->find()->sort(['_id' => -1]);
             $cursor->skip(1);
             $secondLast = $cursor->getNext();
 
             if (!$secondLast) {
-                throw new Exception\RuntimeException('Cannot get second-last position, maybe there are not enough documents within the collection');
+                throw new Exception\RuntimeException(
+                    'Cannot get second-last position, maybe there are not enough documents within the collection'
+                );
             }
 
             //Setup tailable cursor
-            $cursor = $this->setupCursor($collection, null, array('_id' => array('$gt' => $secondLast['_id'])), array('_id', self::KEY_HANDLE));
+            $cursor = $this->setupCursor(
+                $collection,
+                null,
+                ['_id' => ['$gt' => $secondLast['_id']]],
+                ['_id', self::KEY_HANDLE]
+            );
             $cursor->tailable(true);
             $cursor->awaitData(true);
 
@@ -203,13 +213,11 @@ class MongoCappedCollection extends AbstractMongo implements AwaitMessagesCapabl
 
                     // is cursor dead ?
                     if ($cursor->dead()) {
-                        //TODO: if we get a dead cursor repeatedly, an infinte loop or a temporary CPU high load may occur
+                        // TODO: if we repeately get a dead cursor, an inf loop or a temporary CPU high load may occur
                         break; //go to the outer loop, obtaining a new cursor
                     }
                     //else, we read all results so far, wait for more
-
                 } else {
-
                     $msg = $cursor->getNext();
 
                     //To avoid resource-consuming, we ignore handled message early
@@ -226,21 +234,20 @@ class MongoCappedCollection extends AbstractMongo implements AwaitMessagesCapabl
                     }
 
                     //Ok, message received
-                    $iterator = new $classname(array($msg), $queue);
+                    $iterator = new $classname([$msg], $queue);
                     if (!call_user_func($callback, $iterator)) {
                         return $this;
                     }
-
                 }
-
             } while (true); //inner loop
 
             //No message, timeout occured
-            $iterator = new $classname(array(), $queue);
+            $iterator = new $classname([], $queue);
             if (!call_user_func($callback, $iterator)) {
                 return $this;
             }
-
         } while (true);
+
+        return null;
     }
 }

@@ -69,17 +69,17 @@ class MessageIteratorTest extends \PHPUnit_Framework_TestCase
 
         // construct messages
         $this->message_count = 5;
-        $data = array();
-        $this->metadata = array(
+        $data = [];
+        $this->metadata = [
             'one' => 1,
             'two' => 2,
-        );
+        ];
         for ($i = 0; $i < $this->message_count; $i++) {
-            $data[] = array(
+            $data[] = [
                 'class' => '\Stakhanovist\Queue\Message\Message',
                 'metadata' => $this->metadata,
                 'content' => 'Hello world',
-            );
+            ];
         }
 
         $classname = $this->queue->getOptions()->getMessageSetClass();
@@ -110,7 +110,7 @@ class MessageIteratorTest extends \PHPUnit_Framework_TestCase
         $stdMessage->setContent('A stdlib message');
 
         //Test array of Message, without queue in constructor
-        $messages = new MessageIterator(array($message, $stdMessage));
+        $messages = new MessageIterator([$message, $stdMessage]);
 
         $this->assertEquals($message, $messages->current());
         $messages->next();
@@ -119,15 +119,14 @@ class MessageIteratorTest extends \PHPUnit_Framework_TestCase
         $this->assertNull($messages->getQueueClass());
 
         //Test array of array, without queue in constructor
-        $messages = new MessageIterator(array(array('content' => 'a message')));
+        $messages = new MessageIterator([['content' => 'a message']]);
         $this->assertEquals('a message', $messages->current()->getContent());
         $this->assertInstanceOf($this->queue->getOptions()->getMessageClass(), $messages->current());
 
         //Test with queue in constructor
-        $messages = new MessageIterator(array($message, $stdMessage), $this->queue);
+        $messages = new MessageIterator([$message, $stdMessage], $this->queue);
         $this->assertTrue($this->queue === $messages->getQueue());
         $this->assertEquals(get_class($this->queue), $this->messages->getQueueClass());
-
     }
 
     public function test_count()
@@ -153,7 +152,6 @@ class MessageIteratorTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue($this->messages->setQueue($queue) instanceof MessageIterator);
 
         $this->assertTrue($this->messages->getQueue() === $queue);
-
     }
 
     public function test_getQueueClass()
@@ -168,5 +166,4 @@ class MessageIteratorTest extends \PHPUnit_Framework_TestCase
             $this->assertEquals($this->metadata, $message->getMetadata());
         }
     }
-
 }

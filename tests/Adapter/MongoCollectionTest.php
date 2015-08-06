@@ -9,7 +9,7 @@
 
 namespace StakhanovistQueueTest\Adapter;
 
-    /*
+/*
      * The adapter test class provides a universal test class for all of the
      * abstract methods.
      *
@@ -61,9 +61,11 @@ class MongoCollectionTest extends AdapterTest
 
     public function getTestOptions()
     {
-        return array('driverOptions' => array(
+        return [
+            'driverOptions' => [
             'db' => 'StakhanovistQueueTest'
-        ));
+            ]
+        ];
     }
 
     public function testSendMessageShouldThrowExcepetionWhenQueueDoesntExist()

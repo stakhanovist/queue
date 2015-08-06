@@ -9,11 +9,15 @@
 
 namespace Stakhanovist\Queue\Adapter;
 
-use Zend\Stdlib\MessageInterface;
 use Stakhanovist\Queue\Adapter\Capabilities\DeleteMessageCapableInterface;
 use Stakhanovist\Queue\Adapter\Mongo\AbstractMongo;
+use Stakhanovist\Queue\Exception;
 use Stakhanovist\Queue\QueueInterface;
+use Zend\Stdlib\MessageInterface;
 
+/**
+ * Class MongoCollection
+ */
 class MongoCollection extends AbstractMongo implements DeleteMessageCapableInterface
 {
     /**
@@ -35,7 +39,7 @@ class MongoCollection extends AbstractMongo implements DeleteMessageCapableInter
         }
 
         $collection = $this->getMongoDb()->selectCollection($queue->getName());
-        $result = $collection->remove(array('_id' => $info['messageId'], self::KEY_HANDLE => $info['handle']));
+        $result = $collection->remove(['_id' => $info['messageId'], self::KEY_HANDLE => $info['handle']]);
         $deleted = (isset($result['ok']) && $result['ok']);
 
         if ($deleted) {

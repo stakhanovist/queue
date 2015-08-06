@@ -10,16 +10,11 @@
 namespace Stakhanovist\Queue;
 
 use Countable;
-use Traversable;
+use Stakhanovist\Queue\Exception;
+use Stakhanovist\Queue\Parameter\ReceiveParametersInterface;
+use Stakhanovist\Queue\Parameter\SendParametersInterface;
 use Zend\Stdlib\ArrayUtils;
 use Zend\Stdlib\MessageInterface;
-use Stakhanovist\Queue\Exception;
-use Stakhanovist\Queue\Adapter\AdapterInterface;
-use Stakhanovist\Queue\Adapter\Capabilities\AwaitMessagesCapableInterface;
-use Stakhanovist\Queue\Adapter\Capabilities\CountMessagesCapableInterface;
-use Stakhanovist\Queue\Adapter\Capabilities\DeleteMessageCapableInterface;
-use Stakhanovist\Queue\Parameter\SendParametersInterface;
-use Stakhanovist\Queue\Parameter\ReceiveParametersInterface;
 use Zend\EventManager\EventManagerInterface;
 use Zend\EventManager\Event;
 use Stakhanovist\Queue\Adapter\AdapterFactory;
@@ -29,7 +24,7 @@ use Zend\EventManager\EventManagerAwareInterface;
 use Zend\EventManager\EventsCapableInterface;
 
 /**
- *
+ * Interface QueueClientInterface
  */
 interface QueueClientInterface extends QueueInterface, Countable, EventsCapableInterface
 {

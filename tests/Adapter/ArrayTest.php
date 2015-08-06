@@ -9,7 +9,7 @@
 
 namespace StakhanovistQueueTest\Adapter;
 
-    /*
+/*
      * The adapter test class provides a universal test class for all of the
      * abstract methods.
      *
@@ -68,7 +68,7 @@ class ArrayTest extends AdapterTest
         $queue = $this->createQueue(__FUNCTION__);
         $adapter = $queue->getAdapter();
 
-        $data = array('test' => 1);
+        $data = ['test' => 1];
         $adapter->setData($data);
         $got = $adapter->getData();
         $this->assertEquals($data['test'], $got['test']);

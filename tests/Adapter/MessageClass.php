@@ -9,10 +9,13 @@
 
 namespace StakhanovistQueueTest\Adapter;
 
+use Stakhanovist\Queue\Message\Message as QueueMessage;
+
 /**
+ * Class MessageClass
  *
- * @group      Stakhanovist_Queue
+ * @group Stakhanovist_Queue
  */
-class MessageClass extends \Stakhanovist\Queue\Message\Message
+class MessageClass extends QueueMessage
 {
 }

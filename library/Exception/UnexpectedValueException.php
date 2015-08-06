@@ -10,8 +10,9 @@
 namespace Stakhanovist\Queue\Exception;
 
 /**
- * Exception for Queue component.
+ * Class UnexpectedValueException
  *
+ * Exception for Queue component.
  */
 class UnexpectedValueException extends \UnexpectedValueException implements
     ExceptionInterface

@@ -1,26 +1,28 @@
 <?php
 namespace StakhanovistQueueTest\Adapter;
 
-use Stakhanovist\Queue\Adapter\AdapterFactory;
-use Stakhanovist\Queue\Adapter\Db;
-use Stakhanovist\Queue\Queue;
 use Stakhanovist\Queue\Adapter;
+use Stakhanovist\Queue\Adapter\Db;
+use Zend\Db\TableGateway\TableGateway;
+use Zend\Db\Adapter\Adapter as ZendDbAdapter;
 
+/**
+ * Class DbTest
+ */
 class DbTest extends AdapterTest
 {
-
     /**
      * getAdapterName() is an method to help make AdapterTest work with any
      * new adapters
      *
-     * You may overload this method.  The default return is
-     * 'Stakhanovist_Queue_Adapter_' . $this->getAdapterName()
+     * You may overload this method.
+     * The default return is 'Stakhanovist_Queue_Adapter_' . $this->getAdapterName()
      *
      * @return string
      */
     public function getAdapterFullName()
     {
-        return '\Stakhanovist\Queue\Adapter\\' . $this->getAdapterName();
+        return 'Stakhanovist\Queue\Adapter\\' . $this->getAdapterName();
     }
 
     /**
@@ -39,31 +41,31 @@ class DbTest extends AdapterTest
     public function testGetQueueTable()
     {
         $queue = $this->createQueue(__FUNCTION__);
-        $this->assertInstanceOf('Zend\Db\TableGateway\TableGateway', $queue->getAdapter()->getQueueTable());
+        $this->assertInstanceOf(TableGateway::class, $queue->getAdapter()->getQueueTable());
     }
 
     public function testGetMessageTable()
     {
         $queue = $this->createQueue(__FUNCTION__);
-        $this->assertInstanceOf('Zend\Db\TableGateway\TableGateway', $queue->getAdapter()->getMessageTable());
+        $this->assertInstanceOf(TableGateway::class, $queue->getAdapter()->getMessageTable());
     }
 
     public function testConnectWithInjectedAdapterAndGateway()
     {
         $testOptions = $this->getTestOptions();
         $driverOptions = $testOptions['driverOptions'];
-        $dbAdapter = new \Zend\Db\Adapter\Adapter($driverOptions);
+        $dbAdapter = new ZendDbAdapter($driverOptions);
 
-        $queueTableGateway = new \Zend\Db\TableGateway\TableGateway('queues', $dbAdapter);
-        $msgTableGateway = new \Zend\Db\TableGateway\TableGateway('messages', $dbAdapter);
+        $queueTableGateway = new TableGateway('queues', $dbAdapter);
+        $msgTableGateway = new TableGateway('messages', $dbAdapter);
 
         $adapter = new Db();
         $adapter->setOptions(
-            array(
+            [
                 'dbAdapter' => $dbAdapter,
                 'queueTable' => $queueTableGateway,
                 'messageTable' => $msgTableGateway,
-            )
+            ]
         );
 
         $this->assertTrue($adapter->connect());
@@ -79,17 +81,17 @@ class DbTest extends AdapterTest
     {
         $testOptions = $this->getTestOptions();
         $driverOptions = $testOptions['driverOptions'];
-        $dbAdapter = new \Zend\Db\Adapter\Adapter($driverOptions);
+        $dbAdapter = new ZendDbAdapter($driverOptions);
 
-        $queueTableGateway = new \Zend\Db\TableGateway\TableGateway('queues', $dbAdapter);
-        $msgTableGateway = new \Zend\Db\TableGateway\TableGateway('messages', $dbAdapter);
+        $queueTableGateway = new TableGateway('queues', $dbAdapter);
+        $msgTableGateway = new TableGateway('messages', $dbAdapter);
 
         $adapter = new Db();
         $adapter->setOptions(
-            array(
+            [
                 'queueTable' => $queueTableGateway,
                 'messageTable' => $msgTableGateway,
-            )
+            ]
         );
 
         $adapter->connect();
@@ -101,48 +103,53 @@ class DbTest extends AdapterTest
         $queue = $this->createQueue(__FUNCTION__);
 
         $adapter = $queue->getAdapter();
-        $this->checkAdapterSupport($adapter, array('createQueue', 'deleteQueue'));
+        $this->checkAdapterSupport($adapter, ['createQueue', 'deleteQueue']);
 
         /** @var \Zend\Db\TableGateway\TableGateway $queueTable */
         $queueTable = $adapter->getQueueTable();
 
-        $queueTable->delete(array('queue_id' => $adapter->getQueueId($queue->getName())));
+        $queueTable->delete(['queue_id' => $adapter->getQueueId($queue->getName())]);
         $this->assertFalse($adapter->deleteQueue($queue->getName()));
     }
 
+    /**
+     * @return array
+     */
     public function getTestOptions()
     {
         if (ZEND_DB_ADAPTER_PDO_DRIVER == 'mysql') {
-            $conf = array(
+            $conf = [
                 'driver' => 'Pdo_mysql',
-                'dsn' => 'mysql:dbname=' . ZEND_DB_ADAPTER_DRIVER_MYSQL_DATABASE . ';host=' . ZEND_DB_ADAPTER_DRIVER_MYSQL_HOSTNAME,
+                'dsn' => 'mysql:dbname=' . ZEND_DB_ADAPTER_DRIVER_MYSQL_DATABASE .
+                         ';host=' . ZEND_DB_ADAPTER_DRIVER_MYSQL_HOSTNAME,
                 'username' => ZEND_DB_ADAPTER_DRIVER_MYSQL_USERNAME,
                 'password' => ZEND_DB_ADAPTER_DRIVER_MYSQL_PASSWORD,
-                'driver_options' => array(
+                'driver_options' => [
                     \PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES \'UTF8\''
-                ),
-            );
+                ],
+            ];
         } elseif (ZEND_DB_ADAPTER_PDO_DRIVER == 'pgsql') {
-            $conf = array(
+            $conf = [
                 'driver' => 'pdo_pgsql',
-                'dsn' => 'pgsql:dbname=' . ZEND_DB_ADAPTER_DRIVER_PGSQL_DATABASE . ';host=' . ZEND_DB_ADAPTER_DRIVER_PGSQL_HOSTNAME,
+                'dsn' => 'pgsql:dbname=' . ZEND_DB_ADAPTER_DRIVER_PGSQL_DATABASE .
+                         ';host=' . ZEND_DB_ADAPTER_DRIVER_PGSQL_HOSTNAME,
                 'username' => ZEND_DB_ADAPTER_DRIVER_PGSQL_USERNAME,
                 'password' => ZEND_DB_ADAPTER_DRIVER_PGSQL_PASSWORD,
-            );
+            ];
         } elseif (ZEND_DB_ADAPTER_PDO_DRIVER == 'sqlite') {
-            $conf = array(
+            $conf = [
                 'driver' => 'Pdo_sqlite',
                 'database' => ZEND_DB_ADAPTER_DRIVER_SQLITE_DBPATH,
-            );
+            ];
         } elseif (ZEND_DB_ADAPTER_PDO_DRIVER == 'sqlsrv') {
-            $conf = array(
+            $conf = [
                 'driver' => 'Pdo',
-                'dsn' => 'sqlsrv:Server=' . ZEND_DB_ADAPTER_DRIVER_SQLSRV_SERVER . ';Database=' . ZEND_DB_ADAPTER_DRIVER_SQLSRV_DATABASE,
+                'dsn' => 'sqlsrv:Server=' . ZEND_DB_ADAPTER_DRIVER_SQLSRV_SERVER .
+                         ';Database=' . ZEND_DB_ADAPTER_DRIVER_SQLSRV_DATABASE,
                 'username' => ZEND_DB_ADAPTER_DRIVER_SQLSRV_USERNAME,
                 'password' => ZEND_DB_ADAPTER_DRIVER_SQLSRV_PASSWORD,
-            );
+            ];
         }
-        return array('driverOptions' => $conf);
+        return ['driverOptions' => $conf];
     }
-
 }

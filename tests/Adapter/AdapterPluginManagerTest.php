@@ -10,12 +10,13 @@
 namespace StakhanovistQueueTest\Adapter;
 
 use Zend\ServiceManager\Config;
+use Zend\ServiceManager\ServiceManager;
 use Zend\Stdlib\ArrayObject;
 use Stakhanovist\Queue\Adapter;
 
 /**
  *
- * @group      Stakhanovist_Queue
+ * @group Stakhanovist_Queue
  */
 class AdapterPluginManagerTest extends \PHPUnit_Framework_TestCase
 {
@@ -24,12 +25,14 @@ class AdapterPluginManagerTest extends \PHPUnit_Framework_TestCase
 
     public function setUp()
     {
-        $this->serviceManager = new \Zend\ServiceManager\ServiceManager();
-        $this->pluginManager = new Adapter\AdapterPluginManager(new Config(array(
-            'invoke' => array(
+        $this->serviceManager = new ServiceManager;
+        $this->pluginManager = new Adapter\AdapterPluginManager(new Config(
+            [
+            'invoke' => [
                 'null' => 'Stakhanovist\Queue\Adapter\Null',
-            )
-        )));
+            ]
+            ]
+        ));
     }
 
     public function testAddAdapterThatImplementAdapterInterface()

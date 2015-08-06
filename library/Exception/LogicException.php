@@ -10,8 +10,9 @@
 namespace Stakhanovist\Queue\Exception;
 
 /**
- * Exception for Queue component.
+ * Class LogicException
  *
+ * Exception for Queue component.
  */
 class LogicException extends \LogicException implements ExceptionInterface
 {

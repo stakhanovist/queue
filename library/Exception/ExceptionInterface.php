@@ -10,8 +10,9 @@
 namespace Stakhanovist\Queue\Exception;
 
 /**
- * Base exception interface
+ * Interface ExceptionInterface
  *
+ * Base exception interface
  */
 interface ExceptionInterface
 {

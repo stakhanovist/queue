@@ -12,6 +12,9 @@ namespace Stakhanovist\Queue\Adapter\Capabilities;
 use Stakhanovist\Queue\Adapter\AdapterInterface;
 use Stakhanovist\Queue\QueueInterface;
 
+/**
+ * Interface CountMessagesCapableInterface
+ */
 interface CountMessagesCapableInterface extends AdapterInterface
 {
     /**

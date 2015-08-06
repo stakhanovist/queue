@@ -65,9 +65,11 @@ class MongoCappedCollectionTest extends AdapterTest
 
     public function getTestOptions()
     {
-        return array('driverOptions' => array(
+        return [
+            'driverOptions' => [
             'db' => 'stakhanovist_queue_test_capped'
-        ));
+            ]
+        ];
     }
 
     public function testShouldThrowExceptionOnExistingNonCappedCollection()
@@ -118,7 +120,7 @@ class MongoCappedCollectionTest extends AdapterTest
         $queue = $this->createQueue(__FUNCTION__);
         /** @var \Stakhanovist\Queue\Adapter\MongoCappedCollection $adapter */
         $adapter = $queue->getAdapter();
-        $this->checkAdapterSupport($adapter, array('sendMessage', 'deleteQueue'));
+        $this->checkAdapterSupport($adapter, ['sendMessage', 'deleteQueue']);
 
         $receiveCount = 0;
         $messages = null;

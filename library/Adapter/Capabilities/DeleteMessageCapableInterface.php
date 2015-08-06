@@ -9,11 +9,14 @@
 
 namespace Stakhanovist\Queue\Adapter\Capabilities;
 
-use Zend\Stdlib\MessageInterface;
 use Stakhanovist\Queue\Adapter\AdapterInterface;
 use Stakhanovist\Queue\Exception;
 use Stakhanovist\Queue\QueueInterface;
+use Zend\Stdlib\MessageInterface;
 
+/**
+ * Interface DeleteMessageCapableInterface
+ */
 interface DeleteMessageCapableInterface extends AdapterInterface
 {
     /**

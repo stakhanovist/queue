@@ -1,12 +1,9 @@
 Stakhanovist Queue
 ------------------
 
-Provides a factory function to create specific queue client objects.
+[![Last Release](https://img.shields.io/packagist/v/stakhanovist/queue.svg?style=flat-square)](https://packagist.org/packages/stakhanovist/queue) [![BuildStatus](https://img.shields.io/travis/stakhanovist/queue/master.svg?style=flat-square)](https://travis-ci.org/stakhanovist/queue)
 
-|         | Release | Build Status |
-|---------|:-------:|:------------:|
-| master  | [![Last Release](https://img.shields.io/packagist/v/stakhanovist/queue.svg?style=flat-square)](https://packagist.org/packages/stakhanovist/queue)   | [![BuildStatus](https://img.shields.io/travis/stakhanovist/queue/master.svg?style=flat-square)](https://travis-ci.org/stakhanovist/queue)  |
-| develop | [![Pre Release](https://img.shields.io/packagist/vpre/stakhanovist/queue.svg?style=flat-square)](https://packagist.org/packages/stakhanovist/queue) | [![Build Status](https://img.shields.io/travis/stakhanovist/queue/develop.svg?style=flat-square)](https://travis-ci.org/stakhanovist/queue) |
+> Provides a factory function to create specific queue client objects.
 
 This library aims to provide a [message queue](http://en.wikipedia.org/wiki/Message_queue) abstraction layer, usefull for inter-process comunication or for distributed processing (a complete job queue system can be implemented using the [worker library](https://github.com/stakhanovist/worker)).
 
@@ -14,6 +11,10 @@ Currenty, the following Message Queue services are supported:
 - A SQL database driven queue via `Zend\Db`.
 - A Mongo driven queue, with support message awaiting ([using capped collection and tailable cursor](http://shtylman.com/post/the-tail-of-mongodb/))
 - A local array. Useful for non-persistent queues and for unit testing.
+
+## Usage
+
+**WIP**
 
 ## Installation
 

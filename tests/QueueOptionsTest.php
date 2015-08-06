@@ -21,12 +21,11 @@ use Stakhanovist\Queue\Adapter\Null;
 use Stakhanovist\Queue\QueueEvent;
 
 /**
- *
- * @group      Stakhanovist_Queue
+ * Class QueueOptionsTest
+ * @group Stakhanovist_Queue
  */
 class QueueOptionsTest extends \PHPUnit_Framework_TestCase
 {
-
     /**
      * @var QueueOptions
      */
@@ -45,7 +44,6 @@ class QueueOptionsTest extends \PHPUnit_Framework_TestCase
 
     protected function tearDown()
     {
-
     }
 
     public function testGetSetMessageClass()
@@ -92,5 +90,4 @@ class QueueOptionsTest extends \PHPUnit_Framework_TestCase
         $this->assertInstanceOf('Stakhanovist\Queue\QueueOptions', $this->options->setPollingInterval(10));
         $this->assertSame(10, $this->options->getPollingInterval());
     }
-
 }

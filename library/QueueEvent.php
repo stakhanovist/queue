@@ -9,12 +9,14 @@
 
 namespace Stakhanovist\Queue;
 
-use Zend\EventManager\Event;
 use Stakhanovist\Queue\Message\MessageIterator;
+use Zend\EventManager\Event;
 
+/**
+ * Class QueueEvent
+ */
 class QueueEvent extends Event
 {
-
     /**#@+
      * Queue events triggered by eventmanager
      */
@@ -70,10 +72,4 @@ class QueueEvent extends Event
     {
         return $this->stopAwait;
     }
-
-
-
-
-
-
 }

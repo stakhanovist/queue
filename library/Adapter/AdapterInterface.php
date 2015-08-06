@@ -9,12 +9,13 @@
 
 namespace Stakhanovist\Queue\Adapter;
 
+use Stakhanovist\Queue\Exception;
+use Stakhanovist\Queue\Message\MessageIterator;
+use Stakhanovist\Queue\Parameter\ReceiveParametersInterface;
+use Stakhanovist\Queue\Parameter\SendParametersInterface;
+use Stakhanovist\Queue\QueueInterface;
 use Traversable;
 use Zend\Stdlib\MessageInterface;
-use Stakhanovist\Queue\Message\MessageIterator;
-use Stakhanovist\Queue\QueueInterface;
-use Stakhanovist\Queue\Parameter\SendParametersInterface;
-use Stakhanovist\Queue\Parameter\ReceiveParametersInterface;
 
 /**
  * Interface for common queue operations
@@ -28,10 +29,8 @@ interface AdapterInterface
      * containing configuration options.
      *
      * @param  array|Traversable $options An array having configuration data
-     * @throws Exception\InvalidArgumentException
-     * @return void
      */
-    public function __construct($options = array());
+    public function __construct($options = []);
 
 
     /**
@@ -127,7 +126,11 @@ interface AdapterInterface
      * @throws Exception\QueueNotFoundException
      * @throws Exception\RuntimeException
      */
-    public function sendMessage(QueueInterface $queue, MessageInterface $message, SendParametersInterface $params = null);
+    public function sendMessage(
+        QueueInterface $queue,
+        MessageInterface $message,
+        SendParametersInterface $params = null
+    );
 
     /**
      * Get messages from the queue
@@ -139,7 +142,11 @@ interface AdapterInterface
      * @throws Exception\QueueNotFoundException
      * @throws Exception\RuntimeException
      */
-    public function receiveMessages(QueueInterface $queue, $maxMessages = null, ReceiveParametersInterface $params = null);
+    public function receiveMessages(
+        QueueInterface $queue,
+        $maxMessages = null,
+        ReceiveParametersInterface $params = null
+    );
 
     /**
      * Get message info
@@ -151,5 +158,4 @@ interface AdapterInterface
      * @return array
      */
     public function getMessageInfo(QueueInterface $queue, MessageInterface $message);
-
 }

@@ -10,15 +10,13 @@
 namespace Stakhanovist\Queue\Service;
 
 use Stakhanovist\Queue\Adapter;
-use Stakhanovist\Queue\Queue;
-
-use Zend\ServiceManager\ServiceManager;
 use Stakhanovist\Queue\Adapter\ArrayAdapter;
 use Stakhanovist\Queue\QueueOptions;
+use Zend\ServiceManager\ServiceManager;
 
 /**
  *
- * @group      Stakhanovist_Queue
+ * @group  Stakhanovist_Queue
  */
 class QueueAbstractServiceFactoryTest extends \PHPUnit_Framework_TestCase
 {
@@ -27,7 +25,7 @@ class QueueAbstractServiceFactoryTest extends \PHPUnit_Framework_TestCase
     public function setUp()
     {
         $adapter = new ArrayAdapter();
-        $adapter->setOptions(array('dummyOption' => 'dummyValue'));
+        $adapter->setOptions(['dummyOption' => 'dummyValue']);
 
         $this->sm = new ServiceManager();
         $this->sm->setInvokableClass('custom', 'Stakhanovist\Queue\Adapter\Null');
@@ -81,7 +79,7 @@ class QueueAbstractServiceFactoryTest extends \PHPUnit_Framework_TestCase
         $qA = $this->sm->get('queueA');
         $this->assertInstanceOf('Stakhanovist\Queue\Adapter\ArrayAdapter', $qA->getAdapter());
 
-        if ($qA->getOptions() instanceof \Stakhanovist\Queue\Adapter\AdapterInterface) {
+        if ($qA->getOptions() instanceof Adapter\AdapterInterface) {
             $options = $qA->getAdapter()->getOptions();
             $this->assertEquals('dummyValue', $options['dummyOption']);
         }
@@ -95,7 +93,7 @@ class QueueAbstractServiceFactoryTest extends \PHPUnit_Framework_TestCase
         $qB = $this->sm->get('queueB');
         $this->assertInstanceOf('Stakhanovist\Queue\Adapter\ArrayAdapter', $qB->getAdapter());
 
-        if ($qB->getOptions() instanceof \Stakhanovist\Queue\Adapter\AdapterInterface) {
+        if ($qB->getOptions() instanceof Adapter\AdapterInterface) {
             $options = $qB->getAdapter()->getOptions();
             $this->assertEquals('dummyValue', $options['dummyOption']);
         }
@@ -104,7 +102,6 @@ class QueueAbstractServiceFactoryTest extends \PHPUnit_Framework_TestCase
         if ($qB->getOptions() instanceof QueueOptions) {
             $this->assertEquals('Zend\Stdlib\Message', $qB->getOptions()->getMessageClass());
         }
-
     }
 
     public function testCreateServicebyNameWithServiceAdapter()
@@ -129,7 +126,7 @@ class QueueAbstractServiceFactoryTest extends \PHPUnit_Framework_TestCase
     public function testGetConfigNoKeyConfig()
     {
         $adapter = new ArrayAdapter();
-        $adapter->setOptions(array('dummyOption' => 'dummyValue'));
+        $adapter->setOptions(['dummyOption' => 'dummyValue']);
 
         $sm = new ServiceManager();
         $sm->setService('Config', 'foo');

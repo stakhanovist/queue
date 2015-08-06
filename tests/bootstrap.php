@@ -15,7 +15,10 @@ error_reporting(E_ALL | E_STRICT);
 
 $phpUnitVersion = PHPUnit_Runner_Version::id();
 if ('@package_version@' !== $phpUnitVersion && version_compare($phpUnitVersion, '3.5.0', '<')) {
-    echo 'This version of PHPUnit (' . PHPUnit_Runner_Version::id() . ') is not supported by Stakhanovist Queue library' . PHP_EOL;
+    echo sprintf(
+        'This version of PHPUnit (%s) is not supported by Stakhanovist Queue library',
+        PHPUnit_Runner_Version::id()
+    ) . PHP_EOL;
     exit(1);
 }
 unset($phpUnitVersion);

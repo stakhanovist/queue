@@ -9,11 +9,13 @@
 
 namespace Stakhanovist\Queue\Adapter;
 
-use Traversable;
 use Stakhanovist\Queue\Exception;
+use Traversable;
 use Zend\Stdlib\ArrayUtils;
 
-
+/**
+ * Class AdapterFactory
+ */
 abstract class AdapterFactory
 {
     /**
@@ -56,7 +58,8 @@ abstract class AdapterFactory
 
         if (isset($config['options'])) {
             if (!is_array($config['options'])) {
-                throw new Exception\InvalidArgumentException('
+                throw new Exception\InvalidArgumentException(
+                    '
                     "options" must be an array, ' . gettype($config['options']) . ' given.'
                 );
             }

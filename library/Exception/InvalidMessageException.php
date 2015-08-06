@@ -10,8 +10,9 @@
 namespace Stakhanovist\Queue\Exception;
 
 /**
- * Exception for Queue component.
+ * Class InvalidMessageException
  *
+ * Exception for Queue component.
  */
 class InvalidMessageException extends \InvalidArgumentException implements
     ExceptionInterface

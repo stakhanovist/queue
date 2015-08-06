@@ -8,10 +8,12 @@
  */
 
 namespace StakhanovistQueueTest\Adapter\Mongo;
+
 use Stakhanovist\Queue\Adapter\Mongo\AbstractMongo;
 use Stakhanovist\Queue\Queue;
 use Stakhanovist\Queue\Adapter\Null;
 use Stakhanovist\Queue\Adapter\MongoCappedCollection;
+
 /**
  *
  * @group      Stakhanovist_Queue
@@ -21,9 +23,12 @@ class AbstractMongoTest extends \PHPUnit_Framework_TestCase
 
     protected $abstractMongo;
 
+    protected $database;
+
+    protected $collection;
+
     public function setUp()
     {
-
         if (!extension_loaded('mongo')) {
             $this->markTestSkipped('The mongo PHP extension is not available');
         }
@@ -49,9 +54,11 @@ class AbstractMongoTest extends \PHPUnit_Framework_TestCase
         $this->mongoDb->drop(); //cleanup
 
 
-        $this->abstractMongo = new ConcreteMongo(array(
+        $this->abstractMongo = new ConcreteMongo(
+            [
             'mongoDb' => $this->mongoDb
-        ));
+            ]
+        );
     }
 
 
@@ -59,20 +66,24 @@ class AbstractMongoTest extends \PHPUnit_Framework_TestCase
     public function testConnect()
     {
         //Test with params
-        $abstractMongo = new ConcreteMongo(array(
-            'driverOptions' => array(
+        $abstractMongo = new ConcreteMongo(
+            [
+            'driverOptions' => [
                 'db' => $this->database,
-                'options' => array("connect" => TRUE)
-            )
-        ));
+                'options' => ["connect" => true]
+            ]
+            ]
+        );
 
         $this->assertTrue($abstractMongo->connect());
 
-        $abstractMongo = new ConcreteMongo(array(
-            'driverOptions' => array(
+        $abstractMongo = new ConcreteMongo(
+            [
+            'driverOptions' => [
                 'dsn' => 'mongodb://localhost:27017/' . $this->database
-            )
-        ));
+            ]
+            ]
+        );
 
         $this->assertTrue($abstractMongo->connect());
 
@@ -84,7 +95,6 @@ class AbstractMongoTest extends \PHPUnit_Framework_TestCase
 
         $abstractMongo = new ConcreteMongo();
         $abstractMongo->connect();
-
     }
 
     public function testGetMongoDb()
@@ -118,5 +128,4 @@ class AbstractMongoTest extends \PHPUnit_Framework_TestCase
         $this->abstractMongo->connect();
         $this->assertNull($this->abstractMongo->receiveMessageAtomic($queue, $this->mongoDb->selectCollection('non-existing-collection'), new \MongoId()));
     }
-
 }

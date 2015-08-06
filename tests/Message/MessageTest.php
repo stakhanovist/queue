@@ -71,7 +71,6 @@ class MessageTest extends \PHPUnit_Framework_TestCase
         $this->queue->ensureQueue();
 
         $this->message = new Message();
-
     }
 
     protected function tearDown()
@@ -85,7 +84,6 @@ class MessageTest extends \PHPUnit_Framework_TestCase
         $woken = unserialize($message);
         $this->assertEquals($this->message->getContent(), $woken->getContent());
         $this->assertEquals($this->message->getMetadata(), $woken->getMetadata());
-
     }
 
     public function testDefaultMessageClass()
@@ -95,6 +93,4 @@ class MessageTest extends \PHPUnit_Framework_TestCase
 
         $this->assertInstanceOf('\Stakhanovist\Queue\Message\Message', $messages->current());
     }
-
-
 }

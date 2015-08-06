@@ -18,17 +18,16 @@ use Stakhanovist\Queue\QueueInterface;
 
 class ConcreteMongo extends AbstractMongo
 {
-    public function __construct($options = array())
+    public function __construct($options = [])
     {
         //Bypass Mongo extension check
         AbstractAdapter::__construct($options);
     }
 
     public function setupCursor(MongoCollection $collection, ReceiveParametersInterface $params = null,
-        $criteria = array(self::KEY_HANDLE => false),
-        array $fields = array('_id', self::KEY_HANDLE)
-    )
-    {
+        $criteria = [self::KEY_HANDLE => false],
+        array $fields = ['_id', self::KEY_HANDLE]
+    ) {
         return parent::setupCursor($collection, $params, $criteria, $fields);
     }
 
@@ -36,5 +35,4 @@ class ConcreteMongo extends AbstractMongo
     {
         return parent::receiveMessageAtomic($queue, $collection, $id);
     }
-
 }
