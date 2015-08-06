@@ -9,11 +9,11 @@
 
 namespace StakhanovistQueueTest\Message;
 
-use Stakhanovist\Queue\Queue;
+use Stakhanovist\Queue\Adapter\ArrayAdapter;
 use Stakhanovist\Queue\Message\Message;
 use Stakhanovist\Queue\Message\MessageIterator;
+use Stakhanovist\Queue\Queue;
 use Stakhanovist\Queue\QueueOptions;
-use Stakhanovist\Queue\Adapter\ArrayAdapter;
 
 /*
  * The adapter test class provides a universal test class for all of the
@@ -24,13 +24,11 @@ use Stakhanovist\Queue\Adapter\ArrayAdapter;
  */
 
 /**
- *
- * @group      Stakhanovist_Queue
+ * Class MessageIteratorTest
+ * @group Stakhanovist_Queue
  */
 class MessageIteratorTest extends \PHPUnit_Framework_TestCase
 {
-
-
     /**
      * @var string
      */
@@ -51,11 +49,14 @@ class MessageIteratorTest extends \PHPUnit_Framework_TestCase
      */
     protected $queue;
 
-
     /**
      * @var MessageIterator
      */
     protected $messages;
+
+    protected $metadata;
+
+    protected $message_count;
 
     protected function setUp()
     {

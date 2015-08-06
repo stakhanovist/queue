@@ -59,6 +59,9 @@ class MongoCollectionTest extends AdapterTest
         return '\Stakhanovist\Queue\Adapter\\' . $this->getAdapterName();
     }
 
+    /**
+     * @return array
+     */
     public function getTestOptions()
     {
         return [

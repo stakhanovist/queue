@@ -3,8 +3,8 @@ namespace StakhanovistQueueTest\Adapter;
 
 use Stakhanovist\Queue\Adapter;
 use Stakhanovist\Queue\Adapter\Db;
-use Zend\Db\TableGateway\TableGateway;
 use Zend\Db\Adapter\Adapter as ZendDbAdapter;
+use Zend\Db\TableGateway\TableGateway;
 
 /**
  * Class DbTest

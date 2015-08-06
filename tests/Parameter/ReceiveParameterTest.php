@@ -3,6 +3,9 @@ namespace StakhanovistQueueTest\Parameter;
 
 use Stakhanovist\Queue\Parameter\ReceiveParameters;
 
+/**
+ * Class ReceiveParameterTest
+ */
 class ReceiveParameterTest extends \PHPUnit_Framework_TestCase
 {
 

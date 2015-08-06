@@ -9,10 +9,10 @@
 
 namespace StakhanovistQueueTest\Message;
 
-use Stakhanovist\Queue\Queue;
-use Stakhanovist\Queue\Message\Message;
-use Stakhanovist\Queue\QueueOptions;
 use Stakhanovist\Queue\Adapter\ArrayAdapter;
+use Stakhanovist\Queue\Message\Message;
+use Stakhanovist\Queue\Queue;
+use Stakhanovist\Queue\QueueOptions;
 
 /*
  * The adapter test class provides a universal test class for all of the

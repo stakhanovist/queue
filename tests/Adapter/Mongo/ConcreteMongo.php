@@ -9,28 +9,48 @@
 
 namespace StakhanovistQueueTest\Adapter\Mongo;
 
-use Stakhanovist\Queue\Adapter\Mongo\AbstractMongo;
-use Stakhanovist\Queue\Parameter\ReceiveParameters;
 use MongoCollection;
 use Stakhanovist\Queue\Adapter\AbstractAdapter;
+use Stakhanovist\Queue\Adapter\Mongo\AbstractMongo;
 use Stakhanovist\Queue\Parameter\ReceiveParametersInterface;
 use Stakhanovist\Queue\QueueInterface;
 
+/**
+ * Class ConcreteMongo
+ */
 class ConcreteMongo extends AbstractMongo
 {
+    /**
+     * @param array $options
+     */
     public function __construct($options = [])
     {
-        //Bypass Mongo extension check
+        // Bypass Mongo extension check
         AbstractAdapter::__construct($options);
     }
 
-    public function setupCursor(MongoCollection $collection, ReceiveParametersInterface $params = null,
+    /**
+     * @param MongoCollection $collection
+     * @param ReceiveParametersInterface $params
+     * @param array $criteria
+     * @param array $fields
+     * @return \MongoCursor
+     */
+    public function setupCursor(
+        MongoCollection $collection,
+        ReceiveParametersInterface $params = null,
         $criteria = [self::KEY_HANDLE => false],
         array $fields = ['_id', self::KEY_HANDLE]
     ) {
         return parent::setupCursor($collection, $params, $criteria, $fields);
     }
 
+    /**
+     * @param QueueInterface $queue
+     * @param MongoCollection $collection
+     * @param mixed $id
+     * @return array|null
+     */
     public function receiveMessageAtomic(QueueInterface $queue, MongoCollection $collection, $id)
     {
         return parent::receiveMessageAtomic($queue, $collection, $id);

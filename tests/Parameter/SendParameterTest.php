@@ -3,6 +3,9 @@ namespace StakhanovistQueueTest\Parameter;
 
 use Stakhanovist\Queue\Parameter\SendParameters;
 
+/**
+ * Class SendParameterTest
+ */
 class SendParameterTest extends \PHPUnit_Framework_TestCase
 {
     /**

@@ -9,10 +9,9 @@
 
 namespace StakhanovistQueueTest\Adapter;
 
+use Stakhanovist\Queue\Adapter;
 use Zend\ServiceManager\Config;
 use Zend\ServiceManager\ServiceManager;
-use Zend\Stdlib\ArrayObject;
-use Stakhanovist\Queue\Adapter;
 
 /**
  *

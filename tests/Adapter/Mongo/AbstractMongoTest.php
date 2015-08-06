@@ -9,10 +9,9 @@
 
 namespace StakhanovistQueueTest\Adapter\Mongo;
 
-use Stakhanovist\Queue\Adapter\Mongo\AbstractMongo;
-use Stakhanovist\Queue\Queue;
-use Stakhanovist\Queue\Adapter\Null;
 use Stakhanovist\Queue\Adapter\MongoCappedCollection;
+use Stakhanovist\Queue\Adapter\Null;
+use Stakhanovist\Queue\Queue;
 
 /**
  *
@@ -20,12 +19,15 @@ use Stakhanovist\Queue\Adapter\MongoCappedCollection;
  */
 class AbstractMongoTest extends \PHPUnit_Framework_TestCase
 {
+    protected $mongo;
 
     protected $abstractMongo;
 
     protected $database;
 
     protected $collection;
+
+    protected $mongoDb;
 
     public function setUp()
     {

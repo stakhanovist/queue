@@ -9,9 +9,7 @@
 
 namespace StakhanovistQueueTest\Adapter;
 
-use Zend\Stdlib\ArrayObject;
 use Stakhanovist\Queue\Adapter;
-use Stakhanovist\Queue\Queue;
 
 /**
  *

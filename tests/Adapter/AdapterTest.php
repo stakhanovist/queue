@@ -9,21 +9,21 @@
 
 namespace StakhanovistQueueTest\Adapter;
 
-use Zend\Config;
 use Stakhanovist\Queue\Adapter;
-use Stakhanovist\Queue\Message\Message;
-use Stakhanovist\Queue\Queue;
-use Stakhanovist\Queue\Adapter\AdapterInterface;
-use Stakhanovist\Queue\QueueOptions;
-use Stakhanovist\Queue\Message\MessageIterator;
-use Stakhanovist\Queue\Parameter\ReceiveParameters;
 use Stakhanovist\Queue\Adapter\AdapterFactory;
+use Stakhanovist\Queue\Adapter\AdapterInterface;
+use Stakhanovist\Queue\Adapter\Capabilities\AwaitMessagesCapableInterface;
+use Stakhanovist\Queue\Adapter\Capabilities\CountMessagesCapableInterface;
 use Stakhanovist\Queue\Adapter\Capabilities\DeleteMessageCapableInterface;
 use Stakhanovist\Queue\Adapter\Capabilities\ListQueuesCapableInterface;
-use Stakhanovist\Queue\Adapter\Capabilities\CountMessagesCapableInterface;
 use Stakhanovist\Queue\Adapter\Null;
-use Stakhanovist\Queue\Adapter\Capabilities\AwaitMessagesCapableInterface;
+use Stakhanovist\Queue\Message\Message;
+use Stakhanovist\Queue\Message\MessageIterator;
+use Stakhanovist\Queue\Parameter\ReceiveParameters;
 use Stakhanovist\Queue\Parameter\SendParameters;
+use Stakhanovist\Queue\Queue;
+use Stakhanovist\Queue\QueueOptions;
+use Zend\Config;
 
 /*
  * The adapter test class provides a universal test class for all of the
@@ -39,6 +39,8 @@ use Stakhanovist\Queue\Parameter\SendParameters;
  */
 abstract class AdapterTest extends \PHPUnit_Framework_TestCase
 {
+    protected $error;
+
     public function tearDown()
     {
         $this->error = false;
@@ -88,6 +90,9 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
         ];
     }
 
+    /**
+     * @return array
+     */
     public function getTestOptions()
     {
         return ['driverOptions' => []];
@@ -95,6 +100,9 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
 
     /**
      * for ActiveMQ it uses /queue/ /temp-queue/ /topic/ /temp-topic/
+     *
+     * @param $name
+     * @return
      */
     public function createQueueName($name)
     {
@@ -103,10 +111,6 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
 
     /**
      * This is a generic function that creates a queue
-     *
-     * @param array $config, $config['name'] must be set.
-     *
-     * or
      *
      * @param string $name - name of the queue to create
      * @param QueueOptions $options
@@ -158,6 +162,10 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
         return true;
     }
 
+    /**
+     * @param $info
+     * @param Queue $queue
+     */
     protected function checkMessageInfo($info, Queue $queue)
     {
         $this->assertInternalType('array', $info);

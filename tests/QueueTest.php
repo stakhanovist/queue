@@ -9,20 +9,19 @@
 
 namespace StakhanovistQueueTest;
 
-use Zend\Config\Config;
 use Stakhanovist\Queue\Adapter;
-use Stakhanovist\Queue\Message\Message;
-use Stakhanovist\Queue\Queue;
-use Stakhanovist\Queue\QueueOptions;
 use Stakhanovist\Queue\Adapter\ArrayAdapter;
-use Stakhanovist\Queue\Message\MessageIterator;
-use Stakhanovist\Queue\Parameter\SendParameters;
 use Stakhanovist\Queue\Adapter\Null;
-use Stakhanovist\Queue\QueueEvent;
-use Zend\EventManager\SharedEventManager;
-use Zend\EventManager\EventManager;
-use Zend\EventManager\Event;
+use Stakhanovist\Queue\Exception\UnsupportedMethodCallException;
+use Stakhanovist\Queue\Message\Message;
+use Stakhanovist\Queue\Message\MessageIterator;
 use Stakhanovist\Queue\Parameter\ReceiveParameters;
+use Stakhanovist\Queue\Parameter\SendParameters;
+use Stakhanovist\Queue\Queue;
+use Stakhanovist\Queue\QueueEvent;
+use Stakhanovist\Queue\QueueOptions;
+use Zend\EventManager\Event;
+use Zend\EventManager\EventManager;
 
 /*
  * The adapter test class provides a universal test class for all of the
@@ -500,7 +499,7 @@ class QueueTest extends \PHPUnit_Framework_TestCase
 
         $this->assertFalse($q->isSendParamSupported(SendParameters::SCHEDULE));
 
-        $this->setExpectedException('Stakhanovist\Queue\Exception\UnsupportedMethodCallException');
+        $this->setExpectedException(UnsupportedMethodCallException::class);
         $q->unschedule(new Message());
     }
 
@@ -518,7 +517,7 @@ class QueueTest extends \PHPUnit_Framework_TestCase
 
     public function testIsSendParamSupported()
     {
-        $adapterMock = $this->getMock('Stakhanovist\Queue\Adapter\AdapterInterface');
+        $adapterMock = $this->getMock(Adapter\AdapterInterface::class);
         $adapterMock->expects($this->any())->method("getAvailableSendParams")->will($this->returnValue(['foo']));
         $q = new Queue('test', $adapterMock);
         $this->isTrue($q->isSendParamSupported('foo'));
@@ -527,7 +526,7 @@ class QueueTest extends \PHPUnit_Framework_TestCase
 
     public function testIsReceiveParamSupported()
     {
-        $adapterMock = $this->getMock('Stakhanovist\Queue\Adapter\AdapterInterface');
+        $adapterMock = $this->getMock(Adapter\AdapterInterface::class);
         $adapterMock->expects($this->any())->method("getAvailableReceiveParams")->will($this->returnValue(['foo']));
         $q = new Queue('test', $adapterMock);
         $this->isTrue($q->isReceiveParamSupported('foo'));

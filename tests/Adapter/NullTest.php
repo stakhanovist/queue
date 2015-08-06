@@ -11,13 +11,13 @@ namespace StakhanovistQueueTest\Adapter;
 
 use Stakhanovist\Queue\Adapter\Null;
 
-    /*
-     * The adapter test class provides a universal test class for all of the
-     * abstract methods.
-     *
-     * All methods marked not supported are explictly checked for for throwing
-     * an exception.
-     */
+/*
+ * The adapter test class provides a universal test class for all of the
+ * abstract methods.
+ *
+ * All methods marked not supported are explictly checked for for throwing
+ * an exception.
+ */
 
 /**
  *
@@ -67,6 +67,9 @@ class NullTest extends AdapterTest
         return '\Stakhanovist\Queue\Adapter\\' . $this->getAdapterName();
     }
 
+    /**
+     * @return array
+     */
     public function getTestConfig()
     {
         return ['driverOptions' => []];
