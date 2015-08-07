@@ -10,10 +10,12 @@
 namespace StakhanovistQueueTest\Adapter;
 
 use Stakhanovist\Queue\Adapter;
+use Stakhanovist\Queue\Exception\InvalidArgumentException;
 
 /**
+ * Class AdapterFactoryTest
  *
- * @group      Stakhanovist_Queue
+ * @group adapters
  */
 class AdapterFactoryTest extends \PHPUnit_Framework_TestCase
 {
@@ -31,12 +33,12 @@ class AdapterFactoryTest extends \PHPUnit_Framework_TestCase
     public function testDefaultAdapterPluginManager()
     {
         $adapters = Adapter\AdapterFactory::getAdapterPluginManager();
-        $this->assertInstanceOf('Stakhanovist\Queue\Adapter\AdapterPluginManager', $adapters);
+        $this->assertInstanceOf(Adapter\AdapterPluginManager::class, $adapters);
     }
 
     public function testChangeAdapterPluginManager()
     {
-        $adapters = new Adapter\AdapterPluginManager();
+        $adapters = new Adapter\AdapterPluginManager;
         Adapter\AdapterFactory::setAdapterPluginManager($adapters);
         $this->assertSame($adapters, Adapter\AdapterFactory::getAdapterPluginManager());
     }
@@ -45,19 +47,19 @@ class AdapterFactoryTest extends \PHPUnit_Framework_TestCase
     {
         $adapter1 = Adapter\AdapterFactory::factory(
             [
-            'adapter' => 'ArrayAdapter',
+            'adapter' => 'array',
             'options' => ['dummyOption' => 'dummyValue'],
             ]
         );
-        $this->assertInstanceOf('Stakhanovist\Queue\Adapter\ArrayAdapter', $adapter1);
+        $this->assertInstanceOf(Adapter\ArrayAdapter::class, $adapter1);
 
         $adapter2 = Adapter\AdapterFactory::factory(
             [
-            'adapter' => 'ArrayAdapter',
+            'adapter' => 'array',
             'options' => ['dummyOption' => 'dummyValue'],
             ]
         );
-        $this->assertInstanceOf('Stakhanovist\Queue\Adapter\ArrayAdapter', $adapter2);
+        $this->assertInstanceOf(Adapter\ArrayAdapter::class, $adapter2);
 
         $this->assertNotSame($adapter1, $adapter2);
     }
@@ -67,24 +69,24 @@ class AdapterFactoryTest extends \PHPUnit_Framework_TestCase
     {
         $adapter = Adapter\AdapterFactory::factory(
             [
-            'adapter' => 'Null',
+            'adapter' => 'null',
             ]
         );
-        $this->assertInstanceOf('Stakhanovist\Queue\Adapter\Null', $adapter);
+        $this->assertInstanceOf(Adapter\NullAdapter::class, $adapter);
     }
 
     public function testFactoryWithAdapterAsStringAndOptions()
     {
         $adapter = Adapter\AdapterFactory::factory(
             [
-            'adapter' => 'Null',
+            'adapter' => 'null',
             'options' => [
                 'dummy' => 'test'
             ],
             ]
         );
 
-        $this->assertInstanceOf('Stakhanovist\Queue\Adapter\Null', $adapter);
+        $this->assertInstanceOf(Adapter\NullAdapter::class, $adapter);
         $options = $adapter->getOptions();
         $this->assertSame('test', $options['dummy']);
     }
@@ -93,54 +95,54 @@ class AdapterFactoryTest extends \PHPUnit_Framework_TestCase
     {
         $adapter = Adapter\AdapterFactory::factory(
             [
-            'adapter' => new Adapter\Null(),
+            'adapter' => new Adapter\NullAdapter,
             'options' => [
                 'dummy' => 'test'
             ],
             ]
         );
 
-        $this->assertInstanceOf('Stakhanovist\Queue\Adapter\Null', $adapter);
+        $this->assertInstanceOf(Adapter\NullAdapter::class, $adapter);
         $options = $adapter->getOptions();
         $this->assertSame('test', $options['dummy']);
     }
 
     public function testFactoryAdapterIsInstanceOfTraversable()
     {
-        $config = new \ArrayObject();
-        $config['adapter'] = 'Null';
+        $config = new \ArrayObject;
+        $config['adapter'] = 'null';
         $config['options'] = [
             'dummy' => 'test'
         ];
         $adapter = Adapter\AdapterFactory::factory($config);
-        $this->assertInstanceOf('Stakhanovist\Queue\Adapter\Null', $adapter);
+        $this->assertInstanceOf(Adapter\NullAdapter::class, $adapter);
         $options = $adapter->getOptions();
         $this->assertSame('test', $options['dummy']);
     }
 
     public function testFactoryAdapterInvalidArgument()
     {
-        $this->setExpectedException("Stakhanovist\Queue\Exception\InvalidArgumentException");
+        $this->setExpectedException(InvalidArgumentException::class);
         $config = "dummy";
-        $adapter = Adapter\AdapterFactory::factory($config);
+        Adapter\AdapterFactory::factory($config);
     }
 
     public function testFactoryAdapterInvalidArgumentAdapterKeyNotFound()
     {
-        $this->setExpectedException("Stakhanovist\Queue\Exception\InvalidArgumentException");
-        $config = new \ArrayObject();
+        $this->setExpectedException(InvalidArgumentException::class);
+        $config = new \ArrayObject;
         $config['options'] = [
             'dummy' => 'test'
         ];
-        $adapter = Adapter\AdapterFactory::factory($config);
+        Adapter\AdapterFactory::factory($config);
     }
 
     public function testFactoryAdapterInvalidArgumentOptionsIsntArray()
     {
-        $this->setExpectedException("Stakhanovist\Queue\Exception\InvalidArgumentException");
-        $config = new \ArrayObject();
+        $this->setExpectedException(InvalidArgumentException::class);
+        $config = new \ArrayObject;
         $config['adapter'] = 'Null';
         $config['options'] = 'string';
-        $adapter = Adapter\AdapterFactory::factory($config);
+        Adapter\AdapterFactory::factory($config);
     }
 }

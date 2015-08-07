@@ -48,7 +48,7 @@
     }
   },
   "suggest": {
-    "zendframework/zend-db": "Zend\\Db required if you are using the DB queue adapter",
-    "ext-mongo": "Mongo required if you are using the Mondo queue adapter"
+    "stakhanovist/queue-db": "Database adapter for Stakhanovist queues",
+    "stakhanovist/queue-mongodb": "MongoDb adapter for Stakhanovist queues"
   }
 }

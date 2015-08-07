@@ -31,7 +31,7 @@ class AdapterPluginManager extends AbstractPluginManager
         'db' => 'Stakhanovist\Queue\Adapter\Db',
         'mongodb-capped' => 'Stakhanovist\Queue\Adapter\MongoCappedCollection',
         'mongodb' => 'Stakhanovist\Queue\Adapter\MongoCollection',
-        'null' => 'Stakhanovist\Queue\Adapter\Null',
+        'null' => 'Stakhanovist\Queue\Adapter\NullAdapter',
     ];
 
     /**
@@ -47,7 +47,7 @@ class AdapterPluginManager extends AbstractPluginManager
      * Checks that the adapter loaded is an instance of AdapterInterface.
      *
      * @param  mixed $plugin
-     * @return void
+     * @return null
      * @throws Exception\RuntimeException if invalid
      */
     public function validatePlugin($plugin)

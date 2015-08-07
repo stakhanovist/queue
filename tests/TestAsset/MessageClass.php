@@ -7,14 +7,12 @@
  * @license     http://opensource.org/licenses/BSD-2-Clause Simplified BSD License
  */
 
-namespace StakhanovistQueueTest\Adapter;
+namespace StakhanovistQueueTest\TestAsset;
 
 use Stakhanovist\Queue\Message\Message as QueueMessage;
 
 /**
  * Class MessageClass
- *
- * @group Stakhanovist_Queue
  */
 class MessageClass extends QueueMessage
 {

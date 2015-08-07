@@ -228,7 +228,7 @@ class Queue implements QueueClientInterface, EventManagerAwareInterface
         /**
          * @see Adapter\Null
          */
-        $this->adapter = new Adapter\Null();
+        $this->adapter = new Adapter\NullAdapter;
 
         return $deleted;
     }
