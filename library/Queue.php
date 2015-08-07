@@ -410,19 +410,23 @@ class Queue implements QueueClientInterface, EventManagerAwareInterface
         SendParametersInterface $params = null
     ) {
         if (!$this->isSendParamSupported(SendParametersInterface::SCHEDULE)) {
-            throw new Exception\UnsupportedMethodCallException(sprintf(
-                '"%s"" param is not supported by "%s"',
-                SendParametersInterface::SCHEDULE,
-                get_class($this->getAdapter())
-            ));
+            throw new Exception\UnsupportedMethodCallException(
+                sprintf(
+                    '"%s"" param is not supported by "%s"',
+                    SendParametersInterface::SCHEDULE,
+                    get_class($this->getAdapter())
+                )
+            );
         }
 
         if ($repeatingInterval !== null && !$this->isSendParamSupported(SendParametersInterface::REPEATING_INTERVAL)) {
-            throw new Exception\InvalidArgumentException(sprintf(
-                '"%s"" param is not supported by "%s"',
-                SendParametersInterface::REPEATING_INTERVAL,
-                get_class($this->getAdapter())
-            ));
+            throw new Exception\InvalidArgumentException(
+                sprintf(
+                    '"%s"" param is not supported by "%s"',
+                    SendParametersInterface::REPEATING_INTERVAL,
+                    get_class($this->getAdapter())
+                )
+            );
         }
 
         if ($params === null) {
@@ -445,11 +449,13 @@ class Queue implements QueueClientInterface, EventManagerAwareInterface
     public function unschedule(MessageInterface $message)
     {
         if (!$this->isSendParamSupported(SendParametersInterface::SCHEDULE) || !$this->canDeleteMessage()) {
-            throw new Exception\UnsupportedMethodCallException(sprintf(
-                '"%s"" param or delete message capabilities are not supported by "%s"',
-                SendParametersInterface::SCHEDULE,
-                get_class($this->getAdapter())
-            ));
+            throw new Exception\UnsupportedMethodCallException(
+                sprintf(
+                    '"%s"" param or delete message capabilities are not supported by "%s"',
+                    SendParametersInterface::SCHEDULE,
+                    get_class($this->getAdapter())
+                )
+            );
         }
 
         $info = $this->getAdapter()->getMessageInfo($this, $message);
