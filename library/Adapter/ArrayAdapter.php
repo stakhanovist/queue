@@ -19,6 +19,7 @@ use Stakhanovist\Queue\Parameter\SendParametersInterface;
 use Stakhanovist\Queue\QueueInterface;
 use Zend\Math\Rand;
 use Zend\Stdlib\MessageInterface;
+use Zend\Stdlib\Parameters;
 
 /**
  * Class for using a standard PHP array as a queue
@@ -198,8 +199,8 @@ class ArrayAdapter extends AbstractAdapter implements
             'metadata' => $message->getMetadata(),
             'handle' => null,
         ];
-
         if ($params) {
+
             if ($params->getSchedule()) {
                 $msg['schedule'] = $params->getSchedule();
             }
@@ -214,6 +215,8 @@ class ArrayAdapter extends AbstractAdapter implements
         $messageId = md5(Rand::getString(10) . count($_queue));
 
         $_queue[$messageId] = $msg;
+
+        /** @var $params Parameters */
 
         $this->embedMessageInfo($queue, $message, $messageId, $params);
 
