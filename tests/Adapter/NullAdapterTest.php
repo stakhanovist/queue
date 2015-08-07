@@ -14,7 +14,7 @@ use Stakhanovist\Queue\Adapter\NullAdapter;
 /**
  * Class NullAdapterTest
  *
- * @group adapters
+ * @group adapter
  */
 class NullAdapterTest extends AdapterTest
 {

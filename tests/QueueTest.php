@@ -11,29 +11,29 @@ namespace StakhanovistQueueTest;
 
 use Stakhanovist\Queue\Adapter;
 use Stakhanovist\Queue\Adapter\ArrayAdapter;
-use Stakhanovist\Queue\Adapter\Null;
+use Stakhanovist\Queue\Adapter\NullAdapter;
+use Stakhanovist\Queue\Exception\InvalidArgumentException;
 use Stakhanovist\Queue\Exception\UnsupportedMethodCallException;
 use Stakhanovist\Queue\Message\Message;
 use Stakhanovist\Queue\Message\MessageIterator;
 use Stakhanovist\Queue\Parameter\ReceiveParameters;
 use Stakhanovist\Queue\Parameter\SendParameters;
 use Stakhanovist\Queue\Queue;
+use Stakhanovist\Queue\QueueClientInterface;
 use Stakhanovist\Queue\QueueEvent;
+use Stakhanovist\Queue\QueueInterface;
 use Stakhanovist\Queue\QueueOptions;
 use Zend\EventManager\Event;
 use Zend\EventManager\EventManager;
-
-/*
- * The adapter test class provides a universal test class for all of the
- * abstract methods.
- *
- * All methods marked not supported are explictly checked for for throwing
- * an exception.
- */
+use Zend\EventManager\EventManagerAwareInterface;
+use Zend\EventManager\EventManagerInterface;
+use Zend\Stdlib\Message as ZendMessage;
+use Zend\Stdlib\MessageInterface;
 
 /**
  * Class QueueTest
- * @group Stakhanovist_Queue
+ *
+ * @group queue
  */
 class QueueTest extends \PHPUnit_Framework_TestCase
 {
@@ -71,30 +71,26 @@ class QueueTest extends \PHPUnit_Framework_TestCase
         $this->queue->ensureQueue();
     }
 
-    protected function tearDown()
+    public function testConstruct()
     {
-    }
-
-    public function test__construct()
-    {
-        //Test with two arguments
+        // Test with two arguments
         $q = new Queue($this->name, $this->adapter);
-        $this->assertInstanceOf('Stakhanovist\Queue\QueueOptions', $q->getOptions());
+        $this->assertInstanceOf(QueueOptions::class, $q->getOptions());
 
-        //Test with three arguments
+        // Test with three arguments
         $options = new QueueOptions();
         $q = new Queue($this->name, $this->adapter, $options);
         $this->assertSame($options, $q->getOptions());
 
-        //Test implents interfaces
-        $this->assertInstanceOf('Stakhanovist\Queue\QueueInterface', $q);
-        $this->assertInstanceOf('Stakhanovist\Queue\QueueClientInterface', $q);
-        $this->assertInstanceOf('Countable', $q);
-        $this->assertInstanceOf('Zend\EventManager\EventManagerAwareInterface', $q);
+        // Test implents interfaces
+        $this->assertInstanceOf(QueueInterface::class, $q);
+        $this->assertInstanceOf(QueueClientInterface::class, $q);
+        $this->assertInstanceOf(\Countable::class, $q);
+        $this->assertInstanceOf(EventManagerAwareInterface::class, $q);
 
-        //Test empty queue name exception
-        $this->setExpectedException('Stakhanovist\Queue\Exception\InvalidArgumentException');
-        $q = new Queue('', $this->adapter);
+        // Test empty queue name exception
+        $this->setExpectedException(InvalidArgumentException::class);
+        new Queue('', $this->adapter);
     }
 
 
@@ -103,25 +99,25 @@ class QueueTest extends \PHPUnit_Framework_TestCase
         $config = [
             'name' => 'A',
             'adapter' => [ //Adapter as config
-                'adapter' => 'ArrayAdapter',
+                'adapter' => 'array',
                 'options' => ['dummyOption' => 'dummyValue'],
             ],
-            'options' => ['messageClass' => 'Zend\Stdlib\Message'],
+            'options' => ['messageClass' => ZendMessage::class],
         ];
 
         $q = Queue::factory($config);
-        $this->assertInstanceOf('Stakhanovist\Queue\Queue', $q);
+        $this->assertInstanceOf(Queue::class, $q);
 
-        //Test traversable
+        // Test traversable
         $config = new \ArrayObject($config);
 
         $q = Queue::factory($config);
-        $this->assertInstanceOf('Stakhanovist\Queue\Queue', $q);
+        $this->assertInstanceOf(Queue::class, $q);
 
 
-        //Test invalid config type
-        $this->setExpectedException('Stakhanovist\Queue\Exception\InvalidArgumentException');
-        $q = Queue::factory('wrong config');
+        // Test invalid config type
+        $this->setExpectedException(InvalidArgumentException::class);
+        Queue::factory('wrong config');
     }
 
     public function testFactoryMissingName()
@@ -129,30 +125,29 @@ class QueueTest extends \PHPUnit_Framework_TestCase
         $config = [
             'name' => 'A',
             'adapter' => [ //Adapter as config
-                'adapter' => 'ArrayAdapter',
+                'adapter' => 'array',
                 'options' => ['dummyOption' => 'dummyValue'],
             ],
             'options' => 'wrong options',
         ];
 
 
-        $this->setExpectedException('Stakhanovist\Queue\Exception\InvalidArgumentException');
-        $q = Queue::factory($config);
+        $this->setExpectedException(InvalidArgumentException::class);
+        Queue::factory($config);
     }
 
     public function testFactoryInvalidOptions()
     {
         $config = [
             'adapter' => [ //Adapter as config
-                'adapter' => 'ArrayAdapter',
+                'adapter' => 'array',
                 'options' => ['dummyOption' => 'dummyValue'],
             ],
-            'options' => ['messageClass' => 'Zend\Stdlib\Message'],
+            'options' => ['messageClass' => ZendMessage::class],
         ];
 
-
-        $this->setExpectedException('Stakhanovist\Queue\Exception\InvalidArgumentException');
-        $q = Queue::factory($config);
+        $this->setExpectedException(InvalidArgumentException::class);
+        Queue::factory($config);
     }
 
     public function testSetGetOptions()
@@ -160,12 +155,12 @@ class QueueTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue($this->options instanceof QueueOptions);
         $this->assertEquals($this->options, $this->queue->getOptions());
 
-        $options = new QueueOptions();
+        $options = new QueueOptions;
 
         $this->assertTrue($this->queue->setOptions($options) instanceof Queue);
         $this->assertEquals($options, $this->queue->getOptions());
 
-        //test default options
+        // Test default options
         $q = new Queue($this->name, $this->adapter);
         $this->assertEquals($options, $q->getOptions());
     }
@@ -189,8 +184,8 @@ class QueueTest extends \PHPUnit_Framework_TestCase
 
     public function testSampleBehavior()
     {
-        // ------------------------------------ send()
-        // parameter verification
+        // send()
+        // Parameter verification
         try {
             $this->queue->send([]);
             $this->fail('send() $mesage must be a string or an instance of \Zend\Stdlib\MessageInterface');
@@ -199,16 +194,16 @@ class QueueTest extends \PHPUnit_Framework_TestCase
         }
 
         $message = 'Hello world';
-        $this->assertInstanceOf('\Zend\Stdlib\MessageInterface', $this->queue->send($message));
+        $this->assertInstanceOf(MessageInterface::class, $this->queue->send($message));
 
         $newMessageObj = $this->queue->send(
             [
-            'content' => $message,
-            'metadata' => ['foo' => 'bar']
+                'content' => $message,
+                'metadata' => ['foo' => 'bar']
             ]
         );
 
-        $this->assertInstanceOf('\Zend\Stdlib\MessageInterface', $newMessageObj);
+        $this->assertInstanceOf(MessageInterface::class, $newMessageObj);
         $this->assertEquals($message, $newMessageObj->getContent());
         $metadata = $newMessageObj->getMetadata();
         $this->assertArrayHasKey('__queue', $metadata);
@@ -220,16 +215,16 @@ class QueueTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($message, $this->queue->send($message));
 
 
-        // ------------------------------------ count()
+        // count()
         if ($this->queue->canCountMessages()) {
             $this->assertEquals($this->queue->count(), 3);
         }
 
-        // ------------------------------------ receive()
-        // parameter verification
+        // receive()
+        // Parameter verification
         try {
             $this->queue->receive([]);
-            $this->fail('receive() $maxMessages must be a integer or null');
+            $this->fail('Method receive() $maxMessages must be a integer or null');
         } catch (\Exception $e) {
             $this->assertTrue(true);
         }
@@ -237,7 +232,7 @@ class QueueTest extends \PHPUnit_Framework_TestCase
         // parameter verification
         try {
             $this->queue->receive(0);
-            $this->fail('receive() $maxMessages must be a integer or null');
+            $this->fail('Method receive() $maxMessages must be a integer or null');
         } catch (\Exception $e) {
             $this->assertTrue(true);
         }
@@ -245,7 +240,7 @@ class QueueTest extends \PHPUnit_Framework_TestCase
         $messages = $this->queue->receive();
         $this->assertTrue($messages instanceof MessageIterator);
 
-        // ------------------------------------ deleteMessage()
+        // deleteMessage()
         if ($this->queue->canDeleteMessage()) {
             foreach ($messages as $i => $message) {
                 $this->assertTrue($message instanceof Message);
@@ -256,40 +251,47 @@ class QueueTest extends \PHPUnit_Framework_TestCase
 
     /**
      * ArrayAdapter can't await, but emulation is active by default
+     *
      * @todo add EventManager case
      */
     public function testAwait()
     {
         if (!$this->queue->canAwait()) {
-            $this->markTestSkipped('await() not supported');
+            $this->markTestSkipped('Method await() not supported');
         }
 
         $queueTest = $this;
         $eventReceiveTriggered = false;
         $eventIdleTriggered = false;
 
-        $receiveHandler = $this->queue->getEventManager()->attach(QueueEvent::EVENT_RECEIVE, function (QueueEvent $e) use ($queueTest, &$eventReceiveTriggered) {
+        $receiveHandler = $this->queue->getEventManager()->attach(
+            QueueEvent::EVENT_RECEIVE,
+            function (QueueEvent $e) use ($queueTest, &$eventReceiveTriggered) {
 
-            $eventReceiveTriggered = true;
-            $queueTest->assertInstanceOf('Stakhanovist\Queue\Message\MessageIterator', $e->getMessages());
-            $queueTest->assertCount(1, $e->getMessages());
-            $queueTest->assertEquals('test', $e->getMessages()->current()->getContent());
+                $eventReceiveTriggered = true;
+                $queueTest->assertInstanceOf(MessageIterator::class, $e->getMessages());
+                $queueTest->assertCount(1, $e->getMessages());
+                $queueTest->assertEquals('test', $e->getMessages()->current()->getContent());
 
-        });
+            }
+        );
 
 
-        $idleHandler = $this->queue->getEventManager()->attach(QueueEvent::EVENT_IDLE, function (QueueEvent $e) use ($queueTest, &$eventIdleTriggered) {
+        $idleHandler = $this->queue->getEventManager()->attach(
+            QueueEvent::EVENT_IDLE,
+            function (QueueEvent $e) use ($queueTest, &$eventIdleTriggered) {
 
-            $eventIdleTriggered = true;
-            $queueTest->assertInstanceOf('Stakhanovist\Queue\Message\MessageIterator', $e->getMessages());
+                $eventIdleTriggered = true;
+                $queueTest->assertInstanceOf(MessageIterator::class, $e->getMessages());
 
-            $e->stopAwait(true);
-        });
+                $e->stopAwait(true);
+            }
+        );
 
         //Ensure we have one message
         $this->queue->send('test');
 
-        $this->assertInstanceOf('Stakhanovist\Queue\Queue', $this->queue->await());
+        $this->assertInstanceOf(Queue::class, $this->queue->await());
         $this->assertTrue($eventReceiveTriggered, 'QueueEvent::EVENT_RECEIVE has been not triggered');
         $this->assertTrue($eventIdleTriggered, 'QueueEvent::EVENT_IDLE has been not triggered');
 
@@ -302,16 +304,19 @@ class QueueTest extends \PHPUnit_Framework_TestCase
     public function testStopAwaitOnReceive()
     {
         if (!$this->queue->canAwait()) {
-            $this->markTestSkipped('await() not supported');
+            $this->markTestSkipped('Method await() not supported');
         }
 
         $queueTest = $this;
         $eventReceiveTriggered = false;
 
-        $receiveHandler= $this->queue->getEventManager()->attach(QueueEvent::EVENT_RECEIVE, function (QueueEvent $e) use ($queueTest, &$eventReceiveTriggered) {
-            $eventReceiveTriggered = true;
-            $e->stopAwait(true);
-        });
+        $receiveHandler = $this->queue->getEventManager()->attach(
+            QueueEvent::EVENT_RECEIVE,
+            function (QueueEvent $e) use ($queueTest, &$eventReceiveTriggered) {
+                $eventReceiveTriggered = true;
+                $e->stopAwait(true);
+            }
+        );
 
         //Ensure we have one message
         $this->queue->send('test');
@@ -319,25 +324,28 @@ class QueueTest extends \PHPUnit_Framework_TestCase
         $this->queue->await();
         $this->assertTrue($eventReceiveTriggered, 'QueueEvent::EVENT_RECEIVE has been not triggered');
 
-       //Cleanup
-       $this->queue->getEventManager()->detach($receiveHandler);
+        //Cleanup
+        $this->queue->getEventManager()->detach($receiveHandler);
     }
 
     public function testAwaitEmptyQueue()
     {
         if (!$this->queue->canAwait()) {
-            $this->markTestSkipped('await() not supported');
+            $this->markTestSkipped('Method await() not supported');
         }
 
         $queueTest = $this;
         $triggerCount = 0;
 
-        $idleHandler= $this->queue->getEventManager()->attach(QueueEvent::EVENT_IDLE, function (QueueEvent $e) use ($queueTest, &$triggerCount) {
-            $triggerCount++;
-            if ($triggerCount == 2) {
-                $e->stopAwait(true);
+        $idleHandler = $this->queue->getEventManager()->attach(
+            QueueEvent::EVENT_IDLE,
+            function (QueueEvent $e) use ($queueTest, &$triggerCount) {
+                $triggerCount++;
+                if ($triggerCount == 2) {
+                    $e->stopAwait(true);
+                }
             }
-        });
+        );
 
         $this->queue->await();
         $this->assertEquals(2, $triggerCount, 'QueueEvent::EVENT_IDLE has been not triggered 2 times');
@@ -351,20 +359,25 @@ class QueueTest extends \PHPUnit_Framework_TestCase
         $q = clone $this->queue; //assume array adapter
         $q->getOptions()->setEnableAwaitEmulation(false);
 
-        $this->setExpectedException('Stakhanovist\Queue\Exception\UnsupportedMethodCallException');
+        $this->setExpectedException(UnsupportedMethodCallException::class);
         $q->await();
     }
 
     public function testAwaitWithParamsAndCapableAdapter()
     {
-        $mockAdapter = $this->getMock('Stakhanovist\Queue\Adapter\Capabilities\AwaitMessagesCapableInterface');
+        $mockAdapter = $this->getMock(Adapter\Capabilities\AwaitMessagesCapableInterface::class);
 
         $receiveParams = new ReceiveParameters();
 
         $q = new Queue('test', $mockAdapter);
 
         $mockAdapter->expects($this->any())->method('awaitMessages')->with(
-            $this->equalTo($q), $this->equalTo(function () {}), $this->equalTo($receiveParams)
+            $this->equalTo($q),
+            $this->equalTo(
+                function () {
+                }
+            ),
+            $this->equalTo($receiveParams)
         );
 
         $this->assertSame($q, $q->await($receiveParams));
@@ -373,21 +386,21 @@ class QueueTest extends \PHPUnit_Framework_TestCase
 
     public function testCountUnsupported()
     {
-        $q = new Queue('test', new Null());
+        $q = new Queue('test', new NullAdapter);
 
         $this->assertFalse($q->canCountMessages());
 
-        $this->setExpectedException('Stakhanovist\Queue\Exception\UnsupportedMethodCallException');
+        $this->setExpectedException(UnsupportedMethodCallException::class);
         $q->count();
     }
 
     public function testDeleteMessageUnsupported()
     {
-        $q = new Queue('test', new Null());
+        $q = new Queue('test', new NullAdapter);
 
         $this->assertFalse($q->canDeleteMessage());
 
-        $this->setExpectedException('Stakhanovist\Queue\Exception\UnsupportedMethodCallException');
+        $this->setExpectedException(UnsupportedMethodCallException::class);
         $q->delete(new Message());
     }
 
@@ -401,18 +414,22 @@ class QueueTest extends \PHPUnit_Framework_TestCase
         $expectedParams->setSchedule($time);
         $expectedParams->setRepeatingInterval($repeting);
 
-        $mockAdapter = $this->getMock('Stakhanovist\Queue\Adapter\AdapterInterface');
-        $mockAdapter->expects($this->any())->method('getAvailableSendParams')->will($this->returnValue(
-            [
-            SendParameters::SCHEDULE,
-            SendParameters::REPEATING_INTERVAL
-            ]
-        ));
+        $mockAdapter = $this->getMock(Adapter\AdapterInterface::class);
+        $mockAdapter->expects($this->any())->method('getAvailableSendParams')->will(
+            $this->returnValue(
+                [
+                    SendParameters::SCHEDULE,
+                    SendParameters::REPEATING_INTERVAL
+                ]
+            )
+        );
 
         $q = new Queue('test', $mockAdapter);
 
         $mockAdapter->expects($this->any())->method('sendMessage')->with(
-            $this->equalTo($q), $this->equalTo($message), $this->equalTo($expectedParams)
+            $this->equalTo($q),
+            $this->equalTo($message),
+            $this->equalTo($expectedParams)
         )->will($this->returnValue($message));
 
         $this->assertTrue($q->isSendParamSupported(SendParameters::SCHEDULE));
@@ -423,31 +440,33 @@ class QueueTest extends \PHPUnit_Framework_TestCase
 
     public function testScheduleMessageUnsupported()
     {
-        $q = new Queue('test', new Null());
+        $q = new Queue('test', new NullAdapter);
 
         $this->assertFalse($q->isSendParamSupported(SendParameters::SCHEDULE));
 
-        $this->setExpectedException('Stakhanovist\Queue\Exception\UnsupportedMethodCallException');
+        $this->setExpectedException(UnsupportedMethodCallException::class);
         $q->schedule(new Message());
     }
 
     public function testScheduleMessageRepeatingIntervalUnsupported()
     {
-        $mockAdapter = $this->getMock('Stakhanovist\Queue\Adapter\AdapterInterface');
-        $mockAdapter->expects($this->any())->method('getAvailableSendParams')->will($this->returnValue(
-            [
-            SendParameters::SCHEDULE
-            ]
-        ));
+        $mockAdapter = $this->getMock(Adapter\AdapterInterface::class);
+        $mockAdapter->expects($this->any())->method('getAvailableSendParams')->will(
+            $this->returnValue(
+                [
+                    SendParameters::SCHEDULE
+                ]
+            )
+        );
         $mockAdapter->expects($this->any())->method('sendMessage');
 
-
+        /* @var $mockAdapter Adapter\AdapterInterface */
         $q = new Queue('test', $mockAdapter);
 
         $this->assertTrue($q->isSendParamSupported(SendParameters::SCHEDULE));
         $this->assertFalse($q->isSendParamSupported(SendParameters::REPEATING_INTERVAL));
 
-        $this->setExpectedException('Stakhanovist\Queue\Exception\InvalidArgumentException');
+        $this->setExpectedException(InvalidArgumentException::class);
         $q->schedule(new Message(), 1, 1);
     }
 
@@ -456,29 +475,33 @@ class QueueTest extends \PHPUnit_Framework_TestCase
         $message = new Message();
 
         $providedOptions = [
-            SendParameters::SCHEDULE            => time() + 60,
-            SendParameters::REPEATING_INTERVAL  => 3600,
+            SendParameters::SCHEDULE => time() + 60,
+            SendParameters::REPEATING_INTERVAL => 3600,
         ];
 
-        $mockAdapter = $this->getMock('Stakhanovist\Queue\Adapter\Capabilities\DeleteMessageCapableInterface');
-        $mockAdapter->expects($this->any())->method('getAvailableSendParams')->will($this->returnValue(
-            [
-            SendParameters::SCHEDULE,
-            SendParameters::REPEATING_INTERVAL
-            ]
-        ));
+        $mockAdapter = $this->getMock(Adapter\Capabilities\DeleteMessageCapableInterface::class);
+        $mockAdapter->expects($this->any())->method('getAvailableSendParams')->will(
+            $this->returnValue(
+                [
+                    SendParameters::SCHEDULE,
+                    SendParameters::REPEATING_INTERVAL
+                ]
+            )
+        );
 
         $q = new Queue('test', $mockAdapter);
         $message->setMetadata($q->getOptions()->getMessageMetadatumKey(), ['options' => $providedOptions]);
 
 
         $mockAdapter->expects($this->any())->method('getMessageInfo')->with(
-            $this->equalTo($q), $this->equalTo($message)
+            $this->equalTo($q),
+            $this->equalTo($message)
         )->will($this->returnValue(['options' => $providedOptions]));
 
 
         $mockAdapter->expects($this->any())->method('deleteMessage')->with(
-            $this->equalTo($q), $this->equalTo($message)
+            $this->equalTo($q),
+            $this->equalTo($message)
         )->will($this->returnValue(true));
 
 
@@ -495,7 +518,7 @@ class QueueTest extends \PHPUnit_Framework_TestCase
 
     public function testUnscheduleMessageUnsupported()
     {
-        $q = new Queue('test', new Null());
+        $q = new Queue('test', new NullAdapter);
 
         $this->assertFalse($q->isSendParamSupported(SendParameters::SCHEDULE));
 
@@ -527,7 +550,7 @@ class QueueTest extends \PHPUnit_Framework_TestCase
     public function testIsReceiveParamSupported()
     {
         $adapterMock = $this->getMock(Adapter\AdapterInterface::class);
-        $adapterMock->expects($this->any())->method("getAvailableReceiveParams")->will($this->returnValue(['foo']));
+        $adapterMock->expects($this->any())->method('getAvailableReceiveParams')->will($this->returnValue(['foo']));
         $q = new Queue('test', $adapterMock);
         $this->isTrue($q->isReceiveParamSupported('foo'));
         $this->isFalse($q->isReceiveParamSupported('bar'));
@@ -535,13 +558,13 @@ class QueueTest extends \PHPUnit_Framework_TestCase
 
     public function testQueueIsEventManagerAware()
     {
-        $this->assertInstanceOf('Zend\EventManager\EventManagerAwareInterface', $this->queue);
+        $this->assertInstanceOf(EventManagerAwareInterface::class, $this->queue);
 
         $defaultEventManager = $this->queue->getEventManager();
-        $this->assertInstanceOf('Zend\EventManager\EventManagerInterface', $defaultEventManager);
+        $this->assertInstanceOf(EventManagerInterface::class, $defaultEventManager);
 
         $newEventManager = new EventManager();
-        $this->assertInstanceOf('Stakhanovist\Queue\Queue', $this->queue->setEventManager($newEventManager));
+        $this->assertInstanceOf(Queue::class, $this->queue->setEventManager($newEventManager));
 
         $this->assertSame($newEventManager, $this->queue->getEventManager());
 
@@ -552,15 +575,15 @@ class QueueTest extends \PHPUnit_Framework_TestCase
     public function testGetSetEvent()
     {
         $defaultEvent = $this->queue->getEvent();
-        $this->assertInstanceOf('Stakhanovist\Queue\QueueEvent', $defaultEvent);
+        $this->assertInstanceOf(QueueEvent::class, $defaultEvent);
 
         $newEvent = new Event();
         $newEvent->setParam('foo', 'bar');
 
-        $this->assertInstanceOf('Stakhanovist\Queue\Queue', $this->queue->setEvent($newEvent));
+        $this->assertInstanceOf(Queue::class, $this->queue->setEvent($newEvent));
 
         //Test recast
-        $this->assertInstanceOf('Stakhanovist\Queue\QueueEvent', $this->queue->getEvent());
+        $this->assertInstanceOf(QueueEvent::class, $this->queue->getEvent());
         $this->assertSame('bar', $this->queue->getEvent()->getParam('foo'));
 
         //Restore original event
@@ -570,8 +593,7 @@ class QueueTest extends \PHPUnit_Framework_TestCase
     public function testUsageExample()
     {
         // Create an array queue adapter
-        $adapter = new ArrayAdapter();
-
+        $adapter = new ArrayAdapter;
 
         // Create a queue object
         $queue = new Queue('queue1', $adapter);
@@ -579,23 +601,19 @@ class QueueTest extends \PHPUnit_Framework_TestCase
         // Ensure queue1 exists in the backend
         $queue->ensureQueue();
 
-
         // Create a new queue object
         $queue2 = new Queue('queue2', $adapter);
 
         // Ensure queue2 exists in the backend
         $queue2->ensureQueue();
 
-
         // Get list of queues
         foreach ($adapter->listQueues() as $name) {
-            $this->assertStringStartsWith('queue', $name); //echo $name, "\n";
+            $this->assertStringStartsWith('queue', $name); // echo $name, "\n";
         }
-
 
         // Send a message to queue1
         $queue->send('My Test Message');
-
 
         // Get number of messages in a queue1 (supports Countable interface from SPL)
         $this->assertCount(1, $queue);//echo count($queue);
@@ -609,7 +627,6 @@ class QueueTest extends \PHPUnit_Framework_TestCase
             // We have processed the message; now we remove it from the queue.
             $queue->delete($message);
         }
-
 
         // Delete a queue we created and all of it's messages
         $queue->deleteQueue();

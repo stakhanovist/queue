@@ -15,7 +15,7 @@ use Stakhanovist\Queue\Exception\InvalidArgumentException;
 /**
  * Class AdapterFactoryTest
  *
- * @group adapters
+ * @group adapter
  */
 class AdapterFactoryTest extends \PHPUnit_Framework_TestCase
 {

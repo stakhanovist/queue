@@ -13,7 +13,8 @@ use Stakhanovist\Queue\Adapter\ArrayAdapter;
 
 /**
  * Class ArrayAdapterTest
- * @group adapters
+ *
+ * @group adapter
  */
 class ArrayAdapterTest extends AdapterTest
 {

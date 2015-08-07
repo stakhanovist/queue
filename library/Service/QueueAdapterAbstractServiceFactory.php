@@ -14,6 +14,8 @@ use Zend\ServiceManager\AbstractFactoryInterface;
 use Zend\ServiceManager\ServiceLocatorInterface;
 
 /**
+ * Class QueueAdapterAbstractServiceFactory
+ *
  * Queue adapter factory for multiple adapters.
  */
 class QueueAdapterAbstractServiceFactory implements AbstractFactoryInterface

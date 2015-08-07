@@ -17,7 +17,7 @@ use Zend\ServiceManager\ServiceManager;
 /**
  * Class AdapterPluginManagerTest
  *
- * @group adapters
+ * @group adapter
  */
 class AdapterPluginManagerTest extends \PHPUnit_Framework_TestCase
 {

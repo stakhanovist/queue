@@ -15,6 +15,8 @@ use Zend\ServiceManager\AbstractFactoryInterface;
 use Zend\ServiceManager\ServiceLocatorInterface;
 
 /**
+ * Class QueueAbstractServiceFactory
+ *
  * Queue factory for multiple queues.
  */
 class QueueAbstractServiceFactory implements AbstractFactoryInterface

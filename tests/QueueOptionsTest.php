@@ -17,7 +17,8 @@ use Stakhanovist\Queue\QueueOptions;
 
 /**
  * Class QueueOptionsTest
- * @group Stakhanovist_Queue
+ *
+ * @group queue
  */
 class QueueOptionsTest extends \PHPUnit_Framework_TestCase
 {

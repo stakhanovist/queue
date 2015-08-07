@@ -18,7 +18,6 @@ use Zend\Stdlib\AbstractOptions;
  */
 class QueueOptions extends AbstractOptions implements QueueOptionsInterface
 {
-
     /**
      * @var array
      */
@@ -28,7 +27,6 @@ class QueueOptions extends AbstractOptions implements QueueOptionsInterface
      * @var array
      */
     protected $adapterOptions = [];
-
 
     /**
      * The default message class
@@ -128,7 +126,7 @@ class QueueOptions extends AbstractOptions implements QueueOptionsInterface
 
     /**
      * @param bool $flag
-     * @return \Stakhanovist\Queue\QueueOptions
+     * @return QueueOptions
      */
     public function setEnableAwaitEmulation($flag)
     {

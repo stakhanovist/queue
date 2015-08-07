@@ -200,7 +200,6 @@ class ArrayAdapter extends AbstractAdapter implements
             'handle' => null,
         ];
         if ($params) {
-
             if ($params->getSchedule()) {
                 $msg['schedule'] = $params->getSchedule();
             }

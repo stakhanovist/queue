@@ -32,7 +32,6 @@ use Zend\Stdlib\MessageInterface;
  */
 class Queue implements QueueClientInterface, EventManagerAwareInterface
 {
-
     /**
      * Queue name
      *
@@ -247,9 +246,11 @@ class Queue implements QueueClientInterface, EventManagerAwareInterface
             $data = $message;
             $messageClass = $this->getOptions()->getMessageClass();
             if (is_string($data)) {
+                /** @var $message MessageInterface */
                 $message = new $messageClass;
                 $message->setContent($data);
             } elseif (is_array($data) && isset($data['content'])) {
+                /** @var $message MessageInterface */
                 $message = new $messageClass;
                 $message->setContent((string)$data['content']);
                 if (isset($data['metadata'])) {
@@ -289,6 +290,7 @@ class Queue implements QueueClientInterface, EventManagerAwareInterface
      */
     public function await(ReceiveParametersInterface $params = null)
     {
+        /* @var $adapter AdapterInterface */
         $adapter = $this->getAdapter();
         $adapterCanAwait = $adapter instanceof AwaitMessagesCapableInterface;
 
@@ -321,6 +323,7 @@ class Queue implements QueueClientInterface, EventManagerAwareInterface
         };
 
         if ($adapterCanAwait) {
+            /* @var $adapter AwaitMessagesCapableInterface */
             $adapter->awaitMessages($this, $callback, $params);
         } else { //else, await emulation (polling)
 

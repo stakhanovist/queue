@@ -13,15 +13,9 @@ use Countable;
 use Stakhanovist\Queue\Exception;
 use Stakhanovist\Queue\Parameter\ReceiveParametersInterface;
 use Stakhanovist\Queue\Parameter\SendParametersInterface;
+use Zend\EventManager\EventsCapableInterface;
 use Zend\Stdlib\ArrayUtils;
 use Zend\Stdlib\MessageInterface;
-use Zend\EventManager\EventManagerInterface;
-use Zend\EventManager\Event;
-use Stakhanovist\Queue\Adapter\AdapterFactory;
-use Zend\EventManager\EventManager;
-use Stakhanovist\Queue\Message\MessageIterator;
-use Zend\EventManager\EventManagerAwareInterface;
-use Zend\EventManager\EventsCapableInterface;
 
 /**
  * Interface QueueClientInterface
@@ -114,5 +108,4 @@ interface QueueClientInterface extends QueueInterface, Countable, EventsCapableI
      * @return bool
      */
     public function canCountMessages();
-
 }
