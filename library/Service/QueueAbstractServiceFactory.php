@@ -40,7 +40,6 @@ class QueueAbstractServiceFactory implements AbstractFactoryInterface
      */
     protected $configKey = 'queues';
 
-
     /**
      * Can we create a queue by the requested name?
      *

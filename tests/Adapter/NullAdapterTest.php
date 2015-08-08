@@ -23,7 +23,7 @@ class NullAdapterTest extends AdapterTest
      *
      * @return array
      */
-    public function getSupportedTests()
+    protected function getSupportedTests()
     {
         return [
            'getQueueId', 'queueExists',

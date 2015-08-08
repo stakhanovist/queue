@@ -74,19 +74,19 @@ class QueueTest extends \PHPUnit_Framework_TestCase
     public function testConstruct()
     {
         // Test with two arguments
-        $q = new Queue($this->name, $this->adapter);
-        $this->assertInstanceOf(QueueOptions::class, $q->getOptions());
+        $queue = new Queue($this->name, $this->adapter);
+        $this->assertInstanceOf(QueueOptions::class, $queue->getOptions());
 
         // Test with three arguments
         $options = new QueueOptions();
-        $q = new Queue($this->name, $this->adapter, $options);
-        $this->assertSame($options, $q->getOptions());
+        $queue = new Queue($this->name, $this->adapter, $options);
+        $this->assertSame($options, $queue->getOptions());
 
         // Test implents interfaces
-        $this->assertInstanceOf(QueueInterface::class, $q);
-        $this->assertInstanceOf(QueueClientInterface::class, $q);
-        $this->assertInstanceOf(\Countable::class, $q);
-        $this->assertInstanceOf(EventManagerAwareInterface::class, $q);
+        $this->assertInstanceOf(QueueInterface::class, $queue);
+        $this->assertInstanceOf(QueueClientInterface::class, $queue);
+        $this->assertInstanceOf(\Countable::class, $queue);
+        $this->assertInstanceOf(EventManagerAwareInterface::class, $queue);
 
         // Test empty queue name exception
         $this->setExpectedException(InvalidArgumentException::class);

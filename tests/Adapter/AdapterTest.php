@@ -38,16 +38,6 @@ use Zend\Config;
 abstract class AdapterTest extends \PHPUnit_Framework_TestCase
 {
     /**
-     * @var bool
-     */
-    protected $error;
-
-    public function tearDown()
-    {
-        $this->error = false;
-    }
-
-    /**
      * Provide the adapter class name
      *
      * It is obtained from FQCN (@see getAdapterName()),
@@ -76,7 +66,7 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
      *
      * @return array
      */
-    public function getSupportedTests()
+    protected function getSupportedTests()
     {
         return [
             'createQueue',
@@ -90,18 +80,20 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
     /**
      * @return array
      */
-    public function getTestOptions()
+    protected function getTestOptions()
     {
         return ['driverOptions' => []];
     }
 
     /**
-     * for ActiveMQ it uses /queue/ /temp-queue/ /topic/ /temp-topic/
+     * Create queue name
+     *
+     * NOTE: ActiveMQ it uses /queue/ /temp-queue/ /topic/ /temp-topic/
      *
      * @param $name
      * @return
      */
-    public function createQueueName($name)
+    protected function createQueueName($name)
     {
         return $name;
     }
@@ -173,7 +165,6 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
         $this->assertSame($queue->getName(), $info['queueName']);
     }
 
-
     public function testSetGetOptions()
     {
         $queue = $this->createQueue(__FUNCTION__);
@@ -227,7 +218,7 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
 
         try {
             new $class(\true);
-            $this->fail('__construct() $config must be an array');
+            $this->fail('Constructor options must be an array');
         } catch (\Exception $e) {
             $this->assertTrue(true);
         }
@@ -241,21 +232,22 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
 
         try {
             new $class(['name' => 'queue1', 'driverOptions' => \true]);
-            $this->fail('__construct() $config[\'options\'] must be an array');
+            $this->fail('Constructor options must be an array');
         } catch (\Exception $e) {
             $this->assertTrue(true);
         }
 
         try {
             new $class(['name' => 'queue1', 'driverOptions' => ['opt' => 'val']]);
-            $this->fail('__construct() humm I think this test is supposed to work @TODO');
+            $this->fail('I think this test is supposed to work'); // FIXME
         } catch (\Exception $e) {
             $this->assertTrue(true);
         }
+
         try {
             $config = new Config\Config(['driverOptions' => []]);
             new $class($config);
-            $this->fail('__construct() \'name\' is a required configuration value');
+            $this->fail('Constructor options required a \'name\' configuration value');
         } catch (\Exception $e) {
             $this->assertTrue(true);
         }
@@ -263,7 +255,7 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
         try {
             $config = new Config\Config(['name' => 'queue1', 'driverOptions' => [], 'options' => ['opt1' => 'val1']]);
             new $class($config);
-            $this->fail('__construct() is not supposed to accept a true value for a configuraiton');
+            $this->fail('Constructor is not supposed to accept a true value for a configuration');
         } catch (\Exception $e) {
             $this->assertTrue(true);
         }
@@ -272,7 +264,7 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
         if (!$queue = $this->createQueue(__FUNCTION__)) {
             return;
         }
-        $obj = new $class();
+        $obj = new $class;
         $this->assertTrue($obj instanceof Adapter\AbstractAdapter);
     }
 
@@ -720,9 +712,9 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * This tests to see if a message is in-visibile for the proper amount of time
+     * This test checks if a message is invisibile the proper amount of time
      *
-     * usually adapters that support deleteMessage() by nature will support visibility
+     * Usually adapters that support deleteMessage() by nature will support visibility.
      */
     public function testVisibilityTimeout()
     {
@@ -815,7 +807,6 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
                 $adapter->deleteMessage($queue, $msg);
             }
         }
-
 
         // delete the queue we created
         $adapter->deleteQueue($queue->getName());
