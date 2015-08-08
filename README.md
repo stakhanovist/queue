@@ -9,13 +9,13 @@ This library aims to provide a [message queue](http://en.wikipedia.org/wiki/Mess
 
 Currenty, the following **message queue services** are supported:
 
-- A **SQL database** driven queue via `Zend\Db`
+- A **SQL database driven queue** via `Zend\Db`
 
-    > Install [stakhanovist/queue-db](http://github.comstakhanovist/queue-db)
+    > Install [stakhanovist/queue-db](http://github.com/stakhanovist/queue-db)
 
-- A **MongoDb database** driven queue, with message awaiting support ([using capped collection and tailable cursor](http://shtylman.com/post/the-tail-of-mongodb))
+- A **MongoDb database driven queue**, with message awaiting support ([using capped collection and tailable cursor](http://shtylman.com/post/the-tail-of-mongodb))
 
-    > Install [stakhanovist/queue-mongodb](http://github.comstakhanovist/queue-mongodb)
+    > Install [stakhanovist/queue-mongodb](http://github.com/stakhanovist/queue-mongodb)
 
 - A local array useful for non-persistent queues and for unit testing
 
