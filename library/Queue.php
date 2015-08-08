@@ -585,7 +585,7 @@ class Queue implements QueueClientInterface, EventManagerAwareInterface
     public function getEventManager()
     {
         if (!$this->events) {
-            $this->setEventManager(new EventManager());
+            $this->setEventManager(new EventManager);
         }
 
         return $this->events;

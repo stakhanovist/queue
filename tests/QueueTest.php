@@ -365,12 +365,15 @@ class QueueTest extends \PHPUnit_Framework_TestCase
 
     public function testAwaitWithParamsAndCapableAdapter()
     {
+
         $mockAdapter = $this->getMock(Adapter\Capabilities\AwaitMessagesCapableInterface::class);
 
         $receiveParams = new ReceiveParameters();
 
+        /** @var $mockAdapter Adapter\AdapterInterface */
         $q = new Queue('test', $mockAdapter);
 
+        /** @var $mockAdapter \PHPUnit_Framework_MockObject_MockObject */
         $mockAdapter->expects($this->any())->method('awaitMessages')->with(
             $this->equalTo($q),
             $this->equalTo(
@@ -424,8 +427,10 @@ class QueueTest extends \PHPUnit_Framework_TestCase
             )
         );
 
+        /** @var $mockAdapter Adapter\AdapterInterface */
         $q = new Queue('test', $mockAdapter);
 
+        /** @var $mockAdapter \PHPUnit_Framework_MockObject_MockObject */
         $mockAdapter->expects($this->any())->method('sendMessage')->with(
             $this->equalTo($q),
             $this->equalTo($message),
@@ -489,10 +494,11 @@ class QueueTest extends \PHPUnit_Framework_TestCase
             )
         );
 
+        /** @var $mockAdapter Adapter\AdapterInterface */
         $q = new Queue('test', $mockAdapter);
         $message->setMetadata($q->getOptions()->getMessageMetadatumKey(), ['options' => $providedOptions]);
 
-
+        /** @var $mockAdapter \PHPUnit_Framework_MockObject_MockObject */
         $mockAdapter->expects($this->any())->method('getMessageInfo')->with(
             $this->equalTo($q),
             $this->equalTo($message)
@@ -542,6 +548,7 @@ class QueueTest extends \PHPUnit_Framework_TestCase
     {
         $adapterMock = $this->getMock(Adapter\AdapterInterface::class);
         $adapterMock->expects($this->any())->method("getAvailableSendParams")->will($this->returnValue(['foo']));
+        /** @var $adapterMock Adapter\AdapterInterface */
         $q = new Queue('test', $adapterMock);
         $this->isTrue($q->isSendParamSupported('foo'));
         $this->isFalse($q->isSendParamSupported('bar'));
@@ -551,6 +558,7 @@ class QueueTest extends \PHPUnit_Framework_TestCase
     {
         $adapterMock = $this->getMock(Adapter\AdapterInterface::class);
         $adapterMock->expects($this->any())->method('getAvailableReceiveParams')->will($this->returnValue(['foo']));
+        /** @var $adapterMock Adapter\AdapterInterface */
         $q = new Queue('test', $adapterMock);
         $this->isTrue($q->isReceiveParamSupported('foo'));
         $this->isFalse($q->isReceiveParamSupported('bar'));
