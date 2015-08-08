@@ -1,6 +1,6 @@
 {
   "name": "stakhanovist/queue",
-  "description": "Provides a factory function to create specific queue client objects",
+  "description": "Create specific queue client objects",
   "type": "library",
   "license": "BSD-2-Clause",
   "authors": [
@@ -16,9 +16,23 @@
     }
   ],
   "keywords": [
-    "queue"
+    "queue",
+    "queues",
+    "messages",
+    "client",
+    "mongodb",
+    "db",
+    "database",
+    "adapter",
+    "amazon",
+    "amazon sqs",
+    "mysql",
+    "pgsql",
+    "postgresql",
+    "sqlite",
+    "slqsrv"
   ],
-  "homepage": "https://github.com/stakhanovist/queue",
+  "homepage": "http://github.com/stakhanovist/queue",
   "autoload": {
     "psr-4": {
       "Stakhanovist\\Queue\\": "library"
@@ -44,6 +58,7 @@
     }
   },
   "suggest": {
+    "stakhanovist/worker": "",
     "stakhanovist/queue-db": "Database adapter for Stakhanovist queues",
     "stakhanovist/queue-mongodb": "MongoDb adapter for Stakhanovist queues",
     "stakhanovist/queue-amazon-sqs": "Amazon SQS adapter for Stakhanovist queues"
