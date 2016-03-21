@@ -10,8 +10,9 @@
 namespace Stakhanovist\Queue\Exception;
 
 /**
- * Exception for Queue component.
+ * Class RuntimException
  *
+ * Exception for Queue component.
  */
 class RuntimeException extends \RuntimeException implements ExceptionInterface
 {

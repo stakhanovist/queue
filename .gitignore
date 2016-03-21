@@ -1,19 +1,36 @@
-# Vendor
-vendor/
+### IDEs
 
-# Composer
-composer.lock
-composer.phar
-
-# OSX
-.DS_store
-
-# Ecplise-based IDEs
-.project
+.DS_Store
+.~lock.*
+*.ipr
+*.iws
+.idea
 .buildpath
+.project
 .settings
 
-# PhpStorm
-.idea
+### Zend Framework 2
 
-build
+# Composer files
+composer.phar
+composer.lock
+vendor/
+
+# Local configs
+config/autoload/*local.php
+
+# Binary gettext files
+*.po
+
+# Data
+log/
+logs/
+cache/
+temp/
+tmp/
+
+### PHP
+
+phpunit.xml
+phpmd.xml
+build/

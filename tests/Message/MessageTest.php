@@ -9,26 +9,17 @@
 
 namespace StakhanovistQueueTest\Message;
 
-use Stakhanovist\Queue\Queue;
-use Stakhanovist\Queue\Message\Message;
-use Stakhanovist\Queue\QueueOptions;
 use Stakhanovist\Queue\Adapter\ArrayAdapter;
+use Stakhanovist\Queue\Message\Message;
+use Stakhanovist\Queue\Queue;
+use Stakhanovist\Queue\QueueOptions;
 
-/*
- * The adapter test class provides a universal test class for all of the
-* abstract methods.
-*
-* All methods marked not supported are explictly checked for for throwing
-* an exception.
-*/
 /**
- * Stakhanovist\Queue\Message is just a placeholder for Zend\Stdlib\Message
- * so we don't need ro repeat all tests.
+ * Class MessageTest
  *
- * Just tests for seralization and check if it's the default message class
+ * Stakhanovist\Queue\Message is just a placeholder for Zend\Stdlib\Message so we don't need ro repeat all tests.
  *
- *
- * @group      Stakhanovist_Queue
+ * @group message
  */
 class MessageTest extends \PHPUnit_Framework_TestCase
 {
@@ -62,22 +53,16 @@ class MessageTest extends \PHPUnit_Framework_TestCase
     {
         $this->name = 'queueTest';
 
-        $this->options = new QueueOptions();
+        $this->options = new QueueOptions;
 
-        $this->adapter = new ArrayAdapter();
+        $this->adapter = new ArrayAdapter;
 
         $this->queue = new Queue($this->name, $this->adapter, $this->options);
 
         $this->queue->ensureQueue();
 
-        $this->message = new Message();
-
+        $this->message = new Message;
     }
-
-    protected function tearDown()
-    {
-    }
-
 
     public function testSerialization()
     {
@@ -85,7 +70,6 @@ class MessageTest extends \PHPUnit_Framework_TestCase
         $woken = unserialize($message);
         $this->assertEquals($this->message->getContent(), $woken->getContent());
         $this->assertEquals($this->message->getMetadata(), $woken->getMetadata());
-
     }
 
     public function testDefaultMessageClass()
@@ -93,8 +77,6 @@ class MessageTest extends \PHPUnit_Framework_TestCase
         $this->queue->send('testMessage');
         $messages = $this->queue->receive();
 
-        $this->assertInstanceOf('\Stakhanovist\Queue\Message\Message', $messages->current());
+        $this->assertInstanceOf(Message::class, $messages->current());
     }
-
-
 }

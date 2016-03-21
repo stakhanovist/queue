@@ -12,6 +12,9 @@ namespace Stakhanovist\Queue\Parameter;
 use Stakhanovist\Queue\Exception;
 use Zend\Stdlib\Parameters;
 
+/**
+ * Class ReceiveParameters
+ */
 class ReceiveParameters extends Parameters implements ReceiveParametersInterface
 {
 
@@ -29,7 +32,7 @@ class ReceiveParameters extends Parameters implements ReceiveParametersInterface
             throw new Exception\InvalidArgumentException('$classname must be a string or null');
         }
 
-        //FIXME: temporary workaround to avoid absolute FQCN
+        // FIXME: temporary workaround to avoid absolute FQCN
         $classname = ltrim($classname, '\\');
 
         $this->set(self::CLASS_FILTER, $classname);
@@ -114,6 +117,4 @@ class ReceiveParameters extends Parameters implements ReceiveParametersInterface
     {
         return $this->get(self::PEEK_MODE, false);
     }
-
-
 }

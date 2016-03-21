@@ -10,8 +10,9 @@
 namespace Stakhanovist\Queue\Exception;
 
 /**
- * Exception for Queue component.
+ * Class DomainException
  *
+ * Exception for Queue component.
  */
 class DomainException extends \DomainException implements ExceptionInterface
 {

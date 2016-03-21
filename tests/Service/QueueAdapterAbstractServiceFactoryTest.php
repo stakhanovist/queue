@@ -13,31 +13,41 @@ use Stakhanovist\Queue\Adapter;
 use Zend\ServiceManager\ServiceManager;
 
 /**
+ * Class QueueAdapterAbstractServiceFactoryTest
  *
- * @group      Stakhanovist_Queue
+ * @group service
  */
 class QueueAdapterAbstractServiceFactoryTest extends \PHPUnit_Framework_TestCase
 {
+    /**
+     * @var ServiceManager
+     */
     protected $sm;
 
     public function setUp()
     {
         Adapter\AdapterFactory::resetAdapterPluginManager();
 
-        $this->sm = new ServiceManager();
-        $this->sm->setService('Config',
-            array('stakhanovist' =>
-                array('queue_adapters' => array(
-                    'ArrayAdapter' => array(
-                        'adapter' => 'ArrayAdapter',
-                        'options' => array('dummyOption' => 'dummyValue'),
-                    ),
-                    'Foo' => array(
-                        'adapter' => 'ArrayAdapter',
-                        'options' => array('dummyOption' => 'dummyValue'),
-                    ),
-        ))));
-        $this->sm->addAbstractFactory('Stakhanovist\Queue\Service\QueueAdapterAbstractServiceFactory');
+        $this->sm = new ServiceManager;
+        $this->sm->setService(
+            'Config',
+            [
+                'stakhanovist' =>
+                    [
+                        'queue_adapters' => [
+                            'ArrayAdapter' => [
+                                'adapter' => 'array',
+                                'options' => ['dummyOption' => 'dummyValue'],
+                            ],
+                            'Foo' => [
+                                'adapter' => 'array',
+                                'options' => ['dummyOption' => 'dummyValue'],
+                            ],
+                        ]
+                    ]
+            ]
+        );
+        $this->sm->addAbstractFactory(QueueAdapterAbstractServiceFactory::class);
     }
 
     public function tearDown()
@@ -54,10 +64,10 @@ class QueueAdapterAbstractServiceFactoryTest extends \PHPUnit_Framework_TestCase
     public function testCanRetrieveAdapterByName()
     {
         $adapterA = $this->sm->get('ArrayAdapter');
-        $this->assertInstanceOf('Stakhanovist\Queue\Adapter\ArrayAdapter', $adapterA);
+        $this->assertInstanceOf(Adapter\ArrayAdapter::class, $adapterA);
 
         $adapterB = $this->sm->get('Foo');
-        $this->assertInstanceOf('Stakhanovist\Queue\Adapter\ArrayAdapter', $adapterB);
+        $this->assertInstanceOf(Adapter\ArrayAdapter::class, $adapterB);
 
         $this->assertNotSame($adapterA, $adapterB);
     }
@@ -82,5 +92,4 @@ class QueueAdapterAbstractServiceFactoryTest extends \PHPUnit_Framework_TestCase
         $abstractFactory = new QueueAdapterAbstractServiceFactory();
         $abstractFactory->canCreateServiceWithName($sm, 'foo', 'bar');
     }
-
 }

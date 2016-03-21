@@ -10,7 +10,7 @@
 namespace Stakhanovist\Queue;
 
 /**
- *
+ * Interface QueueInterface
  */
 interface QueueInterface
 {

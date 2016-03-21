@@ -15,7 +15,7 @@ use Stakhanovist\Queue\Queue;
 use Zend\Stdlib\MessageInterface as StdMessage;
 
 /**
- *
+ * Class MessageIterator
  */
 class MessageIterator implements Countable, Iterator
 {
@@ -24,7 +24,7 @@ class MessageIterator implements Countable, Iterator
      *
      * @var array
      */
-    protected $data = array();
+    protected $data = [];
 
     /**
      * Queue instance
@@ -52,8 +52,7 @@ class MessageIterator implements Countable, Iterator
      *
      * @var string
      */
-    protected $messageClass = '\Stakhanovist\Queue\Message\Message';
-
+    protected $messageClass = Message::class;
 
     /**
      * MessageIterator pointer.
@@ -78,7 +77,7 @@ class MessageIterator implements Countable, Iterator
      * @param array $data
      * @param Queue $queue
      */
-    public function __construct(array $data = array(), Queue $queue = null)
+    public function __construct(array $data = [], Queue $queue = null)
     {
         if ($queue) {
             $this->setQueue($queue);
@@ -90,7 +89,7 @@ class MessageIterator implements Countable, Iterator
     /**
      * @param integer $index
      */
-    protected function _lazyMessageFactory($index)
+    protected function lazyMessageFactory($index)
     {
         if (!($this->data[$index] instanceof StdMessage)) {
             $data = $this->data[$index];
@@ -119,7 +118,7 @@ class MessageIterator implements Countable, Iterator
      */
     public function __sleep()
     {
-        return array('data', 'queueClass', 'queueName', 'messageClass', 'pointer');
+        return ['data', 'queueClass', 'queueName', 'messageClass', 'pointer'];
     }
 
     /**
@@ -187,7 +186,7 @@ class MessageIterator implements Countable, Iterator
     {
         return (($this->valid() === false)
             ? null
-            : $this->_lazyMessageFactory($this->pointer)); // return the messages object
+            : $this->lazyMessageFactory($this->pointer)); // return the messages object
     }
 
     /**

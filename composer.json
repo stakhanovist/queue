@@ -1,39 +1,70 @@
 {
-    "name": "stakhanovist/queue",
-    "description": "Provides a factory function to create specific queue client objects",
-    "type": "library",
-    "license": "BSD-3-Clause",
-    "keywords": [
-        "zf2",
-        "queue"
-    ],
-    "homepage": "https://github.com/stakhanovist/queue",
-    "autoload": {
-        "psr-4": {
-            "Stakhanovist\\Queue\\": "library",
-            "StakhanovistQueueTest\\": "tests"
-        }
+  "name": "stakhanovist/queue",
+  "description": "Create specific queue client objects",
+  "type": "library",
+  "license": "BSD-2-Clause",
+  "authors": [
+    {
+      "name": "Leonardo Grasso",
+      "email": "me@leonardograsso.com",
+      "homepage": "http://github.com/leogr"
     },
-    "require-dev": {
-        "phpunit/phpunit": "3.7.*",
-        "satooshi/php-coveralls": "dev-master",
-    	"zendframework/zendframework" : "~2"
-    },
-    "require": {
-        "php": ">=5.4",
-        "zendframework/zend-stdlib": "~2",
-        "zendframework/zend-servicemanager": "~2",
-        "zendframework/zend-math": "~2",
-        "zendframework/zend-eventmanager": "~2"
-    },
-    "extra": {
-        "branch-alias": {
-            "dev-master": "0.1.x-dev",
-            "dev-develop": "0.2.x-dev"
-        }
-    },
-    "suggest": {
-        "zendframework/zend-db": "Zend\\Db required if you are using the DB queue adapter",
-        "ext-mongo": "Mongo required if you are using the Mondo queue adapter"
+    {
+      "name": "Leonardo Di Donato",
+      "email": "leodidonato@gmail.com",
+      "homepage": "http://github.com/leodido"
     }
+  ],
+  "keywords": [
+    "queue",
+    "queues",
+    "messages",
+    "client",
+    "mongodb",
+    "db",
+    "database",
+    "adapter",
+    "amazon",
+    "amazon sqs",
+    "mysql",
+    "pgsql",
+    "postgresql",
+    "sqlite",
+    "slqsrv"
+  ],
+  "homepage": "http://github.com/stakhanovist/queue",
+  "autoload": {
+    "psr-4": {
+      "Stakhanovist\\Queue\\": "library"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "StakhanovistQueueTest\\": "tests"
+    }
+  },
+  "require": {
+    "php": ">=5.5",
+    "zendframework/zend-stdlib": "~2.1",
+    "zendframework/zend-eventmanager": "~2.1",
+    "zendframework/zend-servicemanager": "~2.1",
+    "zendframework/zend-math": "~2.1"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "~4.7",
+    "satooshi/php-coveralls": "dev-master",
+    "zendframework/zend-config": "~2.1"
+  },
+  "extra": {
+    "branch-alias": {
+      "dev-master": "0.2.x-dev",
+      "dev-develop": "0.3.x-dev"
+    }
+  },
+  "suggest": {
+    "stakhanovist/worker": "",
+    "stakhanovist/queue-db": "Database adapter for Stakhanovist queues",
+    "stakhanovist/queue-mongodb": "MongoDb adapter for Stakhanovist queues",
+    "stakhanovist/queue-amazon-sqs": "Amazon SQS adapter for Stakhanovist queues"
+  }
 }

@@ -10,8 +10,9 @@
 namespace Stakhanovist\Queue\Exception;
 
 /**
- * When unsupported method call, throw this exception
+ * Class UnsupportedMethodCallException
  *
+ * When unsupported method call, throw this exception
  */
 class UnsupportedMethodCallException extends \BadMethodCallException implements
     ExceptionInterface

@@ -9,94 +9,91 @@
 
 namespace StakhanovistQueueTest\Adapter;
 
-use Zend\Config;
 use Stakhanovist\Queue\Adapter;
-use Stakhanovist\Queue\Message\Message;
-use Stakhanovist\Queue\Queue;
-use Stakhanovist\Queue\Adapter\AdapterInterface;
-use Stakhanovist\Queue\QueueOptions;
-use Stakhanovist\Queue\Message\MessageIterator;
-use Stakhanovist\Queue\Parameter\ReceiveParameters;
 use Stakhanovist\Queue\Adapter\AdapterFactory;
+use Stakhanovist\Queue\Adapter\AdapterInterface;
+use Stakhanovist\Queue\Adapter\Capabilities\AwaitMessagesCapableInterface;
+use Stakhanovist\Queue\Adapter\Capabilities\CountMessagesCapableInterface;
 use Stakhanovist\Queue\Adapter\Capabilities\DeleteMessageCapableInterface;
 use Stakhanovist\Queue\Adapter\Capabilities\ListQueuesCapableInterface;
-use Stakhanovist\Queue\Adapter\Capabilities\CountMessagesCapableInterface;
-use Stakhanovist\Queue\Adapter\Null;
-use Stakhanovist\Queue\Adapter\Capabilities\AwaitMessagesCapableInterface;
+use Stakhanovist\Queue\Exception\QueueNotFoundException;
+use Stakhanovist\Queue\Exception\UnsupportedMethodCallException;
+use Stakhanovist\Queue\Message\Message;
+use Stakhanovist\Queue\Message\MessageIterator;
+use Stakhanovist\Queue\Parameter\ReceiveParameters;
 use Stakhanovist\Queue\Parameter\SendParameters;
-
-/*
- * The adapter test class provides a universal test class for all of the
- * abstract methods.
- *
- * All methods marked not supported are explictly checked for for throwing
- * an exception.
- */
+use Stakhanovist\Queue\Queue;
+use Stakhanovist\Queue\QueueOptions;
+use Zend\Config;
 
 /**
+ * Class AdapterTest
  *
- * @group      Stakhanovist_Queue
+ * This abstract class provides a universal test class for all of the abstract methods.
+ *
+ * All methods marked not supported are explictly checked for throwing an exception.
+ *
+ * @group adapter
  */
 abstract class AdapterTest extends \PHPUnit_Framework_TestCase
 {
-    public function tearDown()
-    {
-        $this->error = false;
-    }
-
     /**
-     * getAdapterName() is an method to help make AdapterTest work with any
-     * new adapters
+     * Provide the adapter class name
      *
-     * You must overload this method
+     * It is obtained from FQCN (@see getAdapterName()),
      *
      * @return string
      */
-    public function getAdapterName()
+    protected function getAdapterName()
     {
-        $this->fail('You must overload this function: getAdapterName()');
-
-        // example for \Stakhanovist\Queue\Adatper\ArrayAdapter
-        return 'ArrayAdapter';
+        return (new \ReflectionClass($this->getAdapterFullName()))->getShortName();
     }
 
     /**
-     * getAdapterName() is an method to help make AdapterTest work with any
-     * new adapters
+     * Provide the adapter FQCN
      *
-     * You may overload this method.  The default return is
-     * 'Stakhanovist_Queue_Adapter_' . $this->getAdapterName()
+     * Children adapter test MUST implement this method providing the FQN of the adapter class their are testing.
      *
      * @return string
      */
-    public function getAdapterFullName()
-    {
-        return '\Stakhanovist\Queue\Adapter\\' . $this->getAdapterName();
-    }
+    abstract public function getAdapterFullName();
 
     /**
-     * return the list of base test supported.
-     * If some special adapter doesnt' support one of these, this method should be ovveriden
-     * So test will expect an UnsupportedMethodCallException
+     * Return the list of base test supported
+     *
+     * If some special adapter doesnt' support one of these,
+     * this method should be ovveriden so test will expect an UnsupportedMethodCallException
      *
      * @return array
      */
-    public function getSupportedTests()
+    protected function getSupportedTests()
     {
-        return array(
-            'createQueue', 'deleteQueue', 'sendMessage', 'receiveMessages', 'getMessageInfo'
-        );
-    }
-
-    public function getTestOptions()
-    {
-        return array('driverOptions' => array());
+        return [
+            'createQueue',
+            'deleteQueue',
+            'sendMessage',
+            'receiveMessages',
+            'getMessageInfo'
+        ];
     }
 
     /**
-     * for ActiveMQ it uses /queue/ /temp-queue/ /topic/ /temp-topic/
+     * @return array
      */
-    public function createQueueName($name)
+    protected function getTestOptions()
+    {
+        return ['driverOptions' => []];
+    }
+
+    /**
+     * Create queue name
+     *
+     * NOTE: ActiveMQ it uses /queue/ /temp-queue/ /topic/ /temp-topic/
+     *
+     * @param $name
+     * @return
+     */
+    protected function createQueueName($name)
     {
         return $name;
     }
@@ -104,40 +101,36 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
     /**
      * This is a generic function that creates a queue
      *
-     * @param array $config, $config['name'] must be set.
-     *
-     * or
-     *
      * @param string $name - name of the queue to create
      * @param QueueOptions $options
      * @return Queue
      */
     protected function createQueue($name, QueueOptions $options = null)
     {
-
-        $adapter = AdapterFactory::factory(array(
-            'adapter' => $this->getAdapterFullName(),
-            'options' => $this->getTestOptions(),
-        ));
+        $adapter = AdapterFactory::factory(
+            [
+                'adapter' => $this->getAdapterFullName(),
+                'options' => $this->getTestOptions(),
+            ]
+        );
 
         $queue = new Queue($this->createQueueName($name), $adapter, $options);
 
-        if (!$adapter instanceof Adapter\Null) {
-             $queue->ensureQueue();
+        if (!$adapter instanceof Adapter\NullAdapter) {
+            $queue->ensureQueue();
         }
 
         return $queue;
     }
 
     /**
-     * @param AdapterInterface $adapter
      * @param array|string $needles
      * @return boolean
      */
-    protected function checkAdapterSupport(AdapterInterface $adapter, $needles)
+    protected function checkAdapterSupport($needles)
     {
         if (is_string($needles)) {
-            $needles = array($needles);
+            $needles = [$needles];
         }
 
         $supported = $this->getSupportedTests();
@@ -151,12 +144,16 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
         }
 
         if (!$hasSupport) {
-            $this->setExpectedException('Stakhanovist\Queue\Exception\UnsupportedMethodCallException');
+            $this->setExpectedException(UnsupportedMethodCallException::class);
         }
 
         return true;
     }
 
+    /**
+     * @param $info
+     * @param Queue $queue
+     */
     protected function checkMessageInfo($info, Queue $queue)
     {
         $this->assertInternalType('array', $info);
@@ -168,16 +165,15 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
         $this->assertSame($queue->getName(), $info['queueName']);
     }
 
-
     public function testSetGetOptions()
     {
         $queue = $this->createQueue(__FUNCTION__);
         $adapter = $queue->getAdapter();
-        $this->checkAdapterSupport($adapter, 'deleteQueue');
+        $this->checkAdapterSupport('deleteQueue');
 
-        $adapterOptions = array(
+        $adapterOptions = [
             'dummy' => 'dummyValue'
-        );
+        ];
 
 
         $adapter->setOptions($adapterOptions);
@@ -195,7 +191,7 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
     {
         $queue = $this->createQueue(__FUNCTION__);
         $adapter = $queue->getAdapter();
-        $this->checkAdapterSupport($adapter, 'deleteQueue');
+        $this->checkAdapterSupport('deleteQueue');
 
         $this->assertInternalType('array', $adapter->getAvailableSendParams());
 
@@ -207,7 +203,7 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
     {
         $queue = $this->createQueue(__FUNCTION__);
         $adapter = $queue->getAdapter();
-        $this->checkAdapterSupport($adapter, 'deleteQueue');
+        $this->checkAdapterSupport('deleteQueue');
 
         $this->assertInternalType('array', $adapter->getAvailableReceiveParams());
 
@@ -221,44 +217,45 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
         $class = $this->getAdapterFullName();
 
         try {
-            $obj = new $class(\true);
-            $this->fail('__construct() $config must be an array');
+            new $class(\true);
+            $this->fail('Constructor options must be an array');
         } catch (\Exception $e) {
             $this->assertTrue(true);
         }
 
         try {
-            $obj = new $class(array());
+            new $class([]);
             $this->fail('__construct() cannot accept an empty array for a configuration');
         } catch (\Exception $e) {
             $this->assertTrue(true);
         }
 
         try {
-            $obj = new $class(array('name' => 'queue1', 'driverOptions' => \true));
-            $this->fail('__construct() $config[\'options\'] must be an array');
+            new $class(['name' => 'queue1', 'driverOptions' => \true]);
+            $this->fail('Constructor options must be an array');
         } catch (\Exception $e) {
             $this->assertTrue(true);
         }
 
         try {
-            $obj = new $class(array('name' => 'queue1', 'driverOptions' => array('opt' => 'val')));
-            $this->fail('__construct() humm I think this test is supposed to work @TODO');
-        } catch (\Exception $e) {
-            $this->assertTrue(true);
-        }
-        try {
-            $config = new Config\Config(array('driverOptions' => array()));
-            $obj = new $class($config);
-            $this->fail('__construct() \'name\' is a required configuration value');
+            new $class(['name' => 'queue1', 'driverOptions' => ['opt' => 'val']]);
+            $this->fail('I think this test is supposed to work'); // FIXME
         } catch (\Exception $e) {
             $this->assertTrue(true);
         }
 
         try {
-            $config = new Config\Config(array('name' => 'queue1', 'driverOptions' => array(), 'options' => array('opt1' => 'val1')));
-            $obj = new $class($config);
-            $this->fail('__construct() is not supposed to accept a true value for a configuraiton');
+            $config = new Config\Config(['driverOptions' => []]);
+            new $class($config);
+            $this->fail('Constructor options required a \'name\' configuration value');
+        } catch (\Exception $e) {
+            $this->assertTrue(true);
+        }
+
+        try {
+            $config = new Config\Config(['name' => 'queue1', 'driverOptions' => [], 'options' => ['opt1' => 'val1']]);
+            new $class($config);
+            $this->fail('Constructor is not supposed to accept a true value for a configuration');
         } catch (\Exception $e) {
             $this->assertTrue(true);
         }
@@ -267,7 +264,7 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
         if (!$queue = $this->createQueue(__FUNCTION__)) {
             return;
         }
-        $obj = new $class();
+        $obj = new $class;
         $this->assertTrue($obj instanceof Adapter\AbstractAdapter);
     }
 
@@ -276,11 +273,11 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
     {
         $options = new QueueOptions();
 
-        $this->assertEquals('\Stakhanovist\Queue\Message\Message', $options->getMessageClass());
+        $this->assertEquals(Message::class, $options->getMessageClass());
 
         $queue = $this->createQueue(__FUNCTION__, $options);
         $adapter = $queue->getAdapter();
-        $this->checkAdapterSupport($adapter, array('sendMessage', 'receiveMessages', 'deleteQueue'));
+        $this->checkAdapterSupport('deleteQueue');
 
         $body = 'this is a test message';
         $message = new Message();
@@ -308,7 +305,7 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue($queue->getAdapter() instanceof Adapter\AbstractAdapter);
 
         $adapter = $queue->getAdapter();
-        $this->checkAdapterSupport($adapter, 'deleteQueue');
+        $this->checkAdapterSupport('deleteQueue');
 
         // delete the queue we created
         $adapter->deleteQueue($queue->getName());
@@ -319,7 +316,7 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
         $queue = $this->createQueue(__FUNCTION__);
 
         $adapter = $queue->getAdapter();
-        $this->checkAdapterSupport($adapter, 'deleteQueue');
+        $this->checkAdapterSupport('deleteQueue');
 
         $this->assertTrue($adapter->connect());
 
@@ -332,7 +329,7 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
         $queue = $this->createQueue(__FUNCTION__);
 
         $adapter = $queue->getAdapter();
-        $this->checkAdapterSupport($adapter, 'deleteQueue');
+        $this->checkAdapterSupport('deleteQueue');
 
         //test existing queue
         $this->assertNotEmpty($adapter->getQueueId($queue->getName()));
@@ -350,7 +347,7 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
     {
         $queue = $this->createQueue(__FUNCTION__);
         $adapter = $queue->getAdapter();
-        $this->checkAdapterSupport($adapter, array('createQueue', 'deleteQueue'));
+        $this->checkAdapterSupport('deleteQueue');
 
         // cannot recreate a queue.
         $this->assertFalse($adapter->createQueue($queue->getName()));
@@ -363,7 +360,7 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
     {
         $queue = $this->createQueue(__FUNCTION__);
         $adapter = $queue->getAdapter();
-        $this->checkAdapterSupport($adapter, array('createQueue', 'deleteQueue'));
+        $this->checkAdapterSupport('deleteQueue');
 
         $new = $this->createQueueName(__FUNCTION__ . '_2');
         $this->assertTrue($adapter->createQueue($new));
@@ -386,12 +383,12 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
         $queue = $this->createQueue(__FUNCTION__);
         $adapter = $queue->getAdapter();
 
-        if ($adapter instanceof Null) {
+        if ($adapter instanceof Adapter\NullAdapter) {
             $this->assertFalse($adapter->queueExists($queue->getName()));
             return;
         }
 
-        $this->checkAdapterSupport($adapter, array('createQueue', 'deleteQueue'));
+        $this->checkAdapterSupport('deleteQueue');
 
 
         $this->assertFalse($adapter->queueExists('perl'));
@@ -415,7 +412,7 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
     {
         $queue = $this->createQueue(__FUNCTION__);
         $adapter = $queue->getAdapter();
-        $this->checkAdapterSupport($adapter, array('sendMessage', 'receiveMessages', 'deleteQueue'));
+        $this->checkAdapterSupport('deleteQueue');
 
         $body = 'this is a test message';
         $message = new Message();
@@ -444,7 +441,7 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
 
         $queue = $this->createQueue(__FUNCTION__);
         $adapter = $queue->getAdapter();
-        $this->checkAdapterSupport($adapter, 'sendMessage');
+        $this->checkAdapterSupport('sendMessage');
 
         $nonExistingQueue = new Queue('non-existing-queue', $adapter);
         $adapter->sendMessage($nonExistingQueue, new Message);
@@ -454,7 +451,7 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
     {
         $queue = $this->createQueue(__FUNCTION__);
         $adapter = $queue->getAdapter();
-        $this->checkAdapterSupport($adapter, array('sendMessage', 'receiveMessages', 'deleteQueue'));
+        $this->checkAdapterSupport('deleteQueue');
 
 
         // send the message
@@ -484,7 +481,7 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
     {
         $queue = $this->createQueue(__FUNCTION__);
         $adapter = $queue->getAdapter();
-        $this->checkAdapterSupport($adapter, array('sendMessage', 'receiveMessages', 'deleteQueue'));
+        $this->checkAdapterSupport('deleteQueue');
 
         $infoKey = $queue->getOptions()->getMessageMetadatumKey();
         $body = 'this is a test message';
@@ -525,7 +522,7 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
             return;
         }
 
-        $this->checkAdapterSupport($adapter, array('sendMessage', 'receiveMessages', 'sendMessage'));
+        $this->checkAdapterSupport('sendMessage');
 
 
         $body = 'this is a test message';
@@ -581,7 +578,7 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
             return;
         }
 
-        $this->checkAdapterSupport($adapter, 'deleteQueue');
+        $this->checkAdapterSupport('deleteQueue');
 
         // get a listing of queues
         $queues = $adapter->listQueues();
@@ -609,7 +606,7 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
             return;
         }
 
-        $this->checkAdapterSupport($adapter, array('sendMessage', 'receiveMessages', 'deleteQueue'));
+        $this->checkAdapterSupport('deleteQueue');
 
         // for a test case, the count should be zero at first.
         $this->assertEquals($adapter->countMessages($queue), 0);
@@ -624,6 +621,7 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
         }
 
         // test queue count for being 1
+        /* @var $adapter CountMessagesCapableInterface */
         $this->assertEquals($adapter->countMessages($queue), 1);
 
         // receive the message
@@ -637,6 +635,7 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
          */
         if ($adapter instanceof DeleteMessageCapableInterface) {
             foreach ($message as $msg) {
+                /* @var $adapter DeleteMessageCapableInterface */
                 $adapter->deleteMessage($queue, $msg);
             }
 
@@ -656,29 +655,29 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
 
         // check to see if this function is supported
         if (!$adapter instanceof CountMessagesCapableInterface) {
-            $this->markTestSkipped('countMessages() is not supported');
+            $this->markTestSkipped('Method countMessages() is not supported');
             return;
         }
 
-        $this->setExpectedException('Stakhanovist\Queue\Exception\QueueNotFoundException');
+        $this->setExpectedException(QueueNotFoundException::class);
 
-        $nonExistingQueue = new Queue('non-existing-queue', new Null());
+        $nonExistingQueue = new Queue('non-existing-queue', new Adapter\NullAdapter);
         $adapter->countMessages($nonExistingQueue);
     }
 
-    /*
+    /**
      * Send about 10 messages, read 5 back, then read 5 back 1 at a time.
-     * delete all messages and created queue
+     * Delete all messages and created queue.
      */
     public function testSampleBehavior()
     {
         $queue = $this->createQueue(__FUNCTION__);
         $adapter = $queue->getAdapter();
 
-        $this->assertInstanceOf('Stakhanovist\Queue\Queue', $queue);
-        $this->assertInstanceOf('Stakhanovist\Queue\Adapter\AdapterInterface', $adapter);
+        $this->assertInstanceOf(Queue::class, $queue);
+        $this->assertInstanceOf(AdapterInterface::class, $adapter);
 
-        $this->checkAdapterSupport($adapter, array('sendMessage', 'receiveMessages', 'deleteQueue'));
+        $this->checkAdapterSupport('deleteQueue');
 
         for ($i = 0; $i < 10; $i++) {
             if (!$queue->send("{$i}")) {
@@ -713,9 +712,9 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * This tests to see if a message is in-visibile for the proper amount of time
+     * This test checks if a message is invisibile the proper amount of time
      *
-     * usually adapters that support deleteMessage() by nature will support visibility
+     * Usually adapters that support deleteMessage() by nature will support visibility.
      */
     public function testVisibilityTimeout()
     {
@@ -727,7 +726,7 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
         $queue = $this->createQueue(__FUNCTION__);
         $adapter = $queue->getAdapter();
 
-        $this->checkAdapterSupport($adapter, array('sendMessage', 'receiveMessages', 'deleteQueue'));
+        $this->checkAdapterSupport('deleteQueue');
 
         if (!$queue->isReceiveParamSupported(ReceiveParameters::VISIBILITY_TIMEOUT)) {
             $adapter->deleteQueue($queue->getName());
@@ -748,7 +747,6 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
         }
 
         $start = microtime(true);
-        $end = 0;
 
         $this->assertTrue($messages instanceof MessageIterator);
 
@@ -761,7 +759,9 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
             $search = $queue->receive(1);
             if ((microtime(true) - $check) > 0.1) {
                 $check = microtime(true);
-                if ($debug) echo "Checking - found ", count($search), " messages at : ", $check, "\n";
+                if ($debug) {
+                    echo "Checking - found ", count($search), " messages at : ", $check, "\n";
+                }
             }
             if (count($search) > 0) {
                 if ($search->current()->getContent() == $body) {
@@ -785,16 +785,21 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
         and so on, may take more than the timeout time.
         */
         if ($found) {
-            if (abs($end - $start - $default_timeout) < $extra_delay) { // stupid Db Adapter responds in a fraction less than a second.
-                $this->assertTrue(true, 'message was invisible for the required amount of time');
+            if (abs($end - $start - $default_timeout) < $extra_delay) {
+                // stupid Db Adapter responds in a fraction less than a second.
+                $this->assertTrue(true, 'Message was invisible for the required amount of time');
             } else {
-                if ($debug) echo 'Duration: ', $duration, "\n";
-                $this->fail('message was NOT invisible for the required amount of time');
+                if ($debug) {
+                    echo 'Duration: ', $duration, "\n";
+                }
+                $this->fail('Message was NOT invisible for the required amount of time');
             }
         } else {
-            $this->fail('message never became visibile duration:' . $duration);
+            $this->fail('Message never became visibile duration:' . $duration);
         }
-        if ($debug) echo "duration $duration\n";
+        if ($debug) {
+            echo "Duration $duration\n";
+        }
 
         // now we delete the messages
         if ($adapter instanceof DeleteMessageCapableInterface) {
@@ -803,7 +808,6 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
             }
         }
 
-
         // delete the queue we created
         $adapter->deleteQueue($queue->getName());
     }
@@ -811,18 +815,16 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
 
     public function testClassFilter()
     {
-
         $queue = $this->createQueue(__FUNCTION__);
         $adapter = $queue->getAdapter();
 
-        $this->checkAdapterSupport($adapter, array('sendMessage', 'receiveMessages', 'deleteQueue'));
+        $this->checkAdapterSupport('deleteQueue');
 
         if (!$queue->isReceiveParamSupported(ReceiveParameters::CLASS_FILTER)) {
             $adapter->deleteQueue($queue->getName());
             $this->markTestSkipped($this->getAdapterName() . ' does not support class filter');
             return;
         }
-
 
         $body = 'hello world';
 
@@ -862,7 +864,7 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
     {
         $queue = $this->createQueue(__FUNCTION__);
         $adapter = $queue->getAdapter();
-        $this->checkAdapterSupport($adapter, array('sendMessage', 'receiveMessages',  'deleteQueue'));
+        $this->checkAdapterSupport('deleteQueue');
 
         if (!$queue->isReceiveParamSupported(ReceiveParameters::PEEK_MODE)) {
             $this->markTestSkipped($this->getAdapterName() . ' does not support peek mode');
@@ -900,7 +902,7 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
     {
         $queue = $this->createQueue(__FUNCTION__);
         $adapter = $queue->getAdapter();
-        $this->checkAdapterSupport($adapter, array('sendMessage', 'receiveMessages', 'deleteQueue'));
+        $this->checkAdapterSupport('deleteQueue');
         $queue->send('My Test Message 1');
         $queue->send('My Test Message 2');
 
@@ -915,7 +917,7 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
     {
         $queue = $this->createQueue(__FUNCTION__);
         $adapter = $queue->getAdapter();
-        $this->checkAdapterSupport($adapter, array('receiveMessages', 'deleteQueue'));
+        $this->checkAdapterSupport('deleteQueue');
 
         $messages = $adapter->receiveMessages($queue);
         $this->assertEquals(0, count($messages));
@@ -932,7 +934,7 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
     {
         $queue = $this->createQueue(__FUNCTION__);
         $adapter = $queue->getAdapter();
-        $this->checkAdapterSupport($adapter, array('sendMessage', 'deleteQueue'));
+        $this->checkAdapterSupport('deleteQueue');
 
         if (!$adapter instanceof AwaitMessagesCapableInterface) {
             $this->markTestSkipped($this->getAdapterName() . ' does not support await');
@@ -943,29 +945,34 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
 
         $queue->send('foo');
 
-        $return = $adapter->awaitMessages($queue, function ($msgs) use (&$receiveCount, &$messages, $queue) {
-            $receiveCount++;
-            $messages = $msgs;
+        $return = $adapter->awaitMessages(
+            $queue,
+            function ($msgs) use (&$receiveCount, &$messages, $queue) {
+                $receiveCount++;
+                $messages = $msgs;
 
-            if ($receiveCount >= 5) {
-                return false; //stop await
+                if ($receiveCount >= 5) {
+                    return false; //stop await
+                }
+
+                $queue->send('foo');
+                return true; //continue await
             }
-
-            $queue->send('foo');
-            return true; //continue await
-        });
+        );
 
 
-        $this->assertInstanceOf(get_class($adapter),$return);
+        $this->assertInstanceOf(get_class($adapter), $return);
         $this->assertSame(5, $receiveCount);
         $this->assertInstanceOf($queue->getOptions()->getMessageSetClass(), $messages);
         $this->assertCount(1, $messages);
 
+        /* @var $message Message */
         $message = $messages->current();
         $this->assertInstanceOf($queue->getOptions()->getMessageClass(), $message);
         $this->assertSame('foo', $message->getContent());
 
         // delete the queue we created
+        /* @var $adapter DeleteMessageCapableInterface */
         $adapter->deleteQueue($queue->getName());
     }
 
@@ -973,7 +980,7 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
     {
         $queue = $this->createQueue(__FUNCTION__);
         $adapter = $queue->getAdapter();
-        $this->checkAdapterSupport($adapter, array('sendMessage', 'receiveMessages', 'deleteQueue'));
+        $this->checkAdapterSupport('deleteQueue');
 
         if (!$queue->isSendParamSupported(SendParameters::SCHEDULE)) {
             $this->markTestSkipped($this->getAdapterName() . ' does not support scheduling');
@@ -998,9 +1005,12 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
     {
         $queue = $this->createQueue(__FUNCTION__);
         $adapter = $queue->getAdapter();
-        $this->checkAdapterSupport($adapter, array('sendMessage', 'receiveMessages',  'deleteQueue'));
+        $this->checkAdapterSupport('deleteQueue');
 
-        if (!$queue->isSendParamSupported(SendParameters::SCHEDULE) || !$adapter instanceof DeleteMessageCapableInterface) {
+        if (
+            !$queue->isSendParamSupported(SendParameters::SCHEDULE) ||
+            !$adapter instanceof DeleteMessageCapableInterface
+        ) {
             $this->markTestSkipped($this->getAdapterName() . ' does not support unscheduling');
         }
 
@@ -1021,9 +1031,12 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
     {
         $queue = $this->createQueue(__FUNCTION__);
         $adapter = $queue->getAdapter();
-        $this->checkAdapterSupport($adapter, array('sendMessage', 'receiveMessages',  'deleteQueue'));
+        $this->checkAdapterSupport('deleteQueue');
 
-        if (!$queue->isSendParamSupported(SendParameters::REPEATING_INTERVAL) || !$adapter instanceof DeleteMessageCapableInterface) {
+        if (
+            !$queue->isSendParamSupported(SendParameters::REPEATING_INTERVAL) ||
+            !$adapter instanceof DeleteMessageCapableInterface
+        ) {
             $this->markTestSkipped($this->getAdapterName() . ' does not support repeating interval');
         }
 
@@ -1031,7 +1044,8 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
         $scheduleTime += 1;
         $queue->schedule('test repeating', $scheduleTime, 1); //repeat every second
 
-        for($i=0; $i<3; $i++) {
+        $message = null;
+        for ($i = 0; $i < 3; $i++) {
             sleep(1);
 
             $messages = $queue->receive();
@@ -1043,7 +1057,6 @@ abstract class AdapterTest extends \PHPUnit_Framework_TestCase
             $message = $messages->current();
             $queue->delete($message);
         }
-
         $queue->unschedule($message);
 
         $messages = $queue->receive();

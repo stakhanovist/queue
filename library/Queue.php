@@ -9,31 +9,29 @@
 
 namespace Stakhanovist\Queue;
 
-use Countable;
-use Traversable;
-use Zend\Stdlib\ArrayUtils;
-use Zend\Stdlib\MessageInterface;
-use Stakhanovist\Queue\Exception;
+use Stakhanovist\Queue\Adapter\AdapterFactory;
 use Stakhanovist\Queue\Adapter\AdapterInterface;
 use Stakhanovist\Queue\Adapter\Capabilities\AwaitMessagesCapableInterface;
 use Stakhanovist\Queue\Adapter\Capabilities\CountMessagesCapableInterface;
 use Stakhanovist\Queue\Adapter\Capabilities\DeleteMessageCapableInterface;
-use Stakhanovist\Queue\Parameter\SendParametersInterface;
-use Stakhanovist\Queue\Parameter\ReceiveParametersInterface;
-use Zend\EventManager\EventManagerInterface;
-use Zend\EventManager\Event;
-use Stakhanovist\Queue\Adapter\AdapterFactory;
-use Zend\EventManager\EventManager;
+use Stakhanovist\Queue\Exception;
 use Stakhanovist\Queue\Message\MessageIterator;
-use Zend\EventManager\EventManagerAwareInterface;
+use Stakhanovist\Queue\Parameter\ReceiveParametersInterface;
 use Stakhanovist\Queue\Parameter\SendParameters;
+use Stakhanovist\Queue\Parameter\SendParametersInterface;
+use Traversable;
+use Zend\EventManager\Event;
+use Zend\EventManager\EventManager;
+use Zend\EventManager\EventManagerAwareInterface;
+use Zend\EventManager\EventManagerInterface;
+use Zend\Stdlib\ArrayUtils;
+use Zend\Stdlib\MessageInterface;
 
 /**
- *
+ * Class Queue
  */
 class Queue implements QueueClientInterface, EventManagerAwareInterface
 {
-
     /**
      * Queue name
      *
@@ -126,7 +124,13 @@ class Queue implements QueueClientInterface, EventManagerAwareInterface
         $options = null;
         if (isset($config['options'])) {
             if (!is_array($config['options'])) {
-                throw new Exception\InvalidArgumentException('"options" must be an array, ' . gettype($config['options']) . ' given.');
+                throw new Exception\InvalidArgumentException(
+                    sprintf(
+                        '"%s" must be an array; "%s" given.',
+                        'options',
+                        gettype($config['options'])
+                    )
+                );
             }
             $options = new QueueOptions($config['options']);
         }
@@ -176,7 +180,7 @@ class Queue implements QueueClientInterface, EventManagerAwareInterface
      */
     public function getAdapter()
     {
-        //Ensure connection at first using
+        // Ensure connection at first using
         if (!$this->adapterConnected) {
             $this->adapterConnected = $this->adapter->connect();
         }
@@ -223,7 +227,7 @@ class Queue implements QueueClientInterface, EventManagerAwareInterface
         /**
          * @see Adapter\Null
          */
-        $this->adapter = new Adapter\Null();
+        $this->adapter = new Adapter\NullAdapter;
 
         return $deleted;
     }
@@ -238,13 +242,15 @@ class Queue implements QueueClientInterface, EventManagerAwareInterface
      */
     public function send($message, SendParametersInterface $params = null)
     {
-        if (!($message instanceof MessageInterface)) {
+        if (!$message instanceof MessageInterface) {
             $data = $message;
             $messageClass = $this->getOptions()->getMessageClass();
             if (is_string($data)) {
+                /** @var $message MessageInterface */
                 $message = new $messageClass;
                 $message->setContent($data);
             } elseif (is_array($data) && isset($data['content'])) {
+                /** @var $message MessageInterface */
                 $message = new $messageClass;
                 $message->setContent((string)$data['content']);
                 if (isset($data['metadata'])) {
@@ -284,11 +290,18 @@ class Queue implements QueueClientInterface, EventManagerAwareInterface
      */
     public function await(ReceiveParametersInterface $params = null)
     {
-        $adapter  = $this->getAdapter();
+        /* @var $adapter AdapterInterface */
+        $adapter = $this->getAdapter();
         $adapterCanAwait = $adapter instanceof AwaitMessagesCapableInterface;
 
         if (!$adapterCanAwait && !$this->getOptions()->getEnableAwaitEmulation()) {
-            throw new Exception\UnsupportedMethodCallException(__FUNCTION__ . '() is not supported by ' . get_class($this->getAdapter()) . ' and await emulation is not enabled.');
+            throw new Exception\UnsupportedMethodCallException(
+                sprintf(
+                    '%s() is not supported by "%s" and await emulation is not enabled',
+                    __FUNCTION__,
+                    get_class($this->getAdapter())
+                )
+            );
         }
 
         $eventManager = $this->getEventManager();
@@ -310,6 +323,7 @@ class Queue implements QueueClientInterface, EventManagerAwareInterface
         };
 
         if ($adapterCanAwait) {
+            /* @var $adapter AwaitMessagesCapableInterface */
             $adapter->awaitMessages($this, $callback, $params);
         } else { //else, await emulation (polling)
 
@@ -322,12 +336,11 @@ class Queue implements QueueClientInterface, EventManagerAwareInterface
                 if ($continue && $messages->count() < 1) {
                     sleep($pollingInterval);
                 }
-            } while($continue);
+            } while ($continue);
         }
 
         return $this;
     }
-
 
 
     /**
@@ -340,7 +353,13 @@ class Queue implements QueueClientInterface, EventManagerAwareInterface
     {
         $adapter = $this->getAdapter();
         if (!$adapter instanceof CountMessagesCapableInterface) {
-            throw new Exception\UnsupportedMethodCallException(__FUNCTION__ . '() is not supported by ' . get_class($this->getAdapter()));
+            throw new Exception\UnsupportedMethodCallException(
+                sprintf(
+                    '%s() is not supported by "%s"',
+                    __FUNCTION__,
+                    get_class($this->getAdapter())
+                )
+            );
         }
 
         return $adapter->countMessages($this);
@@ -361,7 +380,13 @@ class Queue implements QueueClientInterface, EventManagerAwareInterface
     {
         $adapter = $this->getAdapter();
         if (!$adapter instanceof DeleteMessageCapableInterface) {
-            throw new Exception\UnsupportedMethodCallException(__FUNCTION__ . '() is not supported by ' . get_class($this->getAdapter()));
+            throw new Exception\UnsupportedMethodCallException(
+                sprintf(
+                    '%s() is not supported by "%s"',
+                    __FUNCTION__,
+                    get_class($this->getAdapter())
+                )
+            );
         }
 
         return $adapter->deleteMessage($this, $message);
@@ -378,14 +403,30 @@ class Queue implements QueueClientInterface, EventManagerAwareInterface
      * @return MessageInterface
      * @throws Exception\UnsupportedMethodCallException
      */
-    public function schedule($message, $scheduleTime = null, $repeatingInterval = null, SendParametersInterface $params = null)
-    {
+    public function schedule(
+        $message,
+        $scheduleTime = null,
+        $repeatingInterval = null,
+        SendParametersInterface $params = null
+    ) {
         if (!$this->isSendParamSupported(SendParametersInterface::SCHEDULE)) {
-            throw new Exception\UnsupportedMethodCallException('\'' . SendParametersInterface::SCHEDULE . '\' param is not supported by ' . get_class($this->getAdapter()));
+            throw new Exception\UnsupportedMethodCallException(
+                sprintf(
+                    '"%s"" param is not supported by "%s"',
+                    SendParametersInterface::SCHEDULE,
+                    get_class($this->getAdapter())
+                )
+            );
         }
 
         if ($repeatingInterval !== null && !$this->isSendParamSupported(SendParametersInterface::REPEATING_INTERVAL)) {
-            throw new Exception\InvalidArgumentException('\'' . SendParametersInterface::REPEATING_INTERVAL . '\' param is not supported by ' . get_class($this->getAdapter()));
+            throw new Exception\InvalidArgumentException(
+                sprintf(
+                    '"%s"" param is not supported by "%s"',
+                    SendParametersInterface::REPEATING_INTERVAL,
+                    get_class($this->getAdapter())
+                )
+            );
         }
 
         if ($params === null) {
@@ -393,7 +434,7 @@ class Queue implements QueueClientInterface, EventManagerAwareInterface
         }
 
         $params->setSchedule($scheduleTime)
-               ->setRepeatingInterval($repeatingInterval);
+            ->setRepeatingInterval($repeatingInterval);
 
         return $this->send($message, $params);
     }
@@ -409,7 +450,11 @@ class Queue implements QueueClientInterface, EventManagerAwareInterface
     {
         if (!$this->isSendParamSupported(SendParametersInterface::SCHEDULE) || !$this->canDeleteMessage()) {
             throw new Exception\UnsupportedMethodCallException(
-                '\'' . SendParametersInterface::SCHEDULE . '\' param or delete message capabilities are not supported by ' . get_class($this->getAdapter())
+                sprintf(
+                    '"%s"" param or delete message capabilities are not supported by "%s"',
+                    SendParametersInterface::SCHEDULE,
+                    get_class($this->getAdapter())
+                )
             );
         }
 
@@ -434,11 +479,19 @@ class Queue implements QueueClientInterface, EventManagerAwareInterface
      * Available Parameters
      *********************************************************************/
 
+    /**
+     * @param bool $name
+     * @return bool
+     */
     public function isSendParamSupported($name)
     {
         return in_array($name, $this->getAdapter()->getAvailableSendParams());
     }
 
+    /**
+     * @param bool $name
+     * @return bool
+     */
     public function isReceiveParamSupported($name)
     {
         return in_array($name, $this->getAdapter()->getAvailableReceiveParams());
@@ -457,7 +510,8 @@ class Queue implements QueueClientInterface, EventManagerAwareInterface
      */
     public function canAwait()
     {
-        return ($this->getAdapter() instanceof AwaitMessagesCapableInterface) || $this->getOptions()->getEnableAwaitEmulation();
+        return ($this->getAdapter() instanceof AwaitMessagesCapableInterface) || $this->getOptions(
+        )->getEnableAwaitEmulation();
     }
 
     /**
@@ -469,7 +523,8 @@ class Queue implements QueueClientInterface, EventManagerAwareInterface
      */
     public function isAwaitEmulation()
     {
-        return !($this->getAdapter() instanceof AwaitMessagesCapableInterface) && $this->getOptions()->getEnableAwaitEmulation();
+        return !($this->getAdapter() instanceof AwaitMessagesCapableInterface) && $this->getOptions(
+        )->getEnableAwaitEmulation();
     }
 
     /**
@@ -499,7 +554,7 @@ class Queue implements QueueClientInterface, EventManagerAwareInterface
 
     /********************************************************************
      * Event
-    *********************************************************************/
+     *********************************************************************/
 
     /**
      * Set the event manager instance used by this context
@@ -509,11 +564,13 @@ class Queue implements QueueClientInterface, EventManagerAwareInterface
      */
     public function setEventManager(EventManagerInterface $events)
     {
-        $events->setIdentifiers(array(
-            __CLASS__,
-            get_class($this),
-            $this->getName(),
-        ));
+        $events->setIdentifiers(
+            [
+                __CLASS__,
+                get_class($this),
+                $this->getName(),
+            ]
+        );
         $this->events = $events;
         return $this;
     }
@@ -528,7 +585,7 @@ class Queue implements QueueClientInterface, EventManagerAwareInterface
     public function getEventManager()
     {
         if (!$this->events) {
-            $this->setEventManager(new EventManager());
+            $this->setEventManager(new EventManager);
         }
 
         return $this->events;
@@ -573,7 +630,7 @@ class Queue implements QueueClientInterface, EventManagerAwareInterface
 
     /********************************************************************
      * Debug
-    *********************************************************************/
+     *********************************************************************/
 
     /**
      * returns a listing of Queue details.
@@ -583,7 +640,7 @@ class Queue implements QueueClientInterface, EventManagerAwareInterface
      */
     public function debugInfo()
     {
-        $info = array();
+        $info = [];
         $info['self'] = get_called_class();
         $info['adapter'] = get_class($this->getAdapter());
         $info['name'] = $this->getName();
@@ -592,6 +649,4 @@ class Queue implements QueueClientInterface, EventManagerAwareInterface
 
         return $info;
     }
-
-
 }

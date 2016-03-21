@@ -1,18 +1,24 @@
 <?php
 namespace StakhanovistQueueTest\Parameter;
 
+use Stakhanovist\Queue\Exception\InvalidArgumentException;
 use Stakhanovist\Queue\Parameter\SendParameters;
 
+/**
+ * Class SendParameterTest
+ *
+ * @group parameter
+ */
 class SendParameterTest extends \PHPUnit_Framework_TestCase
 {
     /**
-     * @var \Stakhanovist\Queue\Parameter\SendParameters
+     * @var SendParameters
      */
     protected $sendParameter;
 
     public function setUp()
     {
-        $this->sendParameter = new SendParameters();
+        $this->sendParameter = new SendParameters;
     }
 
     public function testSetGetSchedule()
@@ -24,7 +30,7 @@ class SendParameterTest extends \PHPUnit_Framework_TestCase
 
     public function testSetScheduleInvalidArgument()
     {
-        $this->setExpectedException('Stakhanovist\Queue\Exception\InvalidArgumentException');
+        $this->setExpectedException(InvalidArgumentException::class);
         $this->sendParameter->setSchedule('fndfnfbd');
     }
 
@@ -37,8 +43,7 @@ class SendParameterTest extends \PHPUnit_Framework_TestCase
 
     public function testRepeatingIntervalInvalidArgument()
     {
-        $this->setExpectedException('Stakhanovist\Queue\Exception\InvalidArgumentException');
+        $this->setExpectedException(InvalidArgumentException::class);
         $this->sendParameter->setRepeatingInterval('fndfnfbd');
     }
-
 }

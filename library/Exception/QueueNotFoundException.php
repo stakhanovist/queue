@@ -10,8 +10,9 @@
 namespace Stakhanovist\Queue\Exception;
 
 /**
- * This Exception will throw, when queue not found
+ * Class QueueNotFoundException
  *
+ * This Exception will throw, when queue not found
  */
 class QueueNotFoundException extends RuntimeException
 {

@@ -12,9 +12,8 @@ namespace Stakhanovist\Queue\Message;
 use Zend\Stdlib\Message as StdMessage;
 
 /**
- *
+ * Class Message
  */
 class Message extends StdMessage
 {
-
 }

@@ -9,9 +9,8 @@
 
 namespace Stakhanovist\Queue\Adapter;
 
-use Zend\ServiceManager\AbstractPluginManager;
-use Stakhanovist\Queue\Adapter\AdapterInterface;
 use Stakhanovist\Queue\Exception;
+use Zend\ServiceManager\AbstractPluginManager;
 
 /**
  * Plugin manager implementation for queue adapters
@@ -27,13 +26,13 @@ class AdapterPluginManager extends AbstractPluginManager
      *
      * @var array
      */
-    protected $invokableClasses = array(
-        'arrayadapter' => 'Stakhanovist\Queue\Adapter\ArrayAdapter',
+    protected $invokableClasses = [
+        'array' => 'Stakhanovist\Queue\Adapter\ArrayAdapter',
         'db' => 'Stakhanovist\Queue\Adapter\Db',
-        'mongocapped' => 'Stakhanovist\Queue\Adapter\MongoCappedCollection',
-        'mongo' => 'Stakhanovist\Queue\Adapter\MongoCollection',
-        'null' => 'Stakhanovist\Queue\Adapter\Null',
-    );
+        'mongodb-capped' => 'Stakhanovist\Queue\Adapter\MongoCappedCollection',
+        'mongodb' => 'Stakhanovist\Queue\Adapter\MongoCollection',
+        'null' => 'Stakhanovist\Queue\Adapter\NullAdapter',
+    ];
 
     /**
      * Do not share by default
@@ -48,7 +47,7 @@ class AdapterPluginManager extends AbstractPluginManager
      * Checks that the adapter loaded is an instance of AdapterInterface.
      *
      * @param  mixed $plugin
-     * @return void
+     * @return null
      * @throws Exception\RuntimeException if invalid
      */
     public function validatePlugin($plugin)

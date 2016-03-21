@@ -9,11 +9,13 @@
 
 namespace Stakhanovist\Queue\Service;
 
+use Stakhanovist\Queue\Adapter\AdapterFactory;
 use Zend\ServiceManager\AbstractFactoryInterface;
 use Zend\ServiceManager\ServiceLocatorInterface;
-use Stakhanovist\Queue\Adapter\AdapterFactory;
 
 /**
+ * Class QueueAdapterAbstractServiceFactory
+ *
  * Queue adapter factory for multiple adapters.
  */
 class QueueAdapterAbstractServiceFactory implements AbstractFactoryInterface
@@ -97,7 +99,7 @@ class QueueAdapterAbstractServiceFactory implements AbstractFactoryInterface
         if (!isset($config[$this->configKey])
             || !is_array($config[$this->configKey])
         ) {
-            $this->config = array();
+            $this->config = [];
             return $this->config;
         }
 

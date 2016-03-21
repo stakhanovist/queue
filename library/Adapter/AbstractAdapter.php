@@ -9,12 +9,12 @@
 
 namespace Stakhanovist\Queue\Adapter;
 
+use Stakhanovist\Queue\Exception;
+use Stakhanovist\Queue\QueueInterface as Queue;
 use Traversable;
 use Zend\Stdlib\ArrayUtils;
 use Zend\Stdlib\MessageInterface;
 use Zend\Stdlib\ParametersInterface;
-use Stakhanovist\Queue\Exception;
-use Stakhanovist\Queue\QueueInterface as Queue;
 
 /**
  * Abstract class for performing common operations.
@@ -27,16 +27,16 @@ abstract class AbstractAdapter implements AdapterInterface
      *
      * @var array
      */
-    private $options = array();
+    private $options = [];
 
     /**
      * Default options
      *
      * @var array
      */
-    protected $defaultOptions = array(
-        'driverOptions' => array()
-    );
+    protected $defaultOptions = [
+        'driverOptions' => []
+    ];
 
     /**
      * Constructor.
@@ -47,7 +47,7 @@ abstract class AbstractAdapter implements AdapterInterface
      * @param  array|Traversable $options An array having configuration data
      * @throws Exception\InvalidArgumentException
      */
-    public function __construct($options = array())
+    public function __construct($options = [])
     {
         $this->setOptions($options);
     }
@@ -60,7 +60,6 @@ abstract class AbstractAdapter implements AdapterInterface
      */
     public function setOptions($options)
     {
-
         if ($options instanceof Traversable) {
             $options = ArrayUtils::iteratorToArray($options);
         }
@@ -72,7 +71,7 @@ abstract class AbstractAdapter implements AdapterInterface
             throw new Exception\InvalidArgumentException('Adapter options must be an array or Traversable object');
         }
 
-        $driverOptions = isset($this->options['driverOptions']) ? $this->options['driverOptions'] : array();
+        $driverOptions = isset($this->options['driverOptions']) ? $this->options['driverOptions'] : [];
 
         if (array_key_exists('driverOptions', $options)) {
             // can't use array_merge() because keys might be integers
@@ -104,7 +103,7 @@ abstract class AbstractAdapter implements AdapterInterface
      */
     public function getAvailableSendParams()
     {
-        return array();
+        return [];
     }
 
     /**
@@ -114,7 +113,7 @@ abstract class AbstractAdapter implements AdapterInterface
      */
     public function getAvailableReceiveParams()
     {
-        return array();
+        return [];
     }
 
     /**
@@ -129,14 +128,14 @@ abstract class AbstractAdapter implements AdapterInterface
     protected function buildMessageInfo($handle, $id, $queue, $options = null)
     {
         $name = $queue instanceof Queue ? $queue->getName() : (string)$queue;
-        return array(
+        return [
             'handle' => $handle,
             'messageId' => $id,
             'queueId' => $this->getQueueId($name),
             'queueName' => $name,
             'adapter' => get_called_class(),
             'options' => $options instanceof ParametersInterface ? $options->toArray() : (array) $options,
-        );
+        ];
     }
 
     /**
@@ -150,7 +149,10 @@ abstract class AbstractAdapter implements AdapterInterface
      */
     protected function embedMessageInfo(Queue $queue, MessageInterface $message, $id, $options = null)
     {
-        $message->setMetadata($queue->getOptions()->getMessageMetadatumKey(), $this->buildMessageInfo(false, $id, $queue, $options));
+        $message->setMetadata(
+            $queue->getOptions()->getMessageMetadatumKey(),
+            $this->buildMessageInfo(false, $id, $queue, $options)
+        );
     }
 
     /**

@@ -9,24 +9,19 @@
 
 namespace StakhanovistQueueTest;
 
-use Zend\Config\Config;
 use Stakhanovist\Queue\Adapter;
 use Stakhanovist\Queue\Message\Message;
+use Stakhanovist\Queue\Message\MessageIterator;
 use Stakhanovist\Queue\Queue;
 use Stakhanovist\Queue\QueueOptions;
-use Stakhanovist\Queue\Adapter\ArrayAdapter;
-use Stakhanovist\Queue\Message\MessageIterator;
-use Stakhanovist\Queue\Parameter\SendParameters;
-use Stakhanovist\Queue\Adapter\Null;
-use Stakhanovist\Queue\QueueEvent;
 
 /**
+ * Class QueueOptionsTest
  *
- * @group      Stakhanovist_Queue
+ * @group queue
  */
 class QueueOptionsTest extends \PHPUnit_Framework_TestCase
 {
-
     /**
      * @var QueueOptions
      */
@@ -45,24 +40,23 @@ class QueueOptionsTest extends \PHPUnit_Framework_TestCase
 
     protected function tearDown()
     {
-
     }
 
     public function testGetSetMessageClass()
     {
         //test default value
-        $this->assertSame('\Stakhanovist\Queue\Message\Message', $this->options->getMessageClass());
+        $this->assertSame(Message::class, $this->options->getMessageClass());
 
-        $this->assertInstanceOf('Stakhanovist\Queue\QueueOptions', $this->options->setMessageClass('foo'));
+        $this->assertInstanceOf(QueueOptions::class, $this->options->setMessageClass('foo'));
         $this->assertSame('foo', $this->options->getMessageClass());
     }
 
     public function testGetSetMessageSetClass()
     {
         //test default value
-        $this->assertSame('\Stakhanovist\Queue\Message\MessageIterator', $this->options->getMessageSetClass());
+        $this->assertSame(MessageIterator::class, $this->options->getMessageSetClass());
 
-        $this->assertInstanceOf('Stakhanovist\Queue\QueueOptions', $this->options->setMessageSetClass('foo'));
+        $this->assertInstanceOf(QueueOptions::class, $this->options->setMessageSetClass('foo'));
         $this->assertSame('foo', $this->options->getMessageSetClass());
     }
 
@@ -71,7 +65,7 @@ class QueueOptionsTest extends \PHPUnit_Framework_TestCase
         //test default value
         $this->assertSame('__queue', $this->options->getMessageMetadatumKey());
 
-        $this->assertInstanceOf('Stakhanovist\Queue\QueueOptions', $this->options->setMessageMetadatumKey('foo'));
+        $this->assertInstanceOf(QueueOptions::class, $this->options->setMessageMetadatumKey('foo'));
         $this->assertSame('foo', $this->options->getMessageMetadatumKey());
     }
 
@@ -80,7 +74,7 @@ class QueueOptionsTest extends \PHPUnit_Framework_TestCase
         //test default value
         $this->assertSame(true, $this->options->getEnableAwaitEmulation());
 
-        $this->assertInstanceOf('Stakhanovist\Queue\QueueOptions', $this->options->setEnableAwaitEmulation(true));
+        $this->assertInstanceOf(QueueOptions::class, $this->options->setEnableAwaitEmulation(true));
         $this->assertSame(true, $this->options->getEnableAwaitEmulation());
     }
 
@@ -89,8 +83,7 @@ class QueueOptionsTest extends \PHPUnit_Framework_TestCase
         //test default value
         $this->assertSame(1, $this->options->getPollingInterval());
 
-        $this->assertInstanceOf('Stakhanovist\Queue\QueueOptions', $this->options->setPollingInterval(10));
+        $this->assertInstanceOf(QueueOptions::class, $this->options->setPollingInterval(10));
         $this->assertSame(10, $this->options->getPollingInterval());
     }
-
 }

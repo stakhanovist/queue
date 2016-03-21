@@ -9,35 +9,38 @@
 
 namespace Stakhanovist\Queue;
 
+use Stakhanovist\Queue\Message\Message;
+use Stakhanovist\Queue\Message\MessageIterator;
 use Zend\Stdlib\AbstractOptions;
 
+/**
+ * Class QueueOptions
+ */
 class QueueOptions extends AbstractOptions implements QueueOptionsInterface
 {
+    /**
+     * @var array
+     */
+    protected $driverOptions = [];
 
     /**
      * @var array
      */
-    protected $driverOptions = array();
-
-    /**
-     * @var array
-     */
-    protected $adapterOptions = array();
-
+    protected $adapterOptions = [];
 
     /**
      * The default message class
      *
      * @var string
      */
-    protected $messageClass = '\Stakhanovist\Queue\Message\Message';
+    protected $messageClass = Message::class;
 
     /**
      * default message set (iterator) class
      *
      * @var string
      */
-    protected $messageSetClass = '\Stakhanovist\Queue\Message\MessageIterator';
+    protected $messageSetClass = MessageIterator::class;
 
     /**
      * Metadata key name used to inject queue info into message
@@ -123,7 +126,7 @@ class QueueOptions extends AbstractOptions implements QueueOptionsInterface
 
     /**
      * @param bool $flag
-     * @return \Stakhanovist\Queue\QueueOptions
+     * @return QueueOptions
      */
     public function setEnableAwaitEmulation($flag)
     {
@@ -156,5 +159,4 @@ class QueueOptions extends AbstractOptions implements QueueOptionsInterface
     {
         return $this->pollingInterval;
     }
-
 }

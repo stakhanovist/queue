@@ -9,39 +9,56 @@
 
 namespace StakhanovistQueueTest\Adapter;
 
-use Zend\ServiceManager\Config;
-use Zend\Stdlib\ArrayObject;
 use Stakhanovist\Queue\Adapter;
+use Stakhanovist\Queue\Exception\RuntimeException;
+use Zend\ServiceManager\Config;
+use Zend\ServiceManager\ServiceManager;
 
 /**
+ * Class AdapterPluginManagerTest
  *
- * @group      Stakhanovist_Queue
+ * @group adapter
  */
 class AdapterPluginManagerTest extends \PHPUnit_Framework_TestCase
 {
+    /**
+     * @var Adapter\AdapterPluginManager
+     */
     protected $pluginManager;
+
+    /**
+     * @var ServiceManager
+     */
     protected $serviceManager;
 
     public function setUp()
     {
-        $this->serviceManager = new \Zend\ServiceManager\ServiceManager();
-        $this->pluginManager = new Adapter\AdapterPluginManager(new Config(array(
-            'invoke' => array(
-                'null' => 'Stakhanovist\Queue\Adapter\Null',
+        $this->serviceManager = new ServiceManager;
+        $this->pluginManager = new Adapter\AdapterPluginManager(
+            new Config(
+                [
+                    'invoke' => [
+                        'null' => Adapter\NullAdapter::class,
+                    ]
+                ]
             )
-        )));
+        );
     }
 
     public function testAddAdapterThatImplementAdapterInterface()
     {
-        $adapter = $this->getMock("Stakhanovist\Queue\Adapter\Null");
-        $this->assertNull($this->pluginManager->validatePlugin($adapter));
+        $adapter = $this->getMock(Adapter\NullAdapter::class);
+        $this->assertNull(
+            $this->pluginManager->validatePlugin($adapter)
+        );
     }
 
     public function testAddString()
     {
-        $this->setExpectedException("Stakhanovist\Queue\Exception\RuntimeException");
-        $adapter = "i'm not an adapter";
-        $this->assertNull($this->pluginManager->validatePlugin($adapter));
+        $this->setExpectedException(RuntimeException::class);
+        $adapter = 'I\'m not an adapter mate';
+        $this->assertNull(
+            $this->pluginManager->validatePlugin($adapter)
+        );
     }
 }

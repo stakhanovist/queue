@@ -10,8 +10,9 @@
 namespace Stakhanovist\Queue\Exception;
 
 /**
- * Exception for Queue component.
+ * Class RangeException
  *
+ * Exception for Queue component.
  */
 class RangeException extends \RangeException implements ExceptionInterface
 {

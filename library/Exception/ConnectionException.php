@@ -10,6 +10,8 @@
 namespace Stakhanovist\Queue\Exception;
 
 /**
+ * Class ConnectionException
+ *
  * This Exception will throw, when connection is not good.
  */
 class ConnectionException extends RuntimeException

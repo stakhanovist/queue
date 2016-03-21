@@ -11,6 +11,9 @@ namespace Stakhanovist\Queue\Adapter\Capabilities;
 
 use Stakhanovist\Queue\Adapter\AdapterInterface;
 
+/**
+ * Interface ListQueuesCapableInterface
+ */
 interface ListQueuesCapableInterface extends AdapterInterface
 {
     /**

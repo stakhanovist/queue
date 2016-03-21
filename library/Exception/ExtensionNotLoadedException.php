@@ -10,8 +10,9 @@
 namespace Stakhanovist\Queue\Exception;
 
 /**
- * Exception for Queue component.
+ * Class ExtensionNotLoadedException
  *
+ * Exception for Queue component.
  */
 class ExtensionNotLoadedException extends RuntimeException
 {

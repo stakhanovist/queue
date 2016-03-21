@@ -9,9 +9,12 @@
 
 namespace Stakhanovist\Queue\Parameter;
 
-use Zend\Stdlib\Parameters;
 use Stakhanovist\Queue\Exception;
+use Zend\Stdlib\Parameters;
 
+/**
+ * Class SendParameters
+ */
 class SendParameters extends Parameters implements SendParametersInterface
 {
     /**
@@ -77,5 +80,4 @@ class SendParameters extends Parameters implements SendParametersInterface
     {
         return $this->get(self::REPEATING_INTERVAL, false);
     }
-
 }
