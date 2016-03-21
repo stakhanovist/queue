@@ -21,16 +21,17 @@ Currenty, the following **message queue services** are supported:
 
     > Already included in this library
 
-## Usage
-
-**WIP**
 
 ## Installation
 
 Install it using [composer](http://getcomposer.org).
 
+Add the following to your `composer.json` file:
+
 ```
-composer require "stakhanovist/queue"
+"require": {
+    "stakhanovist/queue": "~0.2.0",
+}
 ```
 
 ## License
